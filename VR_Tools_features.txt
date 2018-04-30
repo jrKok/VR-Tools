@@ -1,0 +1,22 @@
+﻿VR Tools : A plugin for X Plane aimed at native VR
+actually implemented (30 April 2018) :
++ One custom command to display FPS on demand in a separate small window
++ A custom command to filter the custom commands mapped to the trackpad or the stick of the standard controllers used by HTC vive or touch controllers
++ A text reader/streamer :
+ - displays the whole content of a text file (.txt) in text format (UTF-8, standard on X Plane)
+ - load any file with a file picker directly in VR
+ - delete any lines from the display (not a physical delete, only delete from display)
+ - the plugin can manually or autoreload the content of a text file, thus mimicking streaming if the text file is updated during the sesssion
+ - ANSI to UTF-8 conversion
+ - detect NAV, ADF or COM frequencies in a selected line, can be transferred into standy frequencies of matching radio NAV tools
+ - intuitive resizing of display by dragging borders of the window displaying the file
+ - adapt display to day/night status of flight
+
+Currently under development :
+ - a .ini file to preset options, file, directory
+
+Future developments :
+ - increase menu options to control display by plugin menu in X Plane 
+ - increase mappable commands to enhance controls to navigate the text file in VR
+ - possibility to edit the file directly in VR without physical keyboard
+
