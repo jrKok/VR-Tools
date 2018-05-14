@@ -20,11 +20,13 @@ XPLMDataRef g_vr_dref,g_FPS,dref_SunPitch;
 static bool g_in_vr = false;
 static float g_vr_button_lbrt[4]; // left, bottom, right, top
 XPLMCommandRef CommandFPS = NULL,CommandFilter=NULL,CommandText=NULL;
+XPLMCommandRef CmdFirstLine(NULL),CmdNextLine(NULL),CmdPrevLine(NULL),CmdDelLine(NULL),CmdReload(NULL);
 ShowDir *dispDir;
 
-float cyan[] = {0.0f, 1.0f, 1.0f};
-float green[]={0.0f,0.95f,0.0f};
 float gray[] = {0.375f, 0.375f, 0.368f};
+float cyan[] = {0.0f, 1.0f, 1.0f};
+//float green[]={0.0f,0.95f,0.0f};
+/*
 float lightergray[]={0.725f,0.725f,0.770f};
 float paperWhitesomber[] = {0.9529f,0.7686f,0.4706f};
 //float red[]= {0.90f,0.0f,0.0f};
@@ -32,12 +34,13 @@ float darkgray[]={0.009f,0.009f,0.009f};
 float blackpaper[]={0.020f,0.020f,0.020f};
 float colorPaper[]={0.9922f,0.9608f,0.9098f}; //Duron paper white
 float colorInk[]={0.005f,0.005f,0.005f};
-float amberInk[]={1.0f,0.65f,0.0f};
+float amberInk[]={1.0f,0.65f,0.0f};*/
 
 /*Forward declarations */
 
 void				drawFPS(XPLMWindowID in_window_id, void * in_refcon);
 void                drawText(XPLMWindowID in_window_id, void * in_refcon);
+void                drawTextNoResize(XPLMWindowID in_window_id, void * in_refcon);
 void                drawFileWindow(XPLMWindowID in_window_id, void * in_refcon);
 int					handle_mouse(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon);
 int                 handle_mouse_for_TextW (XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void * in_refcon);
@@ -47,6 +50,8 @@ int					dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down
 XPLMCursorStatus	dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon) { return xplm_CursorDefault; }
 int					dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon) { return 0; }
 void				dummy_key_handler(XPLMWindowID in_window_id, char key, XPLMKeyFlags flags, char virtual_key, void * in_refcon, int losing_focus) { }
+float               resizeCallback(float elpSc,float elpTime,int countr,void* refcon);
+void                menuHandler(void* inMenuRef, void* inItemRef);
 
 int  MyFPSCommandHandler         (XPLMCommandRef     inCommand, //Custom command handler for FPS window
                                   XPLMCommandPhase   inPhase,
@@ -75,13 +80,28 @@ void ReadNewFile();
 
 void MakeMenus(){
    menuIdx= XPLMAppendMenuItem(XPLMFindPluginsMenu(), "Text Files", 0, 0);
-   menuId= XPLMCreateMenu("Text Files",XPLMFindPluginsMenu(),menuIdx,NULL,NULL);
+   menuId= XPLMCreateMenu("Text Files",XPLMFindPluginsMenu(),menuIdx,menuHandler,NULL);
    XPLMAppendMenuItemWithCommand(menuId,"Toggle Text Window",CommandText);
+   void * nb1=new(int*);(*(int*)nb1)=1;
+   XPLMAppendMenuItem(menuId,"Fit Window to File",nb1,0);
+   void * nb2=new(int*);(*(int*)nb2)=2;
+      XPLMAppendMenuItem(menuId,"Keep File",nb2,0);
+   void * nb3=new(int*);(*(int*)nb3)=3;
+      XPLMAppendMenuItem(menuId,"Keep Size",nb3,0);
+   void * nb4=new(int*);(*(int*)nb4)=4;
+      XPLMAppendMenuItem(menuId,"Toggle FPS Display",nb4,0);
+
 }
 
 void writeDebug(std::string in_String){
  in_String="VR Tools : " +in_String+"\r\n";
  XPLMDebugString((char*)in_String.c_str());
+}
+
+float resizeCallback(float elpSc, float elpTime, int countr, void *refcon){
+    if (g_textWindow!=NULL){
+wLayout.resizeVRWindow();}
+return 0.2;
 }
 
 /*End HelperFunction*/
@@ -105,19 +125,37 @@ PLUGIN_API int XPluginStart(
 
     g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
     g_FPS        = XPLMFindDataRef("sim/operation/misc/frame_rate_period");
-    dref_SunPitch= XPLMFindDataRef("sim/graphics/scenery/sun_pitch_degrees");//float to estimate pos of sun
+
 
 
     CommandFPS    = XPLMCreateCommand("VR/Custom/ShowFPS", "Show FPS");
     CommandFilter = XPLMCreateCommand("VR/Custom/Filter_Stick_Commands","Filter Stick");
     CommandText   = XPLMCreateCommand("VR/Custom/Toggle_Text_File","Toggle text");
+    CmdFirstLine  = XPLMCreateCommand("VR/Custom/Text/Select_First_Line","Select First Line");
+    CmdNextLine   = XPLMCreateCommand("VR/Custom/Text/Next_Line","Next Line");
+    CmdPrevLine   = XPLMCreateCommand("VR/Custom/Text/Previous_Line","Previous Line");
+    CmdDelLine    = XPLMCreateCommand("VR/Custom/Text/Delete_Line","Hide Line");
+    CmdReload     = XPLMCreateCommand("VR/Custom/Text/Reload","Reload");
 
     XPLMRegisterCommandHandler(CommandFPS,              // in Command name
                                 MyFPSCommandHandler,       // in Handler
                                 1,                      // Receive input before plugin windows.
                                 (void *) 0);
     XPLMRegisterCommandHandler(CommandFilter,MyFilterCommandHandler,1,(void *)0); //to apply to the button handling the filtering like a "ctrl" key
-    XPLMRegisterCommandHandler(CommandText,MyTextReaderCommandHandler,1,(void *)0);//Command to toggle tchotchke displaying text file
+    void * nb=new(int*);
+    (*(int*)nb)=1;
+    XPLMRegisterCommandHandler(CommandText,MyTextReaderCommandHandler,1,nb);
+    nb=new(int*);(*(int*)nb)=2;
+    XPLMRegisterCommandHandler(CmdFirstLine,MyTextReaderCommandHandler,1,nb);
+    nb=new(int*);(*(int*)nb)=3;
+    XPLMRegisterCommandHandler(CmdNextLine,MyTextReaderCommandHandler,1,nb);
+    nb=new(int*);(*(int*)nb)=4;
+    XPLMRegisterCommandHandler(CmdPrevLine,MyTextReaderCommandHandler,1,nb);
+    nb=new(int*);(*(int*)nb)=5;
+    XPLMRegisterCommandHandler(CmdDelLine,MyTextReaderCommandHandler,1,nb);
+    nb=new(int*);(*(int*)nb)=6;
+    XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
+    XPLMRegisterFlightLoopCallback(resizeCallback,-10,NULL);
     MakeMenus();
 
     return g_vr_dref != NULL;
@@ -127,6 +165,7 @@ PLUGIN_API int XPluginStart(
 
 PLUGIN_API void	XPluginStop(void)
 {//if the window hasn't been destroyed, we do it now
+    XPLMUnregisterFlightLoopCallback(resizeCallback,NULL);
     XPLMDebugString("VR_Tool Plugin : am going to undo all filters\r\n");
     UndoFiltering();//I think I have to do this to delete the refCon pointers and avoid memory leaks
     XPLMDebugString("VR_Tool Plugin : am going to close open windows");
@@ -138,6 +177,7 @@ PLUGIN_API void	XPluginStop(void)
 
     if (g_textWindow!=NULL){
         XPLMDestroyWindow(g_textWindow);
+        wLayout.ClosegWindow();
         g_textWindow=NULL;
     }
 
@@ -153,11 +193,12 @@ PLUGIN_API void	XPluginStop(void)
 }
 
 PLUGIN_API void XPluginDisable(void) {UndoFiltering(); }
+
 PLUGIN_API int  XPluginEnable(void)  { return 1; }
+
 PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int msg, void * inParam){
-    //if(!g_textWindow && msg == XPLM_MSG_SCENERY_LOADED) MakeTextWindow();
-    //comment the instruction above for those who don't want the text, only the FPS.
-    //this will be taken care of by the .ini file
+
+    if ((!g_textWindow && msg == XPLM_MSG_SCENERY_LOADED)&&wLayout.OpenWindowAtStart()) MakeTextWindow();
 }
 
 void	drawFPS(XPLMWindowID in_window_id, void * in_refcon) // draw FPS Window
@@ -188,7 +229,7 @@ void	drawFPS(XPLMWindowID in_window_id, void * in_refcon) // draw FPS Window
     glEnd();
 
         // Draw the FPS
-        std::string chFPS=std::to_string(currentFPS); //that's why I prefer C++ strings !
+        std::string chFPS=std::to_string(currentFPS);
         chFPS="FPS: "+chFPS.substr(0,4);
 
         XPLMDrawString(cyan, l+10, t-16, (char *)chFPS.c_str(), NULL, xplmFont_Proportional);
@@ -383,72 +424,87 @@ int MyBlockFilterCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPha
  * the textreader class to tailor the text file and iterate among the lines
  and a custom mouse handler*/
 
+void menuHandler(void *inMenuRef, void *inItemRef){
+    int menuItem=*((int*)inItemRef);
+    switch (menuItem){
+        case 1:{
+            wLayout.FitToFile();
+        }
+            break;
+        case 2:{
+            wLayout.KeepFile();
+        }
+            break;
+        case 3:{
+            wLayout.KeepCurrentSize();
+        }
+            break;
+        case 4:{
+            wLayout.ToggleFPS();
+        }
+            break;
+    }
+}
+
 int  MyTextReaderCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){
-    switch (inPhase)
-    {
-    case xplm_CommandBegin : //opens or closes the textreader, creates or destroys the window
-    {
-        if (g_textWindow==NULL){//Toggle window in and out of existence
-            MakeTextWindow();
-        }
-        else
-        {   if (XPLMGetWindowIsVisible(g_textWindow)==0)
-               {XPLMSetWindowIsVisible(g_textWindow,1);
-                wLayout.CheckButtonsVisibility();}
-            else{
-                XPLMSetWindowIsVisible(g_textWindow,0);
-                //an .ini option will tell if toggling means destroying window or hiding it
-                   /* XPLMDestroyWindow(g_textWindow);
-                    wLayout.ClosegWindow();
-                    g_textWindow=NULL;*/}
-        }
+    int cmdIssued=*((int*)inRefcon);
+    switch(cmdIssued){
+    case 1:{//toggle Text Window
+        switch (inPhase)
+        {
+           case xplm_CommandBegin : //opens or closes the textreader, creates or destroys the window
+                {
+                  if (g_textWindow==NULL){//Toggle window in and out of existence
+                      MakeTextWindow();  }
+                  else
+                      {if (XPLMGetWindowIsVisible(g_textWindow)==0)
+                          {XPLMSetWindowIsVisible(g_textWindow,1);
+                           wLayout.CheckButtonsVisibility();}
+                      else{
+                           XPLMSetWindowIsVisible(g_textWindow,0);
+                   /*an .ini option will tell if toggling means destroying window or hiding it
+                     XPLMDestroyWindow(g_textWindow);
+                     wLayout.ClosegWindow();
+                     g_textWindow=NULL;*/}
+                     }
+                  }
+                break;
+           case xplm_CommandContinue :
+                break;
+           case xplm_CommandEnd :
+                break;
+           return 0;}
+            }
+    case 2:{ // Select First Line in the display
+        if (inPhase==xplm_CommandBegin) wLayout.LaunchCommand(B_FirstLine);
     }
         break;
-    case xplm_CommandContinue :
+    case 3:{ //Next Line
+        if (inPhase==xplm_CommandBegin) wLayout.LaunchCommand(B_NextLine);
+    }
         break;
-    case xplm_CommandEnd :
+    case 4:{ //Previous Line
+        if (inPhase==xplm_CommandBegin) wLayout.LaunchCommand(B_PrevLine);
+    }
         break;
-        return 0;
+    case 5:{ //Delete Line
+        if (inPhase==xplm_CommandBegin) wLayout.LaunchCommand(B_Toggle_Line);
+    }
+        break;
+    case 6:{ //Reload File ie restore display
+       if (inPhase==xplm_CommandBegin) wLayout.LaunchCommand(B_Reload);
+    }
+        break;
     }
     return 0;//no one else needs to handle this
 }
 
 void drawText(XPLMWindowID in_window_id, void * in_refcon){
-//intialize
-    XPLMSetGraphicsState(
-            0 /* no fog */,
-            0 /* 0 texture units */,
-            0 /* no lighting */,
-            0 /* no alpha testing */,
-            1 /* do alpha blend */,
-            1 /* do depth testing */,
-            0 /* no depth writing */
-    );
+            wLayout.DrawTextW(g_textWindow);
+}
 
-    XPLMGetWindowGeometry(g_textWindow, &wLayout.l, &wLayout.t, &wLayout.r, &wLayout.b);
-    wLayout.recalculate();
-
-    float sunPtc = XPLMGetDataf(dref_SunPitch); //time of day ?
-
-           //draw commands for the buttons
-            for (int I(0);I<wLayout.nButtons;I++){
-                wLayout.tButtons[I].drawButton();
-            }
-
-            //draw text rectangle and text in right side, different colors
-            if (sunPtc>=5){//sun bright in sky
-                wLayout.tFileReader->SetBckColor(colorPaper);
-                wLayout.tFileReader->SetInkColor(colorInk);
-            }else
-            {if ((sunPtc>-3)&(sunPtc<5)){//sun at sunset darker duron paper white
-                    wLayout.tFileReader->SetBckColor(paperWhitesomber);
-                    wLayout.tFileReader->SetInkColor(colorInk);
-
-                }
-             else {wLayout.tFileReader->SetBckColor(blackpaper);//night paper
-                    wLayout.tFileReader->SetInkColor(amberInk);}
-            }
-            wLayout.tFileReader->DrawMySelf();
+void drawTextNoResize(XPLMWindowID in_window_id, void *in_refcon){
+           wLayout.DrawNoResize(g_textWindow);
 }
 
 void drawFileWindow(XPLMWindowID in_window_id, void * in_refcon){
@@ -494,7 +550,12 @@ void MakeTextWindow(){
     XPLMCreateWindow_t params;
      params.structSize = sizeof(params);
      params.visible = 1;
-     params.drawWindowFunc = drawText;
+     if (wLayout.GetResizeOption()){
+         params.drawWindowFunc=drawTextNoResize;
+         params.decorateAsFloatingWindow=xplm_WindowDecorationNone;}
+     else{
+         params.drawWindowFunc = drawText;
+         params.decorateAsFloatingWindow = xplm_WindowDecorationRoundRectangle;}
      params.handleMouseClickFunc = handle_mouse_for_TextW;
      params.handleRightClickFunc = dummy_mouse_handler;
      params.handleMouseWheelFunc = dummy_wheel_handler;
@@ -502,7 +563,6 @@ void MakeTextWindow(){
      params.handleCursorFunc = dummy_cursor_status_handler;
      params.refcon = NULL;
      params.layer = xplm_WindowLayerFloatingWindows;
-     params.decorateAsFloatingWindow = xplm_WindowDecorationRoundRectangle;
      params.left = wLayout.wLeft;
      params.bottom = wLayout.wBottom-1;
      params.right = wLayout.wRight+2;
@@ -510,9 +570,9 @@ void MakeTextWindow(){
 
     g_textWindow = XPLMCreateWindowEx(&params);
     XPLMSetWindowPositioningMode(g_textWindow, g_in_vr?xplm_WindowVR:xplm_WindowPositionFree, -1);
-    XPLMSetWindowResizingLimits(g_textWindow, wLayout.minWidth, wLayout.minHeight, wLayout.maxWidth, wLayout.maxHeight);
+    XPLMSetWindowResizingLimits(g_textWindow,wLayout.minWidth, wLayout.minHeight, wLayout.maxWidth, wLayout.maxHeight);
     XPLMSetWindowTitle(g_textWindow, (char*)wLayout.GetFileName().c_str());
-    wLayout.SetWindowHandler(g_textWindow);
+    wLayout.SetWindowHandle(g_textWindow);
     wLayout.CheckButtonsVisibility();}
     else writeDebug(("couldn't initiate the textfile, file not found"));
     }
@@ -547,7 +607,10 @@ void MakeFileWindow(){
        XPLMSetWindowPositioningMode(g_FileWindow, g_in_vr?xplm_WindowVR:xplm_WindowPositionFree, -1);
        XPLMSetWindowTitle(g_FileWindow,"Choose Directory and File");
        XPLMSetWindowResizingLimits(g_FileWindow, dispDir->general.width, dispDir->general.height,dispDir->general.width+150, dispDir->general.height+150); // Limit resizing our window
-
+       std::string dirPath=wLayout.GetDirName();
+       if (dirPath!="") {
+           dispDir->SetDirToSearch(dirPath);
+       }
        XPLMDestroyWindow(g_textWindow);
        wLayout.ClosegWindow();
        g_textWindow=NULL;

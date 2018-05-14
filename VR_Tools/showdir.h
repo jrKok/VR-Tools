@@ -28,6 +28,7 @@ public:
     void processMouseDrag(int,int);
     int  processMouseUp(int,int);
     void SelectDir();
+    void SetDirToSearch(std::string dir);
     void SelectFileLine();
     void UpdateDirInfo();
     int  MeasureString(std::string);

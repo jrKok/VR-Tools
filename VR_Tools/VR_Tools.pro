@@ -52,7 +52,8 @@ SOURCES += \
     list_box_with_scrb.cpp \
     dirnamereader.cpp \
     filenamepicker.cpp \
-    VR_Tools.cpp
+    VR_Tools.cpp \
+    inisettings.cpp
 
 HEADERS += \
     stringops.h \
@@ -68,7 +69,8 @@ HEADERS += \
     dirnamereader.h \
     filenamepicker.h \
     VR_Tools.h \
-    VR_Tools_global.h
+    VR_Tools_global.h \
+    inisettings.h
 
 target.path= \plugsXP
 unix {

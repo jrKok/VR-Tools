@@ -74,7 +74,7 @@ void button_VR::setColor(float custColor[]){
 
 void button_VR::drawButton(){
     if (isVisible){
-        if (isSelected&!isPressed){
+        if (isSelected&&(!isPressed)){
            glColor3fv(colorSelected);
            glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
            glBegin(GL_TRIANGLE_FAN);
@@ -97,7 +97,7 @@ void button_VR::drawButton(){
              glVertex2i(left, bottom);
             }
             glEnd();}
-        if (!isPressed&!isSelected){
+        if (!isPressed&&!isSelected){
             glColor3fv(myColor);
             glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
             glBegin(GL_TRIANGLE_FAN);

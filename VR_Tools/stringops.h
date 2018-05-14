@@ -21,6 +21,10 @@ public:
     std::string splitAtSize(std::string &inString, int in_sz);
     int StringSize(std::string in_str);
     std::string ToUTF8(std::string ansiSTR);
+    std::string DecodeInstruction(std::string in_instr,std::string &out_right,std::string &comment);
+    std::string Trim(const std::string& str,
+                     const std::string& whitespace = " \t");
+    std::string splitRightAtSize(std::string &inString, int in_sz);
 };
 
 #endif // STRINGOPS_H

@@ -2,6 +2,7 @@
 #define TEXTLINE_H
 
 #include <string>
+#include <XPLMGraphics.h>
 
 class TextLine
 {
@@ -15,6 +16,10 @@ public:
     void recalculate(int in_l,int in_t);
     void setText (std::string in_Str);
     bool isHere(int,int);
+    void SetTextColor(float textcolr[]);
+    void DrawTextLine();
+private:
+    float textColor[3];
 };
 
 #endif // TEXTLINE_H

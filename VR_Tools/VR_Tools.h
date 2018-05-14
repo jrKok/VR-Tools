@@ -1,55 +1,26 @@
 #ifndef SHOW_FPS_TEST_H
 /* future developments :
- * beta2 resize
- * b3 ini
- * commands
  *
- * then V2 with edit
- * for debug :
- *
- * replace to last page after resize if lastpage is true
- * look in resize limits
  * try setVrWindowsizes
  *
+ * make custom commands for physical buttons and menu,
+ *  commands : select first line -works also for dir window, looks up which picker is selected -
+ *         ,   line up and
+ *             down -also in dir window -,
+ *             delete line,
+ *             show all
+ *  menus : fit to file
+ *          keep file,
+ *          keep size
+ *          toggle FPS display, (new file when avaible for V2), )
  *
- *
- *
- * - implement undo
- *
- * make custom commands for physical buttons and menu, (select first line -works also for dir window, looks up which picker is selected -
- *         , line up and down -also in dir window -, resize, load file, new file when avaible, delete line,show all)
- * resize display by custom commands or drag drawn handlers or even test for size
- * create ini file and customisation of behavior (like begin with file launched,directory for startup,keep last file opened, toggle = hide or destroy sizes of display)
- *
- * ini options :
- *
- * Presets : dev console
- * start options
- *  open window at start : bool
- *  autoreload at open : bool
- *  change color briefly when text changed :bool
- *  move to last page at open : bool
- * display :
- *  width : int
- *  height : int
- *  fit to file : bool
- *  fixed dimensions : bool
- * file
- *  default directory : string
- *  default file : string
- *  always load last file opened : bool
- *  trim line option : truncate line, split at space, split at max larg
- * look into the nav/com/adf availability issue
- *function :
- *  del/all buttons : bool
- *  NAV,COM,ADF buttons : bool
- *Datarefs displayed
- *
- * version 2 :
- *
+ * look again into comm frequencies (sometimes 0.005 doesn't seem to be taken)
+  * then V2 with edit
+  * add an ini option to select if toggle means close text window or hide window
  * text edit
  * multifiles
  * directory shortcuts
+ * ini files in airplanes directory
  *
  * */
 

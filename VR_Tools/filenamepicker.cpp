@@ -45,9 +45,8 @@ void FileNamePicker::ShowAll(){
         directoryEmpty=true;
     }else{
         directoryEmpty=false;
-        SetupforText();
     }
-
+    SetupforText();
 }
 
 std::string FileNamePicker::GetCompleteSelectedFName(){

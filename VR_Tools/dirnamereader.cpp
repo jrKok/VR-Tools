@@ -39,7 +39,7 @@ std::string dirNameReader::GetActualPathName(){
 }
 
 void dirNameReader::ReadRootDir(){
-    if ((parentPath!="")&(parentPath!="C:\\")&(parentPath!="C:")){
+    if ((parentPath!="")&&(parentPath!="C:\\")&&(parentPath!="C:")){
         actualPath=parentPath;
         actualDirName=GetDirNameFromPath();
         parentPath=GetParentPathFromPath();

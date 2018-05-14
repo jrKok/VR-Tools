@@ -37,3 +37,13 @@ bool TextLine::isHere(int x_in, int y_in){
     if ((x_in>=x)&(x_in<=right)&(y_in<=top)&(y_in>=y)) return true;
     else return false;
 }
+
+void TextLine::SetTextColor(float textcolr[]){
+    textColor[0]=textcolr[0];
+    textColor[1]=textcolr[1];
+    textColor[2]=textcolr[2];
+}
+
+void TextLine::DrawTextLine(){
+    XPLMDrawString(textColor,x,y,(char*)textOfLine.c_str(),NULL,xplmFont_Proportional);
+}

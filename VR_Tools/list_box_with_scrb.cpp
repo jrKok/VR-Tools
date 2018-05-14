@@ -8,6 +8,7 @@ List_Box_With_ScrB::List_Box_With_ScrB():
      charHeight(0),
      maxStringWidth(0),
      pageHeightInL(0),
+     lineLength(0),
      totalNbL(0),
      indxFirstOnPg(0),
      indxLastOnPg(0),
@@ -30,6 +31,7 @@ List_Box_With_ScrB::List_Box_With_ScrB():
      canUndo(false),
      filterClick(true),
      canDelete(true),
+     drawBackground(true),
      backgrd{0.9922f,0.9608f,0.9098f},
      ink{0.005f,0.005f,0.005f},
      inkSelect{0.9f,0.05f,0.4f},
@@ -63,6 +65,7 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
     general.offsetX=in_offsetX;
     general.offsetY=in_offsetY;
     textOnly.width=widthPx-15;//(-15 for scrollbar)
+    lineLength=textOnly.width-25;
     textOnly.height=heightPx;
     textOnly.offsetX=in_offsetX;
     textOnly.offsetY=in_offsetY;
@@ -77,8 +80,8 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
     pageHeightInL=int((heightPx-20)/(charHeight+2));
     TextLine nTL;
     nTL.height=charHeight;
-    nTL.width=textOnly.width-25; //15 margin left, 10 right
-    nTL.offSetX=grlOffsetX+15;
+    nTL.width=textOnly.width-10; //5 margin left, 5 right
+    nTL.offSetX=grlOffsetX+5;
     for (int lg(0);lg<pageHeightInL;lg++){
         nTL.index=lg;
         nTL.offSetY=grlOffsetY+10+charHeight*lg+lg*2;
@@ -90,29 +93,30 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
 
 void List_Box_With_ScrB::SetupforText(){
     pageHeightInL=int((heightPx-20)/(charHeight+2));
+
     totalNbL=displayText->size();
-    if (totalNbL>0){
+    if (totalNbL==0){
+        scrB.SetVisibility(false);
+        AddLine("The file doesn't contain any text");
+        totalNbL=1;
+    }
+
     indxLastPage=totalNbL-pageHeightInL;if (indxLastPage<0) indxLastPage=0;
     scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.width+grlOffsetX,grlOffsetY);
     if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
     indxLastOnPg=indxFirstOnPg+pageHeightInL;
     if (indxLastOnPg>totalNbL) indxLastOnPg=totalNbL;
     DisplayPage();
-    Recalculate(in_left,in_top);}
-
-    else{
-        scrB.SetVisibility(false);
-        box[0].textOfLine="the file doesn't contain any text";
-    }
+    Recalculate(in_left,in_top);
 }
 
 void List_Box_With_ScrB::AddLine(std::string in_Line){
 
+    int sz=MeasureString(in_Line);
+    if (sz>maxStringWidth) maxStringWidth=sz;
     //split line according to rules
     switch (splitPolicy){
     case BestSplitAtSpace:   {
-        int sz=MeasureString(in_Line),lineLength=textOnly.width-25;
-        if (sz>maxStringWidth) maxStringWidth=sz;
         while (sz>lineLength){
             std::string leftString=strops.bestLeftSize(in_Line,lineLength);
             displayText->push_back(leftString);
@@ -123,9 +127,8 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
         totalNbL++;
         break;
     }
+
     case ForceSplitAtSize:{
-        int sz=MeasureString(in_Line),lineLength=textOnly.width-25;
-        if (sz>maxStringWidth) maxStringWidth=sz;
         while (sz>lineLength){
             std::string leftString=strops.splitAtSize(in_Line,lineLength);
             displayText->push_back(leftString);
@@ -136,16 +139,29 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
         totalNbL++;
         break;
     }
-    case TruncateAtSize:{
-        int sz=MeasureString(in_Line),lineLength=textOnly.width-25;
-        if (sz>maxStringWidth) maxStringWidth=sz;
-        std::string leftString=strops.splitAtSize(in_Line,lineLength);
+
+    case TruncateKeepLeft:{
+        std::string leftString=in_Line;
+        if (sz>lineLength){
+           leftString=strops.splitAtSize(in_Line,lineLength);
+        }
         displayText->push_back(leftString);
         totalNbL++;
         break;
     }
-    case DontTruncate:{
+
+    case DontTruncate:{//don't use, gives ugly results by overlaying lines
         displayText->push_back(in_Line);
+        totalNbL++;
+        break;
+    }
+
+    case TruncateKeepRight:{
+        std::string rightStr=in_Line;
+        if (sz>lineLength){
+            rightStr=strops.splitRightAtSize(in_Line,lineLength);
+        }
+        displayText->push_back(rightStr);
         totalNbL++;
         break;
     }
@@ -153,7 +169,24 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
 
 }
 
+void List_Box_With_ScrB::SetBackGround(bool opt){
+    drawBackground=opt;
+}
+
+void List_Box_With_ScrB::SetBckColor (float in_col[3]){
+    backgrd[0]=in_col[0];
+    backgrd[1]=in_col[1];
+    backgrd[2]=in_col[2];
+}
+
+void List_Box_With_ScrB::SetInkColor (float in_col[3]){
+    ink[0]=in_col[0];
+    ink[1]=in_col[1];
+    ink[2]=in_col[2];
+}
+
 void List_Box_With_ScrB::DrawMySelf(){
+    if (drawBackground){
     glColor3fv(backgrd);
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     glBegin(GL_TRIANGLE_FAN);
@@ -164,16 +197,12 @@ void List_Box_With_ScrB::DrawMySelf(){
         glVertex2i(textOnly.left, textOnly.bottom);
     }
     glEnd();
-
-    for (int I(0);I<pageHeightInL;I++){
-        //std::string readStr=box[I].textOfLine;
-        //if (readStr!="")
-            /*if (box[I].isSelected)
-                XPLMDrawString(inkSelect,box[I].x,box[I].y,(char*)readStr.c_str(),NULL,xplmFont_Proportional);
-               else XPLMDrawString(ink,box[I].x,box[I].y,(char*)readStr.c_str(),NULL,xplmFont_Proportional);*/
-        if (box[I].isSelected)
-                        XPLMDrawString(inkSelect,box[I].x,box[I].y,(char*)box[I].textOfLine.c_str(),NULL,xplmFont_Proportional);
-                       else XPLMDrawString(ink,box[I].x,box[I].y,(char*)box[I].textOfLine.c_str(),NULL,xplmFont_Proportional);
+    }
+    for (auto bx:box){
+        if (bx.isSelected)
+           XPLMDrawString(inkSelect,bx.x,bx.y,(char*)bx.textOfLine.c_str(),NULL,xplmFont_Proportional);
+        else
+           XPLMDrawString(ink,bx.x,bx.y,(char*)bx.textOfLine.c_str(),NULL,xplmFont_Proportional);
         }
     scrB.DrawMySelf();
 }
@@ -248,9 +277,9 @@ void List_Box_With_ScrB::ProceedClickCont(int x, int y){
 
 void List_Box_With_ScrB::ProceedEndClick(){//Mouse Up
 
-    if ((currentIndx>=0)&(currentIndx<totalNbL)){//only do delete and select for valid data refs
+    if ((currentIndx>=0)&&(currentIndx<totalNbL)){//only do delete and select for valid data refs
         if (delLines) DeleteLine(currentIndx); //if the line has been swiped, regardless of selection, remove, can be undone
-        if ((currentIndx>=0)&!dragLines) SelectLine(currentIndx);
+        if ((currentIndx>=0)&&(!dragLines)) SelectLine(currentIndx);
     }
     //whatever happened reset Variables for clickprocessing, then discharge scrB
     currentIndx=-1;
@@ -345,18 +374,22 @@ bool List_Box_With_ScrB::HasHiddenLine(){
 }
 
 void List_Box_With_ScrB::SelectLine(int lnNb){
-    if ((lnNb!=lastLineDeleted)&(lnNb!=antepLineDeleted)){
-    if (lineSelected!=lnNb){
-        hasSelection=true;
-        lineSelected=lnNb;
-        DisplayPage();
+    if ((lnNb!=lastLineDeleted)&&(lnNb!=antepLineDeleted)){
+       if ((lineSelected!=lnNb)&&(lnNb<indxLastOnPg)&&(lnNb>=indxFirstOnPg)){
+           hasSelection=true;
+           lineSelected=lnNb;
+           DisplayPage();
+           return;
+       }
     }
-    else{
-        hasSelection=false;
-        lineSelected=-1;
-        DisplayPage();
-    }
-    }
+    hasSelection=false;
+    lineSelected=-1;
+    DisplayPage();
+
+}
+
+void List_Box_With_ScrB::SelectFirstLine(){
+    SelectLine(indxFirstOnPg);
 }
 
 bool List_Box_With_ScrB::HasSelection(){
@@ -405,12 +438,17 @@ void List_Box_With_ScrB::UndoDelete(){
         delStr2="";
         lastLineDeleted=antepLineDeleted;
         antepLineDeleted=-1;
-        if (lastLineDeleted=-1) canUndo=false;
+        if (lastLineDeleted==-1) canUndo=false;
+        DisplayPage();
     }
 }
 
+bool List_Box_With_ScrB::CanUndo(){
+    return canUndo;
+}
+
 void List_Box_With_ScrB::DeleteSelectedLine(){
-if (hasSelection&(lineSelected>=0)) DeleteLine(lineSelected);
+if (hasSelection&&(lineSelected>=0)) DeleteLine(lineSelected);
 }
 
 void List_Box_With_ScrB::SetWidth(int in_width){//the following only for resizing events generated by the user class
@@ -432,6 +470,7 @@ void List_Box_With_ScrB::SetHeightInPix(int in_pix){
 void List_Box_With_ScrB::AdjustToWidth(){
     if (maxStringWidth<(textOnly.width-25)){
         textOnly.width=maxStringWidth+25;
+        lineLength=textOnly.width-25;
         scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.width+grlOffsetX,grlOffsetY);
         scrB.SetPosFirstLine(indxFirstOnPg);
         Recalculate(in_left,in_top);
@@ -474,16 +513,12 @@ int  List_Box_With_ScrB::GetRight(){
 int  List_Box_With_ScrB::GetBottom(){
     return general.bottom;
 }
-void List_Box_With_ScrB::SetBckColor (float in_col[3]){
-    backgrd[0]=in_col[0];
-    backgrd[1]=in_col[1];
-    backgrd[2]=in_col[2];
+int  List_Box_With_ScrB::GetNumberOfLines(){
+    return totalNbL;
 }
 
-void List_Box_With_ScrB::SetInkColor (float in_col[3]){
-    ink[0]=in_col[0];
-    ink[1]=in_col[1];
-    ink[2]=in_col[2];
+int  List_Box_With_ScrB::GetMaxWidth(){
+    return maxStringWidth;
 }
 
 void List_Box_With_ScrB::clearText(){

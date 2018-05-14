@@ -46,6 +46,12 @@ public:
     void EndRepeat();
     bool OngoingRepeat();
 
+    enum{
+        B_Line_Up=1,
+        B_Line_Down=2,
+        B_Page_Up=3,
+        B_Page_Down=4
+        };
 private:
     int totalLines,page,numberfirstLine,limitLastLine;
     int totalheight,topCore,lowCore,freeCore,heightOfCore,heightOfLift,posOfLift;

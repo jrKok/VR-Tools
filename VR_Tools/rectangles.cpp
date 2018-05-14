@@ -21,7 +21,7 @@ void rectangles::recalculate(int lt, int tp){
 }
 
 bool rectangles::isHere(int x, int y){
-    if ((x>=left)&(x<=right)&(y<=top)&(y>=bottom)&isVisible) return true;
+    if ((x>=left)&&(x<=right)&&(y<=top)&&(y>=bottom)&&isVisible) return true;
     else return false;
 
 }

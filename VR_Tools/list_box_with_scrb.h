@@ -61,6 +61,7 @@ public:
     void GoToLastPage();
     bool HasHiddenLine();
     void SelectLine(int lnNb);
+    void SelectFirstLine();
     bool HasSelection();
     int  SelectedLineNumber();
 std::string StringSelected();
@@ -76,6 +77,8 @@ std::string StringSelected();
     int  GetOffSetY();
     int  GetRight();
     int  GetBottom();
+    int  GetNumberOfLines();
+    int  GetMaxWidth();
     void AdjustToWidth();
     void AdjustToHeight(); //effects if pageHeight> totalNbL
     void ProportionateSizeToHeight();//3/4 proportion
@@ -86,21 +89,24 @@ std::string StringSelected();
     void clearText(); //has to adjust scrB also
     void SetSplitPolicy(int splitP);
     void CanDelete();
+    bool CanUndo();
     void DontDelete();
     void convertToUTF8();
+    void SetBackGround(bool opt);
     virtual void ShowAll()=0;
 
 protected:
     int in_top,in_left;
     int grlOffsetX,grlOffsetY;
     int charHeight,maxStringWidth;
-    int pageHeightInL,totalNbL,indxFirstOnPg,indxLastOnPg,indxLastPage;
+    int pageHeightInL,totalNbL,indxFirstOnPg,indxLastOnPg,indxLastPage,lineLength;
     int lineSelected;
     int lastLineDeleted,antepLineDeleted;
     int heightPx,widthPx;
     int clickPosX, clickPosY, currentIndx,currentIndxFP;//for dragging, currentIndx registers the line clicked when initiating drag
     int splitPolicy;
     bool hasHiddenLines,hasSelection,dragLines,delLines,needToContClick,canUndo,filterClick,canDelete;
+    bool drawBackground;
     ScrollBars scrB;
     rectangles general,textOnly,delButtons;
     float backgrd[3],ink[3],inkSelect[3];

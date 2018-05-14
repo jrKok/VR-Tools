@@ -24,26 +24,35 @@ public:
 
     bool   OpenFile(std::string name); //sets textFile and FileExists
     std::string GetFileName();
+    std::string GetDirName();
     bool   ReadFileToBuff(); //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength
     bool   HasNav();
     bool   HasCom();
     bool   HasADF();
     bool   isADigit(std::string test);
     void   ShowAll();
-    void   Reload();
+    bool   Reload();
+    bool   ReloadIfSizeChanged();
     void   closeReader();
     void   CheckForFrequencies();
     void   WriteDebug(std::string message);
     void   SetNeedsUTF(bool utf);
+    std::string GetNavStr();
+    std::string GetComStr();
+    std::string GetADFStr();
+
 
 private:
     std::string fileName;
-    std::ifstream textFile;
+    std::string strBuffADF,strBuffNav,strBuffCom;
+    std::fstream textFile;
     bool fileExists,needsUTF8;
     bool hasNav,hasCom,hasADF;
     std::string digits;
     fs::file_time_type fT;
     fs::path filePath;
+    std::uintmax_t keepsize;
+
 
 
     void ResetFrequencies();

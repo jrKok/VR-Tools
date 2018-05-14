@@ -263,15 +263,15 @@ int  ShowDir::processMouseUp(int x,int y){
     if (SectionPressed>-1) {
         if (SectionPressed==FilePicker) {
             fileN.ProceedEndClick();
-            if (fileN.HasSelection())
+            if (fileN.HasSelection()){
                 displayLines[FilePicker].setText(fileN.StringSelected());
-                buttons[button_ok].isVisible=true;
+                buttons[button_ok].isVisible=true;}
         }
         if (SectionPressed==DirReader) {
             dirN.ProceedEndClick();
-            if (dirN.HasSelection())
+            if (dirN.HasSelection()){
                 displayLines[DirReader].setText(dirN.StringSelected());
-                buttons[button_SelDir].isVisible=true;
+                buttons[button_SelDir].isVisible=true;}
         }
     }
 
@@ -287,6 +287,11 @@ void ShowDir::SelectDir(){
     buttons[button_ok].isVisible=false;
     buttons[button_SelDir].isVisible=false;
     UpdateDirInfo();
+}
+
+void ShowDir::SetDirToSearch(std::string dir){
+    dirN.SetDirectory(dir);
+    fileN.SetDirToRead(dir);
 }
 
 void ShowDir::UpdateDirInfo(){
