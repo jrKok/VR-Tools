@@ -51,24 +51,36 @@ IniSettings::IniSettings():
         }
     }
 
-    //open ini file
-    //read ini file
-
 }
-void IniSettings::WriteDebug(std::string message){
-    std::string in_String="VR Tools : " +message+"\n";
+
+
+void IniSettings::WriteDebug(string message){
+    string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
+}
+
+void IniSettings::OrientFilePointer(){
+    char sysPath[512];
+    XPLMGetSystemPath(sysPath);
+    string sysDir=sysPath;//conversion from char[]
+    sysDir=sysDir.substr(0,(sysDir.size()-1));//remove trailing "\"
+    string systemCharSep=XPLMGetDirectorySeparator();
+    FilePointer::DirSeparator=systemCharSep;
+    FilePointer::SetCurrentFileName(file);
+    if (directory.substr(1,1)==":")
+         FilePointer::SetCurrentDirName(directory);
+    else FilePointer::SetCurrentDirName(sysDir+systemCharSep+directory);
 }
 
 void IniSettings::ReadIniFile(){
 
     leftH.clear();rightH.clear();comment.clear();
     iniFile.open(completeName,std::ifstream::in);
-    std::string inputL("");
+    string inputL("");
     if (iniFile.is_open()){
         WriteDebug("Reading VR_Tools.ini file");
         while (getline(iniFile,inputL)){
-            std::string leftSide(""),rightSide(""),commt("");
+            string leftSide(""),rightSide(""),commt("");
             leftSide=ops.DecodeInstruction(inputL,rightSide,commt);
             if ((leftSide=="")&&(commt!="")) LogInstruction(leftSide,rightSide,commt);
             else{//decode instruction
@@ -95,7 +107,7 @@ void IniSettings::ReadIniFile(){
                 catch(std::invalid_argument& e){
                     rP=1;}
                 reloadPeriod=rP;
-                LogInstruction(leftSide,std::string(" "+std::to_string(rP)),commt);
+                LogInstruction(leftSide,string(" "+std::to_string(rP)),commt);
             }
             if (leftSide=="FLASH_TEXT_ON_CHANGE"){
                 if(rightSide=="yes"){changeClrOnTxtChg=true; LogInstruction(leftSide,rightSide,commt);}
@@ -114,7 +126,7 @@ void IniSettings::ReadIniFile(){
                 if (textWidth<230) textWidth=230;
                 if (textWidth>1500) textWidth=1500;
                 width=textWidth;
-                LogInstruction(leftSide,std::string(" "+std::to_string(width)),commt);
+                LogInstruction(leftSide,string(" "+std::to_string(width)),commt);
             }
             if (leftSide=="HEIGHT"){
                 int textHeight(0);
@@ -125,7 +137,7 @@ void IniSettings::ReadIniFile(){
                 if (textHeight<120) textHeight=120;
                 if (textHeight>900) textHeight=900;
                 height=textHeight;
-                LogInstruction(leftSide,std::string(" "+std::to_string(height)),commt);
+                LogInstruction(leftSide,string(" "+std::to_string(height)),commt);
             }
             if (leftSide=="FIT_TO_FILE"){
                 if(rightSide=="yes"){fitToFile=true; LogInstruction(leftSide,rightSide,commt);}
@@ -192,7 +204,7 @@ void IniSettings::ReadIniFile(){
     }
 }
 
-void IniSettings::LogInstruction(std::string lf,std::string rg,std::string ct){
+void IniSettings::LogInstruction(string lf,string rg,string ct){
     leftH.push_back(lf);
     rightH.push_back(rg);
     comment.push_back(ct);
@@ -230,8 +242,8 @@ void IniSettings::WriteIniFile(){
     iniFile.open(completeName,std::fstream::out|std::fstream::trunc);
     auto len=leftH.size();
     for (auto ln(0);ln<len;ln++){
-        std::string left=leftH[ln],right=rightH[ln];
-        std::string wrt=left+((left=="")?"":" = ")+right+((right=="")?"":" ")+comment[ln]+"\n";
+        string left=leftH[ln],right=rightH[ln];
+        string wrt=left+((left=="")?"":" = ")+right+((right=="")?"":" ")+comment[ln]+"\n";
         iniFile<<wrt;
     }
     iniFile.close();
@@ -248,8 +260,8 @@ bool IniSettings::GetOptFit()             {return fitToFile;}
 bool IniSettings::GetOptFixed()           {return noResize;}
 bool IniSettings::GetOptKeepSize()        {return keepSize;}
 bool IniSettings::GetOptBckG()            {return noBckground;}
-std::string IniSettings::GetDir()         {return directory;}
-std::string IniSettings::GetFile()        {return file;}
+string IniSettings::GetDir()         {return directory;}
+string IniSettings::GetFile()        {return file;}
 bool IniSettings::GetOptLastFile()        {return keepLastFile;}
 int  IniSettings::GetOptTrim()            {return trimLineOption;}
 bool IniSettings::GetOptDelete()          {return deleteEnable;}
@@ -270,8 +282,8 @@ void IniSettings::SetHeight(int opt)        {height =opt;           WriteOption(
 void IniSettings::SetOptFit(bool opt)       {fitToFile =opt;        WriteOption("FIT_TO_FILE",opt);}
 void IniSettings::SetOptFixed(bool opt)     {noResize =opt;         WriteOption("NO_RESIZE",opt);}
 void IniSettings::SetOptKeepSize(bool opt)  {keepSize=opt;          WriteOption("KEEP_SIZE",opt);}
-void IniSettings::SetDir (std::string opt)  {directory =opt;        WriteOption("DIRECTORY",opt);}
-void IniSettings::SetFile(std::string opt)  {file =opt;             WriteOption("FILE",opt);}
+void IniSettings::SetDir ()  {directory =FilePointer::GetCurrentDirName();       WriteOption("DIRECTORY",directory);}
+void IniSettings::SetFile()       {file =FilePointer::GetCurrentFileName();      WriteOption("FILE",file);}
 void IniSettings::SetOptLastFile(bool opt)  {keepLastFile =opt;     WriteOption("KEEP_LAST_FILE",opt);}
 void IniSettings::SetOptTrim(int opt)       {trimLineOption =opt;   WriteOption("TRIM_LINE_OPTION",CodeTrimOption(opt));}
 void IniSettings::SetOptBckG(bool opt)      {noBckground =opt;      WriteOption("NO_BACKGROUND",opt);}
@@ -279,7 +291,8 @@ void IniSettings::SetOptDelete(bool opt)    {deleteEnable =opt;     WriteOption(
 void IniSettings::SetOptFreqs(bool opt)     {navsSetEnable =opt;    WriteOption("FREQUENCY_SET_ENABLE",opt);}
 void IniSettings::SetOptFPS(bool opt)       {displayFPS =opt;       WriteOption("DISPLAY_FPS",opt);}
 
-void IniSettings::WriteOption(std::string optionName, int opt){
+
+void IniSettings::WriteOption(string optionName, int opt){
     int tag=FindOption(optionName);
     if (tag>-1){
         rightH[tag]=std::to_string(opt);
@@ -287,7 +300,7 @@ void IniSettings::WriteOption(std::string optionName, int opt){
     }
 }
 
-void IniSettings::WriteOption(std::string optionName, bool opt){
+void IniSettings::WriteOption(string optionName, bool opt){
     int tag=FindOption(optionName);
     if (tag>-1){
         rightH[tag]=(opt?"yes":"no");
@@ -295,7 +308,7 @@ void IniSettings::WriteOption(std::string optionName, bool opt){
     }
 }
 
-void IniSettings::WriteOption(std::string optionName, std::string opt){
+void IniSettings::WriteOption(string optionName, string opt){
     int tag=FindOption(optionName);
     if (tag>-1){
         rightH[tag]=opt;
@@ -303,7 +316,7 @@ void IniSettings::WriteOption(std::string optionName, std::string opt){
     }
 }
 
-int  IniSettings::FindOption(std::string optionName){
+int  IniSettings::FindOption(string optionName){
     for (int ret(0);ret<leftH.size();ret++){
         if (leftH[ret]==optionName) return ret;
     }
@@ -314,7 +327,7 @@ int  IniSettings::FindOption(std::string optionName){
 }
 
 
-std::string IniSettings::CodeTrimOption(int in_option){
+string IniSettings::CodeTrimOption(int in_option){
     switch(in_option){
     case(BestSplitAtSpace):{
         return "split_at_space";
@@ -332,4 +345,6 @@ std::string IniSettings::CodeTrimOption(int in_option){
         return "clip_right";
     }
     }
+    return("");
 }
+

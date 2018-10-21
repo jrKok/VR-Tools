@@ -6,6 +6,8 @@ ShowDir::ShowDir() :
     in_top(0),in_left(0),newT(0),newL(0),nR(0),nB(0),
     buttonPressed(-1), SectionPressed(-1),charHeight(0),hghDisp(190),
     ink{0.120f,0.120f,0.120f},background{0.900f,0.900f,0.850f},backgroundS{0.720f,0.720f,0.690f},bckgW{0.150f,0.180f,0.250f},
+    dirN(),
+    fileN(),
     fileSelected(""),filePathSelected(""),
     displayLines(),
     buttons()
@@ -18,28 +20,31 @@ ShowDir::ShowDir() :
     for (int Cpt(0);Cpt<7;Cpt++)  displayLines.push_back(line);
     for (int b(0);b<5;b++) buttons.push_back(button);
 
-    std::string current=dirN.GetActualPathName();
-    fileN.SetDirToRead(current);
+
     XPLMGetFontDimensions(xplmFont_Proportional,NULL,&charHeight,NULL);
 
 } //End Constructor
 
 //Helper functions
 
-void ShowDir::WriteDebug(std::string message){
-    std::string in_String="VR Tools : " +message+"\n";
+void ShowDir::WriteDebug(string message){
+    string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
 }
 
 //class members/functions
 
 void ShowDir::SetupDirWindow(int left, int top){
-    in_top=top;
-    in_left=left;
-
 
     dirN.Setup(hghDisp,300,10,40);
     fileN.Setup(hghDisp,280,320,40);
+
+    dirN.SetupDirectoryReader();
+    fileN.SetDirToRead(dirN.GetActualPathName());
+
+    in_top=top;
+    in_left=left;
+
 //windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6
 displayLines[windowTitle].setText("Text files (.txt) in : .."+dirN.GetActualDirName());
 displayLines[windowTitle].width=280;
@@ -138,11 +143,11 @@ void ShowDir::RecalculateDirWindow(){
         in_left=newL;
         general.recalculate(in_left,in_top);
 
-        for (int lg(0);lg<7;lg++) displayLines[lg].recalculate(in_left,in_top);
-        for (int b(0);b<5;b++) {
-            buttons[b].in_left=in_left;
-            buttons[b].in_top=in_top;
-            buttons[b].recalculate();
+        for (ulong lg(0);lg<7;lg++) displayLines[lg].recalculate(in_left,in_top);
+        for (auto & bt:buttons) {
+            bt.in_left=in_left;
+            bt.in_top=in_top;
+            bt.recalculate();
         }
         fileN.Recalculate(in_left,in_top);
         dirN.Recalculate(in_left,in_top);
@@ -175,13 +180,13 @@ void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
     glEnd();
     dirN.DrawMySelf();
     fileN.DrawMySelf();
-    for (int b(0);b<5;b++) {
-        buttons[b].drawButton();}
-    for (int l(0);l<5;l++) {
+    for (auto bt:buttons) {
+        bt.drawButton();}
+    for (ulong l(0);l<5;l++) {
         int wdt=displayLines[l].width;
         XPLMDrawString(background,displayLines[l].x,displayLines[l].y,(char*)displayLines[l].textOfLine.c_str(),&wdt,xplmFont_Proportional);
     }
-    for (int ll(5);ll<7;ll++){
+    for (ulong ll(5);ll<7;ll++){
         glColor3fv(backgroundS);
             glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
             glBegin(GL_TRIANGLE_FAN);
@@ -201,9 +206,9 @@ int  ShowDir::processMouseDn(int x,int y){
     SectionPressed=-1;
     if (dirN.ProceedClick(x,y)) {SectionPressed=DirReader; return DirReader;}
     if (fileN.ProceedClick(x,y)) {SectionPressed=FilePicker; return FilePicker;}
-    for (int b(0);b<5;b++) {
+    for (ulong b(0);b<5;b++) {
         if (buttons[b].isHere(x,y)) {
-            buttonPressed=b;
+            buttonPressed=static_cast<int>(b);
         }
     }
     return buttonPressed;
@@ -227,6 +232,8 @@ int  ShowDir::processMouseUp(int x,int y){
         switch (buttonPressed){
         case button_ok:{
             SelectFileLine();
+            FilePointer::SetCurrentFileName(displayLines[FilePicker].GetText());
+            FilePointer::SetCurrentDirName(dirN.GetActualPathName());
             break;
         }
         case button_Cancel:{
@@ -282,39 +289,41 @@ int  ShowDir::processMouseUp(int x,int y){
 
 void ShowDir::SelectDir(){
     dirN.ReadSelectedDir();
-    std::string current=dirN.GetActualPathName();
+    string current=dirN.GetActualPathName();
     fileN.SetDirToRead(current);
     buttons[button_ok].isVisible=false;
     buttons[button_SelDir].isVisible=false;
     UpdateDirInfo();
 }
 
-void ShowDir::SetDirToSearch(std::string dir){
+void ShowDir::SetDirToSearch(string dir){
     dirN.SetDirectory(dir);
     fileN.SetDirToRead(dir);
 }
 
 void ShowDir::UpdateDirInfo(){
-    std::string info("");
+    string info("");
     info = (fileN.GetTxtOption()?"Text files (.txt) in ":"All files (*.*) in ");
     info = info+dirN.GetActualDirName();
     displayLines[windowTitle].setText(info);
 }
 
-int  ShowDir::MeasureString(std::string in_String){
+int  ShowDir::MeasureString(string in_String){
     return ((int)XPLMMeasureString(xplmFont_Proportional,(char*)in_String.c_str(),in_String.size()));
 }
 
-void ShowDir::CloseDirWindow(){}
+void ShowDir::CloseDirWindow(){
+
+}
 
 void ShowDir::SelectFileLine(){
     fileSelected=fileN.GetSelectedName();
     filePathSelected=fileN.GetCompleteSelectedFName();
 }
 
-std::string ShowDir::GetSelectedFile(){
+string ShowDir::GetSelectedFile(){
     return fileSelected;
 }
-std::string ShowDir::GetSelectedPath(){
+string ShowDir::GetSelectedPath(){
     return filePathSelected;
 }

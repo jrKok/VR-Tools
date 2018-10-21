@@ -63,7 +63,7 @@ std::string stringOps::bestLeftSize(std::string &inString, int in_sz){// used fo
       size_t posSpc=left.find_last_of(" ");//try to split at last space found
       if (posSpc!=std::string::npos){
           inString=left.substr(posSpc+1)+inString; // if possible do the split not including the space itself.
-          left=left.substr(0,posSpc);
+          left=left.substr(0,posSpc+1);//but here include the space
       }
     }
     return left;
@@ -112,9 +112,9 @@ int stringOps::StringSize(std::string in_str){
     return retVal;
 }
 
-std::string stringOps::ToUTF8(std::string ansiSTR){
-    int lgth=ansiSTR.length();
-    char * conv=new (char [lgth+1]);
+/*std::string stringOps::ToUTF8(std::string ansiSTR){
+    unsigned long long lgth=ansiSTR.length();
+    char * conv=new char [lgth+1];
     strcpy(conv,ansiSTR.c_str());
     std::string utf8str("");
 
@@ -127,10 +127,25 @@ std::string stringOps::ToUTF8(std::string ansiSTR){
     }
     delete[] conv;
     return utf8str;
+}*/
+
+std::string stringOps::ToUTF8(std::string ansiSTR){
+
+    std::string utf8str("");
+
+    for (char fromStr: ansiSTR){
+        unsigned char ansiC=reinterpret_cast<unsigned char&>(fromStr);
+        if (ansiC<128)   utf8str.append(1,fromStr);
+        else {
+            utf8str.append(1,char(0xC0 | (ansiC >> 6)));
+            utf8str.append(1,char(0x80 | (ansiC & 0x3F)));}
+    }
+
+    return utf8str;
 }
 
 std::string stringOps::DecodeInstruction(std::string in_instr, std::string &out_right,std::string &comment){
-
+//decodes a line of the .ini file
     std::string left(""),right("");
     if ((in_instr.find(";")==0)) {
         comment=in_instr;
@@ -192,4 +207,15 @@ std::string stringOps::Trim(const std::string& str,
     const auto strRange = strEnd - strBegin + 1;
 
     return str.substr(strBegin, strRange);
+}
+
+std::string stringOps::RemoveLastUTFCharFromString(std::string in_string){
+    ulong lg=in_string.length();
+    if (lg>0)
+    {
+        unsigned char lastC=static_cast<unsigned char>(in_string.back());
+        if ((lastC>=0x80)&&(lg>1)) in_string=in_string.substr(0,lg-2);
+        else in_string=in_string.substr(0,lg-1);
+    }
+    return in_string;
 }

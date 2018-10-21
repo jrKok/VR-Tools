@@ -7,14 +7,19 @@ dirNameReader::dirNameReader():List_Box_With_ScrB(),
     actualDirName(""),
     systemCharSep(""),
     sysDir(""),shortCutBck(".."),shortCutXP("X Plane"),ShortCutPlug("VR Tools"),ShortCutF("Text Files")
+
 {
     SetSplitPolicy(DontTruncate);
+}
+
+void   dirNameReader:: SetupDirectoryReader(){
     char sysPath[512];
     XPLMGetSystemPath(sysPath);
     sysDir=sysPath;//conversion from char[]
     sysDir=sysDir.substr(0,(sysDir.size()-1));
     systemCharSep=XPLMGetDirectorySeparator();
-    actualPath=sysDir+systemCharSep+"output\\textfiles";
+    actualPath=sysDir+systemCharSep+FilePointer::GetCurrentDirName();
+    actualPath=FilePointer::GetCurrentDirName();
     GetDirNameFromPath();
     GetParentPathFromPath();
 }

@@ -284,6 +284,7 @@ void ScrollBars::Recalculate(int left, int top){
     commandUp.in_left=left;  commandUp.in_top=top;  commandUp.recalculate();
     commandDown.in_left=left;commandDown.in_top=top;commandDown.recalculate();
 }
+
 void ScrollBars::SetVisibility(bool iV){
     isVisible=iV;
 }

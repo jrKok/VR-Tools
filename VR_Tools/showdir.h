@@ -8,9 +8,12 @@
 #include <textline.h>
 #include <point.h>
 #include <filesystem>
+#include <inisettings.h>
 #include "filenamepicker.h"
 #include "dirnamereader.h"
 #include "button_vr.h"
+
+using std::string;
 
 class ShowDir
 {
@@ -20,7 +23,7 @@ public:
     ShowDir();
     rectangles general;
 
-    void WriteDebug(std::string message);
+    void WriteDebug(string message);
     void SetupDirWindow(int left,int top);
     void RecalculateDirWindow();
     void DrawDirWindow(XPLMWindowID g_FileWindow);
@@ -28,13 +31,13 @@ public:
     void processMouseDrag(int,int);
     int  processMouseUp(int,int);
     void SelectDir();
-    void SetDirToSearch(std::string dir);
+    void SetDirToSearch(string dir);
     void SelectFileLine();
     void UpdateDirInfo();
-    int  MeasureString(std::string);
+    int  MeasureString(string);
     void CloseDirWindow();
-    std::string GetSelectedFile();
-    std::string GetSelectedPath();
+    string GetSelectedFile();
+    string GetSelectedPath();
 private:
 
     enum { button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4};
@@ -46,7 +49,7 @@ private:
     float ink[3],background[3],backgroundS[3],bckgW[3];
     dirNameReader dirN;
     FileNamePicker fileN;
-    std::string fileSelected, filePathSelected;
+    string fileSelected, filePathSelected;
 
     std::vector<TextLine> displayLines;//DirTitle,FileTitle,CurrentDirectory,Directory selected,FileSelected
     std::vector<button_VR> buttons;

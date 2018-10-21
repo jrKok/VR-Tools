@@ -6,6 +6,7 @@
 #include <fstream>
 #include <filesystem>
 #include <vector>
+#include <inisettings.h>
 #include "VR_Tools_global.h"
 #include "list_box_with_scrb.h"
 namespace fs=std::experimental::filesystem;
@@ -16,16 +17,16 @@ class TextReader:public List_Box_With_ScrB
 {
 public:
     TextReader();
-    TextReader(std::string name);
     ~TextReader();
 
     int freqADF,freqNAV;
     float freqCOM;
 
-    bool   OpenFile(std::string name); //sets textFile and FileExists
+    bool   OpenFile(); //sets textFile and FileExists
+    void   PointToFile();
     std::string GetFileName();
     std::string GetDirName();
-    bool   ReadFileToBuff(); //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength
+    virtual bool   ReadFileToBuff(); //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength
     bool   HasNav();
     bool   HasCom();
     bool   HasADF();
@@ -42,13 +43,13 @@ public:
     std::string GetADFStr();
 
 
-private:
+protected:
     std::string fileName;
     std::string strBuffADF,strBuffNav,strBuffCom;
+    std::string digits;
     std::fstream textFile;
     bool fileExists,needsUTF8;
     bool hasNav,hasCom,hasADF;
-    std::string digits;
     fs::file_time_type fT;
     fs::path filePath;
     std::uintmax_t keepsize;

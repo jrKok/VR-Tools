@@ -7,6 +7,7 @@
 #include <XPLMGraphics.h>
 #include <XPLMUtilities.h>
 
+typedef long long unsigned ulong;
 class stringOps
 {
 public:
@@ -25,6 +26,7 @@ public:
     std::string Trim(const std::string& str,
                      const std::string& whitespace = " \t");
     std::string splitRightAtSize(std::string &inString, int in_sz);
+    static std::string RemoveLastUTFCharFromString(std::string in_string);
 };
 
 #endif // STRINGOPS_H

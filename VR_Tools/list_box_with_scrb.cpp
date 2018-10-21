@@ -7,17 +7,17 @@ List_Box_With_ScrB::List_Box_With_ScrB():
      grlOffsetY(0),
      charHeight(0),
      maxStringWidth(0),
-     pageHeightInL(0),
-     lineLength(0),
+     pageHeightInL(0),   
      totalNbL(0),
      indxFirstOnPg(0),
      indxLastOnPg(0),
      indxLastPage(0),
+     lineLength(0),
      lineSelected(-1),
      lastLineDeleted(-1),
      antepLineDeleted(-1),
-     heightPx(0),
-     widthPx(0),
+     heightPx(0),//height of the usefull text zone in pixels
+     widthPx(0), //width of the usefull text zone in pixels
      clickPosX(0),
      clickPosY(0),
      currentIndx(-1),
@@ -54,8 +54,13 @@ List_Box_With_ScrB::~List_Box_With_ScrB(){
 }
 
 void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY){
-//calculate sizes
-//input width is total width, scrollboxes are going to be substracted from this
+/*calculate sizes
+ * rectangle general : all the text zone with scrollbars
+ * rectangle textOnly : rectangle for displaying text (with vector "box" being drawn here)
+ * general and textOnly differ by width, not height
+ * line length : the length of a text line, to which the line in vector displayText is matched
+ input width is total width, scrollboxes are going to be substracted from this*/
+
     grlOffsetX=in_offsetX;
     grlOffsetY=in_offsetY;
     heightPx=hght;if (heightPx<120) heightPx=120;if (heightPx>900) heightPx=900;
@@ -65,15 +70,14 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
     general.offsetX=in_offsetX;
     general.offsetY=in_offsetY;
     textOnly.width=widthPx-15;//(-15 for scrollbar)
-    lineLength=textOnly.width-25;
     textOnly.height=heightPx;
     textOnly.offsetX=in_offsetX;
     textOnly.offsetY=in_offsetY;
 
+    lineLength=textOnly.width-25;
+
 //calculate text params
-    XPLMGetFontDimensions(xplmFont_Proportional,NULL,&charHeight,NULL);
-
-
+    XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&charHeight,nullptr);
 //setup lines
 
     box.clear();
@@ -81,11 +85,11 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
     TextLine nTL;
     nTL.height=charHeight;
     nTL.width=textOnly.width-10; //5 margin left, 5 right
-    nTL.offSetX=grlOffsetX+5;
+    nTL.offSetX=textOnly.offsetX+5;
     for (int lg(0);lg<pageHeightInL;lg++){
-        nTL.index=lg;
-        nTL.offSetY=grlOffsetY+10+charHeight*lg+lg*2;
+        nTL.offSetY=textOnly.offsetY+10+lg*(charHeight+2);
         box.push_back(nTL);
+        box[static_cast<unsigned long long>(lg)].index=lg;
     }
 //setup scrB
 
@@ -94,18 +98,19 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
 void List_Box_With_ScrB::SetupforText(){
     pageHeightInL=int((heightPx-20)/(charHeight+2));
 
-    totalNbL=displayText->size();
+    totalNbL=static_cast<int>(displayText->size());
     if (totalNbL==0){
         scrB.SetVisibility(false);
         AddLine("The file doesn't contain any text");
         totalNbL=1;
     }
 
-    indxLastPage=totalNbL-pageHeightInL;if (indxLastPage<0) indxLastPage=0;
+    indxLastPage=totalNbL-pageHeightInL;
+    if (indxLastPage<0) indxLastPage=0;
     scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.width+grlOffsetX,grlOffsetY);
     if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
     indxLastOnPg=indxFirstOnPg+pageHeightInL;
-    if (indxLastOnPg>totalNbL) indxLastOnPg=totalNbL;
+    if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
     DisplayPage();
     Recalculate(in_left,in_top);
 }
@@ -200,9 +205,9 @@ void List_Box_With_ScrB::DrawMySelf(){
     }
     for (auto bx:box){
         if (bx.isSelected)
-           XPLMDrawString(inkSelect,bx.x,bx.y,(char*)bx.textOfLine.c_str(),NULL,xplmFont_Proportional);
+           XPLMDrawString(inkSelect,bx.x,bx.y+1,(char*)bx.textOfLine.c_str(),nullptr,xplmFont_Proportional);
         else
-           XPLMDrawString(ink,bx.x,bx.y,(char*)bx.textOfLine.c_str(),NULL,xplmFont_Proportional);
+           XPLMDrawString(ink,bx.x,bx.y+1,(char*)bx.textOfLine.c_str(),nullptr,xplmFont_Proportional);
         }
     scrB.DrawMySelf();
 }
@@ -225,8 +230,14 @@ bool List_Box_With_ScrB::ProceedClick(int x, int y){
                 currentIndx=ln+indxFirstOnPg;
                 clickPosX=x;
                 clickPosY=y;
-                needToContClick=true;//filterClick=false;//remove filter click when bug corrected
-                return true;
+                if (currentIndx>indxLastOnPg){
+                    needToContClick=false;
+                    return false;
+                }
+                else{
+                    needToContClick=true;
+                    return true;
+                }
             }
         }
     }
@@ -248,30 +259,29 @@ void List_Box_With_ScrB::ProceedClickCont(int x, int y){
             return;
         }
 
-    if (currentIndx!=-1){
-    int diffY=y-clickPosY;
-    if (dragLines){ //if dragLines is activated, it cannot become a delete command, so only look at vertical movement
-        int nbLns=int(diffY/(charHeight+2));
-        if (nbLns!=0) {
-            DisplayAtLineN(currentIndxFP+nbLns);
-            scrB.SetPosFirstLine(indxFirstOnPg);
-            return;
-        }
-    }else{ //determine if there is some significant movement along x or y
-        int diffX=clickPosX-x;
-        int nbLns=int(diffY/(charHeight+2));
-        if (nbLns!=0){ //if y movement is significant drag becomes an irreversible drag along y axis
-            dragLines=true;
-            delLines=false;//you cannot both drag the display and delete a line
-            DisplayAtLineN(currentIndxFP+nbLns);
-            //scrB.SetPosFirstLine(indxFirstOnPg);
-            return;
-        }
-        if ((diffX>30)|(diffX<-30)){ //only if movement along x is significant (a horizontal swipe) a delete will be generated
-            delLines=true;
-        }
-    }
-    }
+       if (currentIndx!=-1){
+          int diffY=y-clickPosY;
+          if (dragLines){ //if dragLines is activated, it cannot become a delete command, so only look at vertical movement
+             int nbLns=int(diffY/(charHeight+2));
+             if (nbLns!=0) {
+                DisplayAtLineN(currentIndxFP+nbLns);
+                scrB.SetPosFirstLine(indxFirstOnPg);
+                return;
+             }
+          }else{ //determine if there is some significant movement along x or y
+             int diffX=clickPosX-x;
+             int nbLns=int(diffY/(charHeight+2));
+             if (nbLns!=0){ //if y movement is significant drag becomes an irreversible drag along y axis
+                dragLines=true;
+                delLines=false;//you cannot both drag the display and delete a line
+                DisplayAtLineN(currentIndxFP+nbLns);
+                return;
+             }
+             if ((diffX>30)|(diffX<-30)){ //only if movement along x is significant (a horizontal swipe) a delete will be generated
+                 delLines=true;
+             }
+          }
+       }
     }
 }
 
@@ -299,8 +309,11 @@ void List_Box_With_ScrB::Recalculate(int in_lft, int in_tp){
     general.recalculate(in_lft,in_tp);
     textOnly.recalculate(in_lft,in_tp);
     scrB.Recalculate(in_lft,in_tp);
-    for (int lg(0);lg<pageHeightInL;lg++){
-        box[lg].recalculate(in_left,in_top);
+    /*for (auto bx:box){
+        bx.recalculate(in_left,in_top);
+    }*/
+    for (ulong ln(0);ln<static_cast<ulong>(pageHeightInL);ln++){
+        box[ln].recalculate(in_left,in_top);
     }
 }
 void List_Box_With_ScrB::MoveUpNLines(int uL){
@@ -358,14 +371,26 @@ void List_Box_With_ScrB::GoToLastPage(){
 }
 
 void List_Box_With_ScrB::DisplayPage(){
-    for (int ln(0);ln<pageHeightInL;ln++){
-        int idx=indxFirstOnPg+ln;
-        if (idx<totalNbL){
-        box[ln].setText((*displayText)[idx]);
-        if (lineSelected==idx) box[ln].isSelected=true;
-        else box[ln].isSelected=false;
+//cast all variables
+    ulong idx=static_cast<ulong>(indxFirstOnPg),
+            uPageHeight=static_cast<ulong>(pageHeightInL),
+            uSelectedLine=static_cast<ulong>(lineSelected),
+            uNumberOLs=static_cast<ulong>(totalNbL);
+//compute boundaries
+    indxLastOnPg=indxFirstOnPg+pageHeightInL;
+    if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
+//copy & fill the box for displaying the text lines
+    for (ulong ln(0);ln<uPageHeight;ln++){
+        if (idx<uNumberOLs){
+            box[ln].setText((*displayText)[idx]);
+            if (uSelectedLine==idx)
+                 box[ln].isSelected=true;
+            else box[ln].isSelected=false;
         }
-        else box[ln].textOfLine="";
+        else {
+            box[ln].textOfLine="";
+        }
+        idx++;
     }
 }
 
@@ -375,7 +400,7 @@ bool List_Box_With_ScrB::HasHiddenLine(){
 
 void List_Box_With_ScrB::SelectLine(int lnNb){
     if ((lnNb!=lastLineDeleted)&&(lnNb!=antepLineDeleted)){
-       if ((lineSelected!=lnNb)&&(lnNb<indxLastOnPg)&&(lnNb>=indxFirstOnPg)){
+       if ((lineSelected!=lnNb)&&(lnNb<=indxLastOnPg)&&(lnNb>=indxFirstOnPg)){
            hasSelection=true;
            lineSelected=lnNb;
            DisplayPage();
@@ -427,6 +452,8 @@ void List_Box_With_ScrB::DeleteLine(int nbLn){
         indxLastPage--; if (indxLastPage<0) indxLastPage=0;
         DisplayAtLineN(indxFirstOnPg);
         scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.width+grlOffsetX,grlOffsetY);
+        scrB.SetPosFirstLine(indxFirstOnPg);
+        Recalculate(in_left,in_top);
     }
     else DisplayPage();
 }

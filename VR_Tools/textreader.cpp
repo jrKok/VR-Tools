@@ -1,59 +1,39 @@
 #include "textreader.h"
 
 TextReader::TextReader(): List_Box_With_ScrB(),
+    freqADF(0),
+    freqNAV(0),
+    freqCOM(0.0f),
     fileName(""),
     strBuffADF(""),
     strBuffNav(""),
     strBuffCom(""),
+    digits("0123456789"),
     textFile(),
     fileExists(false),
     needsUTF8(false),
     hasNav(false),hasCom(false),hasADF(false),
-    digits("0123456789"),
-    freqADF(0),
-    freqNAV(0),
-    freqCOM(0.0f),
     fT(),
     filePath(),
     keepsize(0)
 
 {
-
-}
-
-TextReader::TextReader(std::string fileN):List_Box_With_ScrB(),
-    fileName(fileN),
-    strBuffADF(""),
-    strBuffNav(""),
-    strBuffCom(""),
-    fileExists(false),
-    needsUTF8(false),
-    hasNav(false),hasCom(false),hasADF(false),
-    digits("0123456789"),
-    freqADF(0),
-    freqNAV(0),
-    freqCOM(0),
-    fT(),
-    filePath(),
-    keepsize(0)
-{
-    textFile.open(fileName,std::ifstream::in);
-    if (textFile.is_open()){
-        fileExists=true;
-        textFile.close();
-    }else{
-        fileExists=false;
-        fileName="";}
-
+fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
 }
 
 TextReader::~TextReader(){
 
 }
 
+void TextReader::PointToFile(){
+    fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
+    List_Box_With_ScrB::WriteDebug("Got Name from IniSettings "+fileName);
+    List_Box_With_ScrB::WriteDebug("While Dir Name was "+FilePointer::GetCurrentDirName());
 
-bool TextReader::OpenFile(std::string name){ //sets textFile,FileName and FileExists
-    fileName=name;
+}
+
+bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
+
     textFile.open(fileName,std::ifstream::in);
     if (textFile.is_open()){
         fileExists=true;
@@ -61,6 +41,7 @@ bool TextReader::OpenFile(std::string name){ //sets textFile,FileName and FileEx
         fT=fs::last_write_time(filePath);
         keepsize=std::experimental::filesystem::file_size(filePath);
     }else{
+        List_Box_With_ScrB::WriteDebug("Couldn't open file "+fileName);
         fileExists=false;
         fileName="";}
     return fileExists;
@@ -68,33 +49,21 @@ bool TextReader::OpenFile(std::string name){ //sets textFile,FileName and FileEx
 
 std::string TextReader::GetFileName(){
     if (fileExists){
-        std::string showName=fileName;
-        char* fnm=XPLMExtractFileAndPath((char*)showName.c_str());
-        std::string retS=fnm;
-        return retS;}
+        return FilePointer::GetCurrentFileName();}
    else return(std::string ("File not found "+fileName));
 }
 
 std::string TextReader::GetDirName(){
     if (fileExists){
-        std::string showName=fileName;
-        char* fnm=XPLMExtractFileAndPath((char*)showName.c_str());
-        std::string retS=fnm;
-        int fd=fileName.rfind(retS);
-        if (fd>0){
-           retS=fileName.substr(0,fd-1);
-           return retS;}
-        else{
-           return("");
+        return FilePointer::GetCurrentDirName();
         }
-    }
-    else return(std::string ("File not found "+fileName));
+    else return(std::string ("Directory not found "+FilePointer::GetCurrentDirName()));
 }
 
 bool TextReader::ReadFileToBuff(){ //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength
-
+if (fileName!=""){
   if (!textFile.is_open()) {
-      OpenFile(fileName);
+      OpenFile();
       if (!textFile.is_open()) {
           std::string inputL="the file "+fileName+" couldn't be found";
           fileExists=false;
@@ -104,13 +73,13 @@ bool TextReader::ReadFileToBuff(){ //defines MaxLineLength and reads all lines i
   stringOps ops;
   std::string inputL;
   while (getline(textFile,inputL)){
-     inputL=ops.cleanOut(inputL,"\r");
+     //inputL=ops.cleanOut(inputL,"\r");
      //inputL=ops.cleanOut(inputL,"\n");
      AddLine(inputL);
      }
   textFile.close();  
   if (needsUTF8) convertToUTF8();
-  SetupforText();
+  SetupforText();}
   return true;
 }
 
@@ -212,6 +181,7 @@ bool TextReader::ReloadIfSizeChanged(){
 
 void TextReader::closeReader(){
     ResetFrequencies();
+    clearText();
     hasSelection=false;hasHiddenLines=false;
 }
 

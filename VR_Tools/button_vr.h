@@ -30,7 +30,7 @@ public:
 
 virtual    void recalculate();
     void addPoint(int,int);
-    void setText(std::string);
+    void setText(const std::string &);
     void drawButton();
     void setColor(float custColor[3]);
     void resetMe();
@@ -40,6 +40,7 @@ virtual    void recalculate();
 
 private:
     float myColor[3],darkgray[3],colorPressed[3],colorSelected[3],niceWhite[3];
+
 };
 
 #endif // BUTTON_VR_H

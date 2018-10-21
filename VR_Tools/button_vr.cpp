@@ -17,8 +17,8 @@ button_VR::button_VR() : rectangles(),
     colorSelected{0.550f,0.750f,0.900f},
     niceWhite{0.950f,0.950f,0.950f}
 
-{
 
+{
 }
   void button_VR::recalculate(){
     //rectangles::recalculate();
@@ -43,7 +43,7 @@ void button_VR::addPoint(int oX, int oY){
     numberPoints++;
 }
 
-void button_VR::setText(std::string in_String){
+void button_VR::setText(const std::string &in_String){
     buttonText=in_String;
     //calculates Offsets for text, adjusts width of the rectangle if necessary
     //should occur after offsets of rectangle have been entered(I don't verify that until problems arise
@@ -118,7 +118,6 @@ void button_VR::drawButton(){
         glBegin(GL_TRIANGLES);
           {
             for (int pt(0);pt<numberPoints;pt++){
-            //for (int pt(0);pt<3;pt++){
                glVertex2i(symbol[pt].myX, symbol[pt].myY);
             }
           }

@@ -7,6 +7,14 @@ rectangles::rectangles() :
 {
 
 }
+
+rectangles::~rectangles(){}
+
+void rectangles::WriteDebug(std::string message){
+    std::string in_String="VR Tools : " +message+"\n";
+    XPLMDebugString((char*)in_String.c_str());
+}
+
 void rectangles::recalculate(){
     top=in_top-offsetY;
     bottom=in_top-offsetY-height;

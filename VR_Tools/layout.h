@@ -1,7 +1,6 @@
 #ifndef LAYOUT_H
 #define LAYOUT_H
 #include <string>
-#include <string.h>
 #include <vector>
 #include <locale>
 #include "XPLMDisplay.h"    // for window creation and manipulation
@@ -17,14 +16,13 @@
 #include "VR_Tools_global.h"
 #include "textreader.h"
 
-
 class TextReader;
 
 class Layout
 {
 public:
     Layout();
-    ~Layout();
+    virtual ~Layout();
     int gTop,gBottom,gLeft,gRight;//Used for initial calculations and coordinates,global coordinates
     int wTop,wBottom,wLeft,wRight,wWidth,wHeight,minWidth,maxWidth,minHeight,maxHeight;
     int charHeight,charWidth,textPointX,textPointY;//Used for initial setup and resize instructions
@@ -35,42 +33,43 @@ public:
     rectangles generalR;
     std::vector<button_VR> tButtons;
 
-    void WriteDebug(std::string message);
-    void resize();
-    void resizeVRWindow();
-    void newSize();
-    void recalculate(float cT);
-    bool initiate();
-    void FitToFile();
-    int rightRectangle(int idx);
-    int leftRectangle(int idx);
-    int topRectangle(int idx);
-    int bottomRectangle(int idx);
-    int leftTextLine(int idx);
-    int bottomTextLine(int idx);
-    std::string nextTextLine();
-    void findClick(int mX, int mY);
-    void defineButtons();
-    void CheckButtonsVisibility();
-    void ClosegWindow();
-    void HandleMouseKeepDown(int mX,int mY);
-    int  HandleMouseUp(int mX,int mY);
-    void LaunchCommand(int refCommand);
-    void SetNewFile(std::string newFilePath);
-    std::string GetFileName();
-    std::string GetDirName();
-    void SetWindowHandle(XPLMWindowID thisW);
-    bool isWindowInVR();
-    void DrawTextW(XPLMWindowID g_textWindow);
-    void DrawNoResize(XPLMWindowID g_textWindow);
-    bool OpenWindowAtStart();
-    void DoFlash();
-    bool GetResizeOption();
-    void ToggleFPS();
-    void KeepFile();
-    void KeepCurrentSize();
+     static void WriteDebug(std::string message);
+     static void InitCycleDebug(int nbs);
+     static void WriteDebugInCycles(std::string message);
+            void Begin();
+    virtual bool initiate();
+    virtual void resize();
+            void resizeVRWindow();
+    virtual bool newSize(int wth,int hgt);
+            void RelocateButtons(int middle);
+            void recalculate(float cT);
+    virtual void FitToFile();
+             int rightRectangle(int idx);
+             int leftRectangle(int idx);
+             int topRectangle(int idx);
+             int bottomRectangle(int idx);
+            void defineButtons();
+    virtual void findClick(int mX, int mY);
+    virtual void HandleMouseKeepDown(int mX,int mY);
+    virtual int  HandleMouseUp(int mX,int mY);
+    virtual void CheckButtonsVisibility();
+    virtual void ClosegWindow();
+    virtual void LaunchCommand(int refCommand);
+    virtual std::string GetFileName();
+            std::string GetDirName();
+            void SetWindowHandle(XPLMWindowID thisW);
+            bool isWindowInVR();
+    virtual void DrawTextW(XPLMWindowID g_textWindow);
+    virtual void DrawNoResize(XPLMWindowID g_textWindow);
+            bool OpenWindowAtStart();
+            void DoFlash();
+            bool GetResizeOption();
+            void ToggleFPS();
+            void KeepFile();
+            void KeepCurrentSize();
+            static int cycle;
 
-private:
+protected:
     XPLMDataRef nav1on,nav2on,com1on,com2on,adf1on,adf2on;
     XPLMDataRef nav1freq,nav2freq,com1freq,com2freq,adf1freq,adf2freq,com1freqk,com2freqk;
     XPLMDataRef dref_SunPitch,g_FPS;
@@ -83,7 +82,7 @@ private:
     bool  continueClick,buttonClick,autoReload,saveAuto,canUTF,autoReloadOnSize,useBackGround;
     bool  flash,flashWhenChange,noResize,fitSizeToFile,keepLastFile,keepSize,enableDelete,enableFreqs,showFPS;
     int   clickresult, splitLinePolicy;
-    int   vrWidth,vrHeight,upperMargin;
+    int   vrWidth,vrHeight,upperMargin,lowerMargin;
     float currentFPS;
     float lightGray[3];
     float cyan[3];

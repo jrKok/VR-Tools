@@ -2,6 +2,7 @@
 #define RECTANGLES_H
 #include <string>
 #include <XPLMGraphics.h>
+#include "XPLMUtilities.h"
 #include <point.h>
 #include <vector>
 
@@ -9,6 +10,7 @@ class rectangles
 {
 public:
     rectangles();
+    virtual ~rectangles();
     int top,left,bottom,right,in_top,in_left,height,width,offsetX,offsetY;
     bool isVisible;
 
@@ -18,6 +20,7 @@ public:
     bool isHere(int,int);
 
     void resetMe();
+    void WriteDebug(std::string message);
 
 
 };

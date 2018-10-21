@@ -53,7 +53,16 @@ SOURCES += \
     dirnamereader.cpp \
     filenamepicker.cpp \
     VR_Tools.cpp \
-    inisettings.cpp
+    inisettings.cpp \
+    key.cpp \
+    keyboard.cpp \
+    layoutwithedit.cpp \
+    textedit.cpp \
+    cursor.cpp \
+    drefwindow.cpp \
+    vrcommandfilter.cpp \
+    localclipboard.cpp \
+    filepointer.cpp
 
 HEADERS += \
     stringops.h \
@@ -70,7 +79,16 @@ HEADERS += \
     filenamepicker.h \
     VR_Tools.h \
     VR_Tools_global.h \
-    inisettings.h
+    inisettings.h \
+    key.h \
+    keyboard.h \
+    layoutwithedit.h \
+    textedit.h \
+    cursor.h \
+    drefwindow.h \
+    vrcommandfilter.h \
+    localclipboard.h \
+    filepointer.h
 
 target.path= \plugsXP
 unix {

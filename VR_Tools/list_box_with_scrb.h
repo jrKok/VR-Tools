@@ -37,18 +37,20 @@
  * It uses the classes for rectangles and lines.
  * It processes clicks, and recalculates its position when necessary*/
 
+typedef long long unsigned ulong;
+
 class List_Box_With_ScrB
 {
 public:
     List_Box_With_ScrB();
-    ~List_Box_With_ScrB();
+    virtual ~List_Box_With_ScrB();
     void Setup (int hght,int larg,int in_offsetX,int in_offsetY);
     void SetupforText();
     void AddLine(std::string in_Line);
-    void DrawMySelf();
-    bool ProceedClick(int x, int y);
-    void ProceedClickCont(int x, int y);
-    void ProceedEndClick();
+    virtual void DrawMySelf();
+    virtual bool ProceedClick(int x, int y);
+    virtual void ProceedClickCont(int x, int y);
+    virtual void ProceedEndClick();
     void Recalculate(int in_lft,int in_tp);
     void MoveUpNLines(int uL);
     void MoveDnNLines(int dL);
@@ -115,7 +117,7 @@ protected:
     stringOps strops;
     std::string delStr1,delStr2;
 
-    void DisplayPage();
+    virtual void DisplayPage();
     int  MeasureString(std::string str);
     void WriteDebug(std::string message);
 };

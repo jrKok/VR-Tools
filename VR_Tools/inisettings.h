@@ -9,6 +9,8 @@
 #include <stringops.h>
 #include <XPLMPlanes.h>
 #include <VR_Tools_global.h>
+#include <filepointer.h>
+
 /*
 * ini options :
 *
@@ -39,15 +41,18 @@
 *  can_read_freqs    : bool
 *Datarefs displayed
 */
+using std::string;
 
 class IniSettings
 {
 public:
     IniSettings();
+
     //build a vector of datarefs
     void ReadIniFile();
     void WriteIniFile();
-    void LogInstruction(std::string lf,std::string rg,std::string ct);
+    void LogInstruction(string lf,string rg,string ct);
+    void OrientFilePointer();
 
     bool GetOptStart();
     bool GetOptReload();
@@ -60,8 +65,8 @@ public:
     bool GetOptFixed();
     bool GetOptKeepSize();
     bool GetOptBckG();
-    std::string GetDir();
-    std::string GetFile();
+    string GetDir();
+    string GetFile();
     bool GetOptLastFile();
     int  GetOptTrim();
     bool GetOptDelete();
@@ -81,25 +86,27 @@ public:
     void SetOptFixed(bool opt);
     void SetOptKeepSize(bool opt);
     void SetOptBckG(bool opt);
-    void SetDir (std::string opt);
-    void SetFile(std::string opt);
+    void SetDir ();
+    void SetFile();
     void SetOptLastFile(bool opt);
     void SetOptTrim(int opt);
     void SetOptDelete(bool opt);
     void SetOptFreqs(bool opt);
     void SetOptFPS(bool opt);
-    std::string CodeTrimOption(int in_option);
+    string CodeTrimOption(int in_option);
     void SetOptReloadProc(bool opt);
     void SetReloadPeriod(int opt);
-    void WriteOption(std::string optionName, int opt);
-    void WriteOption(std::string optionName, bool opt);
-    void WriteOption(std::string optionName, std::string opt);
-    int  FindOption(std::string optionName);
+    void WriteOption(string optionName, int opt);
+    void WriteOption(string optionName, bool opt);
+    void WriteOption(string optionName, string opt);
+    int  FindOption(string optionName);
 
-private:
-    void WriteDebug(std::string message);
+
+
+
+static void WriteDebug(string message);
     stringOps ops;
-    std::string iniFileName,iniDirectory,completeName;
+    string iniFileName,iniDirectory,completeName;
     std::fstream iniFile;
     bool openWdwAtStart;
     bool autoReload;
@@ -113,14 +120,14 @@ private:
     bool noResize;
     bool keepSize;
     bool noBckground;
-    std::string directory;
-    std::string file;
+    string directory;
+    string file;
     bool keepLastFile;
     int trimLineOption;
     bool deleteEnable;
     bool navsSetEnable;
     bool displayFPS;
-    std::vector <std::string> leftH,rightH,comment;
+    std::vector <string> leftH,rightH,comment;
 
 };
 

@@ -2,12 +2,12 @@
 
 FileNamePicker::FileNamePicker():List_Box_With_ScrB(),
     currentDir(""),
-    systemCharSep(""),
+    systemCharSep(XPLMGetDirectorySeparator()),
     txtOnly(true),
     directoryEmpty(false)
 {
  SetSplitPolicy(DontTruncate);
- systemCharSep=XPLMGetDirectorySeparator();
+ //systemCharSep=XPLMGetDirectorySeparator();
 }
 
 void FileNamePicker::SetDirToRead(std::string in_dirPath){
@@ -24,6 +24,7 @@ bool FileNamePicker::GetTxtOption(){
 }
 
 void FileNamePicker::ShowAll(){
+
     clearText();
 
     for (auto & p : std::experimental::filesystem::directory_iterator(currentDir)){
@@ -46,7 +47,9 @@ void FileNamePicker::ShowAll(){
     }else{
         directoryEmpty=false;
     }
+
     SetupforText();
+
 }
 
 std::string FileNamePicker::GetCompleteSelectedFName(){
