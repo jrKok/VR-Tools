@@ -7,26 +7,28 @@
 #include <XPLMGraphics.h>
 #include <XPLMUtilities.h>
 
+using std::string;
+
 typedef long long unsigned ulong;
 class stringOps
 {
 public:
     stringOps();
-    void WriteDebug(std::string message);
-    bool contains(const std::string inString, const std::string inContains);
-    std::string splitRight(const std::string inString, const std::string split);
-    std::string cleanOut(const std::string inString,const std::string inToClean);
-    std::string bestLeft(std::string &inString, int MaxL);
-    std::string bestLeftSize(std::string &inString, int in_sz);
-    int findLengthForSize (std::string inString,int in_sz);
-    std::string splitAtSize(std::string &inString, int in_sz);
-    int StringSize(std::string in_str);
-    std::string ToUTF8(std::string ansiSTR);
-    std::string DecodeInstruction(std::string in_instr,std::string &out_right,std::string &comment);
-    std::string Trim(const std::string& str,
-                     const std::string& whitespace = " \t");
-    std::string splitRightAtSize(std::string &inString, int in_sz);
-    static std::string RemoveLastUTFCharFromString(std::string in_string);
+    void WriteDebug(string message);
+    bool contains(const string inString, const string inContains);
+    string splitRight(const string inString, const string split);
+    string cleanOut(const string inString,const string inToClean);
+    string bestLeft(string &inString, int MaxL);
+    string bestLeftSize(string &inString, int in_sz);
+    int findLengthForSize (string inString,int in_sz);
+    string splitAtSize(string &inString, int in_sz);
+    int StringSize(string in_str);
+    string ToUTF8(string ansiSTR);
+    string DecodeInstruction(string in_instr,string &out_right,string &comment);
+    string Trim(const string& str,
+                     const string& whitespace = " \t");
+    string splitRightAtSize(string &inString, int in_sz);
+    static string RemoveLastUTFCharFromString(string in_string);
 };
 
 #endif // STRINGOPS_H

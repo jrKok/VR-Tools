@@ -2,18 +2,25 @@
 /* future developments :
  *
  *version 1.3
+ *
+ * test for international characters
+ * correct bug for cursor jump when paste
+ * use UTF key to toggle keyboard
+ *
  * emit beta
  *
- * make temporary files for storing edition when resizing, or quiting without save (define a bool to check if editions have been made)
- * make temporary file (bck) to store initial state of file for cancel command
+
  * improve abbreviations routines : add in keyboard's definition text file a value to be returned, make routines read this value
  *  - key shortcuts for text : RWY,ILS, CRS, HDG, BRG, VOR,NDB, ALT, qnh, hPa, WPT, FRQ, Comm, ... (2 chars or 1 spec Key)
  * enhance draw functions of all buttons in making them in a sole routine (or class)
  * implement physical keyboard callback
  * make a repeat feature for keyboards
- * correct bugs
+ * bring back tuning to radios from edit window also...
+ * correct bugs, the previous will be 1.3.0
  *
+ * version 1.3.1 :
  * make cut/copy/paste with windows clipboard
+ * Make Ini static
  * define international keyboards, make a line in .ini to define which keyboard is to be used.
  *
  *  menus : new file when avaible for V2), )
@@ -21,7 +28,7 @@
  * look again into comm frequencies (sometimes 0.005 doesn't seem to be taken)
 
   * add an ini option to select if toggle means close text window or hide window
- *
+ * version 1.3.2
  * directory shortcuts (mostly my plane, then a more elaborate directory shortcut manager)
  * ini files in airplanes directory
  *
@@ -55,6 +62,7 @@
 #include <layoutwithedit.h>
 #include <drefwindow.h>
 #include <vrcommandfilter.h>
+#include <filepointer.h>
 
 using std::string;
 

@@ -39,6 +39,7 @@ public:
     void Recalculate(int oX,int oY);
     void SetIndxFirstPage(int indx);
     void FindClosestXPosition(int inLine, int inX);
+    int  UTFCharToPos(unsigned char * chtest);
     int  GetLengthOfUTFString(string inLine);
     void FindPos(int inLine,int inX); //gets a line number and a pixel number, converts to a position, sets line and charPos hasSelection=false
     void DragPos (int inLine, int inX);// informed a drag occurs, tracks lineEnd and charEnd, modifies them if necessary hasSelection=true

@@ -14,8 +14,9 @@ class TextEdit : public TextReader
 {
 public:
     TextEdit();
-
+    void InitialiseEdit();
     bool Save();
+    void Commit();
     void Recalculate(int in_lft,int in_tp);
     bool ProceedClick(int x, int y);
     void ProceedClickCont(int x, int y);
@@ -47,10 +48,12 @@ public:
 
 
 private:
+    bool hasToCommit;
     float clickTime;
     cursor cursor;
     stringOps ops;
     LocalClipBoard localClip;
+    string tempFile;
 };
 
 #endif // TEXTEDIT_H

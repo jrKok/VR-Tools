@@ -1,27 +1,42 @@
 #include "textedit.h"
 
 TextEdit::TextEdit(): TextReader(),
+  hasToCommit(false),
   clickTime(0),
   cursor(),
   ops(),
-  localClip()
+  localClip(),
+  tempFile("")
 
 {
 
 }
+void TextEdit::InitialiseEdit(){
+    FilePointer::MakeBackups();
+    tempFile=FilePointer::GetTempName();
+    textFile.open(tempFile);
+    if (!textFile.is_open()) List_Box_With_ScrB::WriteDebug ("error in processing temporary file");
+    else List_Box_With_ScrB::WriteDebug("Editing file "+tempFile);
+    textFile.close();
+    hasToCommit=false;
+}
 
-bool TextEdit::Save(){
-    bool success(true);
-    if (!textFile.is_open()){
-        textFile.open(fileName,std::ofstream::out);
+void TextEdit::Commit(){
+    if (hasToCommit){
+        hasToCommit=false;
+        textFile.open(tempFile,std::ofstream::out);
         if (textFile.is_open()){
             for (auto line : (*displayText)){
                 textFile << line;
             }
             textFile.close();}
-        else success=false;}
-    else success=false;
-    return success;
+    }
+}
+
+bool TextEdit::Save(){
+    Commit();
+    FilePointer::SaveTemp();
+    return true;
 }
 
 void TextEdit::Recalculate(int in_lft,int in_tp){
@@ -31,11 +46,12 @@ void TextEdit::Recalculate(int in_lft,int in_tp){
 
 
 bool TextEdit::ReadFileToBuff(){
-     if (fileName!=""){
+     Commit();
+     if (tempFile!=""){
        if (!textFile.is_open()) {
-           OpenFile();
+           textFile.open(tempFile,std::ifstream::in);
            if (!textFile.is_open()) {
-               string inputL="the file "+fileName+" couldn't be found";
+               string inputL="the file "+tempFile+" couldn't be found";
                fileExists=false;
                AddLine(inputL);
              return false;}}
@@ -191,11 +207,11 @@ void TextEdit::MoveCursorUp(){
 void TextEdit::MoveCursorDown(){
     if (cursor.HasCursor()){
         cursor.MoveCursorDown();
-        if (cursor.GetLine()>indxLastOnPg) MoveDnNLines(1);
+        if (cursor.GetLine()>=indxLastOnPg) MoveDnNLines(1);
     }
     if (cursor.HasSelection()){
         cursor.MoveSelectionDown();
-        if (cursor.GetSelectionEndLine()>indxLastOnPg) MoveDnNLines(1);
+        if (cursor.GetSelectionEndLine()>=indxLastOnPg) MoveDnNLines(1);
     }
 
 }
@@ -344,11 +360,14 @@ void TextEdit:: DeleteSelection(){
 void TextEdit::ReadLineAgain(int in_line){
     /* function called from all high level functions
      * makes display of edited text seamless
-     * read the edited line(s) again, from the starting line to the next LF char
-     * synchronizing the display should be done by the caller
-     * but follows cursor position if cursor is in the lines proceeded
-     * intermediate level function
+     * processes the edited line(s) again, from the starting line to the next LF char.
+     * Follows cursor position.
+     * Scrolls the display if necessary, synchronizes scrollbox
+     * Synchronizing the display should be done by the caller
+     * but this routine follows cursor position if cursor is in the lines proceeded.
+     * This is an intermediate level function but does all the work.
      */
+    hasToCommit=true;
     int last_line(0),cursorPos(0);
     ulong l=static_cast<ulong>(in_line);
     if (in_line>0)
@@ -377,7 +396,7 @@ void TextEdit::ReadLineAgain(int in_line){
 
         while (sz>lineLength){
             std::string leftString=strops.bestLeftSize(inputL,lineLength);
-            int leftStringsize=static_cast<int>(leftString.length());
+            int leftStringsize=cursor.GetLengthOfUTFString(leftString);
             if ((cursorPos>=procSoFar) && (cursorPos<(procSoFar+leftStringsize))) {
                 newline=static_cast<int>(l);
                 newPos=cursorPos-procSoFar;
@@ -417,17 +436,31 @@ void TextEdit::ReadLineAgain(int in_line){
           DeleteWholeLine(static_cast<int>(l));
           l++;
     }
+    indxLastPage=totalNbL-pageHeightInL;
+    if (indxLastPage<0) indxLastPage=0;
+    scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.width+grlOffsetX,grlOffsetY);
+    scrB.Recalculate(in_left,in_top);
+    if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
+    indxLastOnPg=indxFirstOnPg+pageHeightInL;
+    if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
 
     if (cursor.HasCursor()&(cursor.GetLine()>=(in_line-1))) {
         string toConvert=(*displayText)[static_cast<ulong>(newline)].substr(0,static_cast<ulong>(newPos));
         int newP=cursor.GetLengthOfUTFString(toConvert);
         cursor.SetCursorAt(newline,newP);
+        if (newline>=indxLastOnPg&&newline<totalNbL){
+            indxFirstOnPg=newline-pageHeightInL+2;
+            if (indxFirstOnPg<0) indxFirstOnPg=0;
+            if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;
+            scrB.SetPosFirstLine(indxFirstOnPg);
+        }
     }
 }
 
 /* The following are top level entry functions, called after a command is issued by the user
- *  they have to update the display, cursor position, leave the file in
- *  a useable state
+ *  they have to update the display, cursor position, leaves the file in
+ *  a useable state. When one of these commands is issued, "save" is enabled and considered. Intermediate savings to a
+ * buffer file will sometimes take place.
  */
 
 void TextEdit::Cut(){
@@ -435,8 +468,9 @@ void TextEdit::Cut(){
         int line(cursor.GetSelectionStartLine()),pos(cursor.GetSelectionStartCharPos());
         Copy();
         DeleteSelection();
-        DisplayPage();
         cursor.SetCursorAt(line,pos);
+        ReadLineAgain(line);
+        DisplayPage();
     }
 }
 
@@ -459,7 +493,8 @@ void TextEdit::Copy(){
                 for (ulong selLine(bLine);selLine<=eLine;selLine++){
                     if (selLine==bLine){
                         int bp=cursor.FindPositionInNativeLine((*displayText)[selLine],static_cast<int>(bPos));
-                        copyString+=(*displayText)[selLine].substr(bp,(*displayText)[selLine].length()-bp);
+                        //copyString+=(*displayText)[selLine].substr(bp,(*displayText)[selLine].length()-bp);
+                        copyString+=(*displayText)[selLine].substr(bp);
                      }
                      else{
                         if (selLine==eLine){
@@ -498,6 +533,10 @@ void TextEdit::Paste(){
             int cLine=cursor.GetLine();
             int cPos =cursor.GetPos();
             InsertTextInLine(cLine,cPos,toPaste);
+            int insL=cursor.GetLengthOfUTFString(toPaste);
+            cPos+=insL;
+            cursor.AddPositionsToLine(insL);
+            cursor.SetCursorAt(cLine,cPos);
             ReadLineAgain(cLine);
             DisplayPage();
         }
@@ -529,6 +568,7 @@ void TextEdit::Backspace(){
         if (cursor.HasCursor()) {
             int ln(cursor.GetSelectionStartLine());
             ReadLineAgain(ln);
+            return;
         }
         DisplayPage();
         return;
@@ -544,9 +584,14 @@ void TextEdit::Backspace(){
 
                int lastPosOfPrevLine=cursor.GetLastPositionOfLine(static_cast<int>(uln-1));
                cursor.SetCursorAt(cLine-1,lastPosOfPrevLine);
-               cursor.MoveCursorLeft();
+
                string bufl=(*displayText)[uln],buf=(*displayText)[uln-1];
-               buf=stringOps::RemoveLastUTFCharFromString(buf);
+               if (buf.substr(buf.length()-1,1)=="\n")
+                   buf=buf.substr(0,buf.length()-1);
+               else{
+                   buf=stringOps::RemoveLastUTFCharFromString(buf);
+                   cursor.MoveCursorLeft();
+               }
                (*displayText)[uln-1]=buf+bufl;
                DeleteWholeLine(cLine);
                ReadLineAgain(cLine-1);

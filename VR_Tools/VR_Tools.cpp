@@ -132,6 +132,7 @@ PLUGIN_API int XPluginStart(
 PLUGIN_API void	XPluginStop(void)
 {
     commandFilter.UndoFiltering();
+    FilePointer::ReleaseBackups();
 
     drefW.Unload();
 
@@ -293,6 +294,7 @@ int	handle_mouse_for_TextW (XPLMWindowID in_window_id, int x, int y, XPLMMouseSt
             is_In_Edit_Mode=!is_In_Edit_Mode;
             if (is_In_Edit_Mode){
                 ptrLayout=&wELayout;
+                wELayout.BeginEdit();
             }else{
                 ptrLayout=(&wLayout);
             }
@@ -341,6 +343,7 @@ void MakeTextWindow(){
           XPLMSetWindowResizingLimits(g_textWindow,(*ptrLayout).minWidth, (*ptrLayout).minHeight, (*ptrLayout).maxWidth, (*ptrLayout).maxHeight);
           string sTitle("");
           sTitle=FilePointer::GetCurrentFileName();
+          if (is_In_Edit_Mode) wELayout.BeginEdit();
           XPLMSetWindowTitle(g_textWindow, (char*)sTitle.c_str());
           (*ptrLayout).SetWindowHandle(g_textWindow);
           (*ptrLayout).CheckButtonsVisibility();

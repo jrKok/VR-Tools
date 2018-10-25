@@ -1,5 +1,5 @@
 #include "keyboard.h"
-
+//size of a space = 4px
 Keyboard::Keyboard():
     allKeyboard(),rL1(),rL2(),rL3(),rL4(),rL5(),//rectangles for localisation of clics
     kL1(),kL2(),kL3(),kL4(),kL5(),//vectors of keys

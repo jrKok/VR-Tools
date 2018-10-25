@@ -27,9 +27,6 @@ TextReader::~TextReader(){
 
 void TextReader::PointToFile(){
     fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
-    List_Box_With_ScrB::WriteDebug("Got Name from IniSettings "+fileName);
-    List_Box_With_ScrB::WriteDebug("While Dir Name was "+FilePointer::GetCurrentDirName());
-
 }
 
 bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists

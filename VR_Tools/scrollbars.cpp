@@ -45,6 +45,7 @@ void ScrollBars::WriteDebug(std::string message){
 
 void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,int offX, int offY){
     //define fixed elements
+   if (totLines>0){
     commandUp.resetMe();
     commandDown.resetMe();
     totalheight=height;
@@ -111,6 +112,10 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
         linesPPx=1;
     }}
     SetPosFirstLine(firstLine);
+   }
+   else{
+       this->isVisible=false;
+   }
     //compute lift height and params, its initial position at the top
     //compute linesPPx
 }

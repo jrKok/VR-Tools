@@ -5,48 +5,48 @@ stringOps::stringOps()
 
 }
 
-void stringOps::WriteDebug(std::string message){
-    std::string in_String="VR Tools : " +message+"\n";
+void stringOps::WriteDebug(string message){
+    string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
 }
 
-bool stringOps::contains(const std::string inString, const std::string inContains){
+bool stringOps::contains(const string inString, const string inContains){
     std::size_t fd=inString.find(inContains);
-    if (fd!=std::string::npos) return true;
+    if (fd!=string::npos) return true;
         else return false;
 }
 
-std::string stringOps::splitRight(const std::string inString, const std::string inSplit){
+string stringOps::splitRight(const string inString, const string inSplit){
     std::size_t len=inString.length(),lenSpl=inSplit.length();
     if ((len>0)&&(lenSpl>0)){
         std::size_t fd=inString.find(inSplit);
-        if(fd != std::string::npos){
-            std::string retStr=inString.substr(fd+lenSpl,len-fd+lenSpl);
+        if(fd != string::npos){
+            string retStr=inString.substr(fd+lenSpl,len-fd+lenSpl);
             return(retStr);
         }else return("");
     }
     return("");
 }
 
-std::string stringOps::cleanOut(const std::string inString,const std::string inToClean){
+string stringOps::cleanOut(const string inString,const string inToClean){
     size_t len=inToClean.size();
-    std::string outString=inString;
+    string outString=inString;
     size_t pos=outString.find(inToClean);
-    while(pos!=std::string::npos){
+    while(pos!=string::npos){
         outString=outString.erase(pos,len);
         pos=outString.find(inToClean);
     }
     return (outString);
 }
 
-std::string stringOps::bestLeft(std::string &inString,int MaxL){
-    std::string left("");
+string stringOps::bestLeft(string &inString,int MaxL){
+    string left("");
     if (MaxL>0)
     {
       left=inString.substr(0,MaxL);//do a brutal split at MaxL
       inString=inString.substr(MaxL);
       size_t posSpc=left.find_last_of(" ");//try to split at last space found
-      if (posSpc!=std::string::npos){
+      if (posSpc!=string::npos){
           inString=left.substr(posSpc+1)+inString; // if possible do the split not including the space itself.
           left=left.substr(0,posSpc);
       }
@@ -54,14 +54,14 @@ std::string stringOps::bestLeft(std::string &inString,int MaxL){
     return left;
 }
 
-std::string stringOps::bestLeftSize(std::string &inString, int in_sz){// used for Best Split At Space
-    std::string left("");
+string stringOps::bestLeftSize(string &inString, int in_sz){// used for Best Split At Space
+    string left("");
     if (in_sz>0){
       int MaxL=findLengthForSize(inString,in_sz);
       left=inString.substr(0,MaxL);//do a brutal split at MaxL
       inString=inString.substr(MaxL);
       size_t posSpc=left.find_last_of(" ");//try to split at last space found
-      if (posSpc!=std::string::npos){
+      if (posSpc!=string::npos){
           inString=left.substr(posSpc+1)+inString; // if possible do the split not including the space itself.
           left=left.substr(0,posSpc+1);//but here include the space
       }
@@ -69,9 +69,9 @@ std::string stringOps::bestLeftSize(std::string &inString, int in_sz){// used fo
     return left;
 }
 
-std::string stringOps::splitAtSize(std::string &inString, int in_sz){//used for truncate at left and forced split at length
+string stringOps::splitAtSize(string &inString, int in_sz){//used for truncate at left and forced split at length
     //the caller has to ensure that inString is superior to in_sz
-    std::string left("");
+    string left("");
     if (in_sz>0){
        int MaxL=findLengthForSize(inString,in_sz);
        left=inString.substr(0,MaxL);//do a brutal split at MaxL
@@ -80,11 +80,11 @@ std::string stringOps::splitAtSize(std::string &inString, int in_sz){//used for 
     return left;
 }
 
-std::string stringOps::splitRightAtSize(std::string &inString, int in_sz){
-    std::string right("");
+string stringOps::splitRightAtSize(string &inString, int in_sz){
+    string right("");
     if (in_sz>0){
-        auto lgth=inString.length();
-        for (int it(lgth-1);it>=0;it--){
+        ulong lgth=inString.length();
+        for (ulong it(lgth);it>0;it--){
             right=inString.substr(it,(lgth-it));
             if ((int)XPLMMeasureString(xplmFont_Proportional,(char*)right.c_str(),right.size())>=in_sz){
                 right=inString.substr(it+1,(lgth-it));
@@ -95,43 +95,26 @@ std::string stringOps::splitRightAtSize(std::string &inString, int in_sz){
     return right;
 }
 
-int stringOps::findLengthForSize (std::string inString,int in_sz){
-    int len(0);
-    std::string testSring;
+int stringOps::findLengthForSize (string inString,int in_sz){
+    ulong len(0);
+    string testString;
     do{
        len++;
-       testSring=inString.substr(0,len);
+       testString=inString.substr(0,len);
     }
-    while ((StringSize(testSring)<in_sz)&&(len<=inString.size()));
-    return (len);
+    while ((StringSize(testString)<in_sz)&&(len<=inString.size()));
+    return (static_cast<int>(len-1));
 }
 
-int stringOps::StringSize(std::string in_str){
+int stringOps::StringSize(string in_str){
     int retVal;
-    retVal=(int)XPLMMeasureString(xplmFont_Proportional,(char*)in_str.c_str(),in_str.size());
+    retVal=static_cast<int>(XPLMMeasureString(xplmFont_Proportional,(char*)in_str.c_str(),in_str.size()));
     return retVal;
 }
 
-/*std::string stringOps::ToUTF8(std::string ansiSTR){
-    unsigned long long lgth=ansiSTR.length();
-    char * conv=new char [lgth+1];
-    strcpy(conv,ansiSTR.c_str());
-    std::string utf8str("");
+string stringOps::ToUTF8(string ansiSTR){
 
-    for (int itr(0);itr<lgth;itr++){
-        unsigned char ansiC=conv[itr];
-        if (ansiC<128) {  utf8str.append(1,ansiC);}
-        else {
-            utf8str.append(1,unsigned char(0xC0 | (ansiC >> 6)));
-            utf8str.append(1,unsigned char(0x80 | (ansiC & 0x3F)));}
-    }
-    delete[] conv;
-    return utf8str;
-}*/
-
-std::string stringOps::ToUTF8(std::string ansiSTR){
-
-    std::string utf8str("");
+    string utf8str("");
 
     for (char fromStr: ansiSTR){
         unsigned char ansiC=reinterpret_cast<unsigned char&>(fromStr);
@@ -144,9 +127,9 @@ std::string stringOps::ToUTF8(std::string ansiSTR){
     return utf8str;
 }
 
-std::string stringOps::DecodeInstruction(std::string in_instr, std::string &out_right,std::string &comment){
+string stringOps::DecodeInstruction(string in_instr, string &out_right,string &comment){
 //decodes a line of the .ini file
-    std::string left(""),right("");
+    string left(""),right("");
     if ((in_instr.find(";")==0)) {
         comment=in_instr;
         return ("");
@@ -195,12 +178,12 @@ std::string stringOps::DecodeInstruction(std::string in_instr, std::string &out_
     return left;
 }
 
-std::string stringOps::Trim(const std::string& str,
-                            const std::string& whitespace)
-{
+string stringOps::Trim(const string& str,
+                            const string& whitespace)
+{//removes starting and trailing "whitespace")
     if (str=="") return "";
     const auto strBegin = str.find_first_not_of(whitespace);
-    if (strBegin == std::string::npos)
+    if (strBegin == string::npos)
         return ""; // no content
 
     const auto strEnd = str.find_last_not_of(whitespace);
@@ -209,7 +192,7 @@ std::string stringOps::Trim(const std::string& str,
     return str.substr(strBegin, strRange);
 }
 
-std::string stringOps::RemoveLastUTFCharFromString(std::string in_string){
+string stringOps::RemoveLastUTFCharFromString(string in_string){
     ulong lg=in_string.length();
     if (lg>0)
     {

@@ -13,6 +13,7 @@ class LayoutWithEdit : public Layout
 public:
     LayoutWithEdit();
     //reimplemented member functions
+    void BeginEdit();
     bool initiate();
     void resize();
     bool newSize(int wth,int hgt);

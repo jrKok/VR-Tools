@@ -37,6 +37,7 @@
  * It uses the classes for rectangles and lines.
  * It processes clicks, and recalculates its position when necessary*/
 
+using std::string;
 typedef long long unsigned ulong;
 
 class List_Box_With_ScrB
@@ -46,7 +47,7 @@ public:
     virtual ~List_Box_With_ScrB();
     void Setup (int hght,int larg,int in_offsetX,int in_offsetY);
     void SetupforText();
-    void AddLine(std::string in_Line);
+    void AddLine(string in_Line);
     virtual void DrawMySelf();
     virtual bool ProceedClick(int x, int y);
     virtual void ProceedClickCont(int x, int y);
@@ -66,7 +67,7 @@ public:
     void SelectFirstLine();
     bool HasSelection();
     int  SelectedLineNumber();
-std::string StringSelected();
+  string StringSelected();
     void DeleteLine(int nbLn);
     void DeleteSelectedLine();
     void UndoDelete();
@@ -112,14 +113,14 @@ protected:
     ScrollBars scrB;
     rectangles general,textOnly,delButtons;
     float backgrd[3],ink[3],inkSelect[3];
-    std::vector<std::string> *displayText;
+    std::vector<string> *displayText;
     std::vector<TextLine> box;
     stringOps strops;
-    std::string delStr1,delStr2;
+    string delStr1,delStr2;
 
     virtual void DisplayPage();
-    int  MeasureString(std::string str);
-    void WriteDebug(std::string message);
+    int  MeasureString(string str);
+    void WriteDebug(string message);
 };
 
 #endif // LIST_BOX_WITH_SCRB_H

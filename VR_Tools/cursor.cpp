@@ -170,21 +170,32 @@ int cursor::FindPositionInNativeLine(const string &in_string,int in_pos){
     return posInString;
 }
 
+int  cursor::UTFCharToPos(unsigned char* chtest){
+    //returns one if the UTF character has a length(and thus increases pos in a string for the cursor)
+    ulong tag=static_cast<ulong>(chtest[0]*0x100+chtest[1]);
+    return( chLength[tag]>0);
+}
+
 int  cursor::GetLengthOfUTFString(string inLine){
+    unsigned char* testChar=new unsigned char[2];
     if (inLine=="") return 0;
     int length(0);
     bool afterFirstUtfChar(false);
     for (unsigned char ansiC:inLine){
         if (ansiC<=0x7F){
-            length++;
+            testChar[1]=ansiC;
+            testChar[0]='\0';
+            length+=UTFCharToPos(testChar);
         }
         else {
             if (afterFirstUtfChar){
-                length++;
                 afterFirstUtfChar=false;
+                testChar[1]=ansiC;
+                length+=UTFCharToPos(testChar);
             }
             else{
                 afterFirstUtfChar=true;
+                testChar[0]=ansiC;
             }
         }
     }
@@ -546,7 +557,7 @@ void cursor::AddPositionsToLine(int nbOfP){
 void cursor::SetCursorAt(int in_line, int in_pos){
     EraseCursor();//then Check if values are valid
     if (in_line>=nbOfLines) return;
-    if (in_pos==-1)
+    if (in_pos<0)
          charPos=GetLastPositionOfLine(in_line);
     else charPos=in_pos;
     if (charPos>GetLastPositionOfLine(in_line)) {

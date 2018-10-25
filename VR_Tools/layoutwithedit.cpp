@@ -26,6 +26,10 @@ LayoutWithEdit::LayoutWithEdit() :
 
 //End of constructor
 
+void LayoutWithEdit::BeginEdit(){
+    tEdFileReader->InitialiseEdit();
+}
+
 bool LayoutWithEdit::initiate(){
     resize();
     editMode=true;
@@ -258,7 +262,7 @@ void LayoutWithEdit::ProcessKeyPress(std::string keyName, std::string in_String)
             if (keyName=="C"){ tEdFileReader->Copy();}
             if (keyName=="V"){ tEdFileReader->Paste();}
             if (keyName=="Q"){tEdFileReader->Save();editMode=false;} //Quit : Save and Quit
-            if (keyName=="A"){editMode=false;} //Abandon : Quit without saving
+            if (keyName=="A"){FilePointer::RestoreBackup();editMode=false;} //Abandon : Quit without saving
             if (keyName=="D") {tEdFileReader->Suppress();}
             if (keyName=="T"){ToggleKeyboard();} //Toggle VR keyboard
             if (keyName=="K"){} //Use physical keyboard (stops processing keyboards commands)
@@ -296,7 +300,9 @@ int LayoutWithEdit::HandleMouseUp(int mX,int mY){
     autoReload=saveAuto;
     epoch=XPLMGetElapsedTime();
     int retVal=-1;
-    if (!editMode) retVal=3;
+    if (!editMode) {
+        FilePointer::ReleaseBackups();
+        retVal=3;}
     if (continueClick){
         continueClick=false;
         buttonClick=false;
@@ -315,7 +321,10 @@ int LayoutWithEdit::HandleMouseUp(int mX,int mY){
         continueClick=false;
         buttonClick=false;
         clickresult=-1;
-        if (!editMode) retVal=3;
+        if (!editMode){
+            retVal=3;
+            FilePointer::ReleaseBackups();
+        }
     }
     return retVal;
 }
@@ -330,11 +339,12 @@ void LayoutWithEdit::PhysicalKeyPressed(char in_char,XPLMKeyFlags flag,char in_V
 void LayoutWithEdit::LaunchCommand(int refCommand){
 
     switch(refCommand){
-    case B_Edit_Line : {
-        tEdFileReader->Reload();
+    case B_Edit_Line : {//Cancel Command
+        FilePointer::RestoreBackup();
+        editMode=false;
         break;
     }
-    case B_Reload:{
+    case B_Reload:{//Save Command
         tEdFileReader->Save();editMode=false;;
              //canUTF=true;
         break;}
@@ -424,7 +434,7 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
 
 void LayoutWithEdit::CheckButtonsVisibility(){
     tButtons[B_Save].isVisible       =false;
-    tButtons[B_Edit_Line].isVisible  =false;
+    tButtons[B_Edit_Line].isVisible  =true;
     tButtons[B_More_Lines].isVisible =false;
     tButtons[B_Less_Lines].isVisible =false;
 
@@ -432,7 +442,7 @@ void LayoutWithEdit::CheckButtonsVisibility(){
     tButtons[B_Reload].isVisible     =!autoReload;
     tButtons[B_Auto].isVisible       =true;
     tButtons[B_Undo].isVisible       =tEdFileReader->CanUndo()&(!autoReload)&enableDelete;
-    tButtons[B_UTF8].isVisible       =!(tEdFileReader->HasSelection())&(!autoReload)&canUTF;
+    tButtons[B_UTF8].isVisible       =false;
     tButtons[B_Toggle_Line].isVisible=tEdFileReader->HasSelection()&(!autoReload)&(enableDelete);
     tButtons[B_Show_All].isVisible   =tEdFileReader->HasHiddenLine()&(!autoReload)&(enableDelete);
 

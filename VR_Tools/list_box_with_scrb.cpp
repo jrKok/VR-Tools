@@ -35,16 +35,15 @@ List_Box_With_ScrB::List_Box_With_ScrB():
      backgrd{0.9922f,0.9608f,0.9098f},
      ink{0.005f,0.005f,0.005f},
      inkSelect{0.9f,0.05f,0.4f},
-     displayText(new std::vector<std::string>),
+     displayText(new std::vector<string>),
      delStr1(""),
      delStr2("")
 
 {
-
 }
 
-void List_Box_With_ScrB::WriteDebug(std::string message){
-    std::string in_String="VR Tools : " +message+"\n";
+void List_Box_With_ScrB::WriteDebug(string message){
+    string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
 }
 
@@ -115,7 +114,7 @@ void List_Box_With_ScrB::SetupforText(){
     Recalculate(in_left,in_top);
 }
 
-void List_Box_With_ScrB::AddLine(std::string in_Line){
+void List_Box_With_ScrB::AddLine(string in_Line){
 
     int sz=MeasureString(in_Line);
     if (sz>maxStringWidth) maxStringWidth=sz;
@@ -123,7 +122,7 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
     switch (splitPolicy){
     case BestSplitAtSpace:   {
         while (sz>lineLength){
-            std::string leftString=strops.bestLeftSize(in_Line,lineLength);
+            string leftString=strops.bestLeftSize(in_Line,lineLength);
             displayText->push_back(leftString);
             sz=MeasureString(in_Line);
             totalNbL++;
@@ -135,7 +134,7 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
 
     case ForceSplitAtSize:{
         while (sz>lineLength){
-            std::string leftString=strops.splitAtSize(in_Line,lineLength);
+            string leftString=strops.splitAtSize(in_Line,lineLength);
             displayText->push_back(leftString);
             sz=MeasureString(in_Line);
             totalNbL++;
@@ -146,7 +145,7 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
     }
 
     case TruncateKeepLeft:{
-        std::string leftString=in_Line;
+        string leftString=in_Line;
         if (sz>lineLength){
            leftString=strops.splitAtSize(in_Line,lineLength);
         }
@@ -162,7 +161,7 @@ void List_Box_With_ScrB::AddLine(std::string in_Line){
     }
 
     case TruncateKeepRight:{
-        std::string rightStr=in_Line;
+        string rightStr=in_Line;
         if (sz>lineLength){
             rightStr=strops.splitRightAtSize(in_Line,lineLength);
         }
@@ -377,7 +376,7 @@ void List_Box_With_ScrB::DisplayPage(){
             uSelectedLine=static_cast<ulong>(lineSelected),
             uNumberOLs=static_cast<ulong>(totalNbL);
 //compute boundaries
-    indxLastOnPg=indxFirstOnPg+pageHeightInL;
+    indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
     if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
 //copy & fill the box for displaying the text lines
     for (ulong ln(0);ln<uPageHeight;ln++){
@@ -425,7 +424,7 @@ int  List_Box_With_ScrB::SelectedLineNumber(){
     return lineSelected;
 }
 
-std::string List_Box_With_ScrB::StringSelected(){
+string List_Box_With_ScrB::StringSelected(){
     if (hasSelection) return (*displayText)[lineSelected];
     return("");
 }
@@ -564,11 +563,11 @@ void List_Box_With_ScrB::clearText(){
     if (displayText!=nullptr)
     {delete displayText;
     displayText=nullptr;}
-    displayText=new std::vector<std::string>;
+    displayText=new std::vector<string>;
 
 } //has to adjust scrB also
 
-int List_Box_With_ScrB::MeasureString(std::string str){
+int List_Box_With_ScrB::MeasureString(string str){
     int retVal;
     retVal=(int)XPLMMeasureString(xplmFont_Proportional,(char*)str.c_str(),str.size());
     return retVal;
