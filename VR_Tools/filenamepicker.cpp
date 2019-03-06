@@ -49,6 +49,7 @@ void FileNamePicker::ShowAll(){
     }
 
     SetupforText();
+    SetInkColor(Clr_BlackInk);
 
 }
 

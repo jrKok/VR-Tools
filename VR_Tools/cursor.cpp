@@ -36,7 +36,9 @@ cursor::cursor():
   posLines(),
   ink{0.005f,0.000f,0.000f},
   lightblue{0.600f,0.960f,1.0f},
-  ops()
+  ops(),
+  tabchar('\t'),
+  tabstring(1, tabchar)
 
 
 {
@@ -45,14 +47,17 @@ cursor::cursor():
     int nulval(0);
     for (int tg(0);tg<=0xdfc0;tg++) chLength.push_back(nulval);
     unsigned char* tst=new unsigned char[3];
-    float lgth(0);
-    tst[1]='0';
+    tst[1]='\0';
+    float lgth(0);   
     for (unsigned char chr(0x20);chr<=0x7E;chr++){
         tst[0]=chr;
         lgth=XPLMMeasureString(xplmFont_Proportional,reinterpret_cast<char*>(tst),1);
         ulong tag=static_cast<ulong>(chr);
         chLength[tag]=static_cast<int>(lgth);
     }
+    string tabs="    ";
+    lgth=XPLMMeasureString(xplmFont_Proportional,(char*)(tabs.c_str()),static_cast<int>(tabs.size()));
+    chLength[9]=static_cast<int>(lgth);
     tst[2]='\0';
     for (unsigned char ch1(0xC2);ch1<=0xdf;ch1++){
         tst[0]=ch1;
@@ -62,7 +67,6 @@ cursor::cursor():
             ulong tag=ch1*0x100+ch2;
             chLength[tag]=static_cast<int>(lgth);
         }
-        Layout::InitCycleDebug(100);
     }
 }
 
@@ -99,9 +103,9 @@ void cursor::MakeLinePos(const string &thisline){
                 if (!beginUTF){//but if a putative UTF first character has been read, we are invalid UTF...
                     beginUTF=true;
                     tag=UTFint(keep);
-                    position=position+chLength[tag];
+                    position+=chLength[tag];
                     chPos.push_back(position);
-                    position=position+chLength[ansiC];
+                    position+=chLength[ansiC];
                     chPos.push_back(position);
                 }
                 position=position+chLength[ansiC];//simple character
@@ -114,7 +118,7 @@ void cursor::MakeLinePos(const string &thisline){
                     }
                     else {//invalid since out of range
                         tag=UTFint(ansiC);
-                        position=position+chLength[tag];
+                        position+=chLength[tag];
                         chPos.push_back(position);
                     }
                 }
@@ -122,16 +126,16 @@ void cursor::MakeLinePos(const string &thisline){
                     beginUTF=true;
                     if (ansiC>=0x80 && ansiC<=0xBF){ // range for second char OK ?
                         tag=keep*0x100+ansiC;
-                        position=position+chLength[tag];
+                        position+=chLength[tag];
                         chPos.push_back(position);
                     }
                     else{//again not valid range for second character
                         beginUTF=true;
                         tag=UTFint(keep);
-                        position=position+chLength[tag];
+                        position+=chLength[tag];
                         chPos.push_back(position);
                         tag=UTFint(ansiC);//because ansiC>127 otherwise would have already been captured as a non valid second UTF char
-                        position=position+chLength[tag];
+                        position+=chLength[tag];
                         chPos.push_back(position);
                     }
                 }
@@ -146,6 +150,10 @@ void cursor::MakeLinePosAgain(const ulong line,const string &thisline){
 }
 
 int cursor::FindPositionInNativeLine(const string &in_string,int in_pos){
+    //converts the position in the shown string to position
+    //in the stored string, which is higher
+    //if the string contains UTF characters
+
     int posInString(0),posInDisplayedString(0);
     if (in_pos==0) return 0;
     bool afterFirstUtfChar(false);
@@ -176,12 +184,16 @@ int  cursor::UTFCharToPos(unsigned char* chtest){
     return( chLength[tag]>0);
 }
 
-int  cursor::GetLengthOfUTFString(string inLine){
-    unsigned char* testChar=new unsigned char[2];
+int  cursor::GetLengthOfUTFString(const string &inLine){
+    //Measures the numbers of positions in a line
     if (inLine=="") return 0;
+
+    unsigned char* testChar=new unsigned char[2];
+
     int length(0);
     bool afterFirstUtfChar(false);
-    for (unsigned char ansiC:inLine){
+    for (char ansiCsgd:inLine){
+        unsigned char ansiC=static_cast<unsigned char>(ansiCsgd);
         if (ansiC<=0x7F){
             testChar[1]=ansiC;
             testChar[0]='\0';
@@ -340,6 +352,7 @@ void cursor::MoveCursorRight(){
         charPos++;
         cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX-1;
     }
+    BeginCursorBlink();
 }
 
 void cursor::MoveCursorLeft(){
@@ -348,6 +361,7 @@ void cursor::MoveCursorLeft(){
         charPos--;
         cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX-1;
     }
+    BeginCursorBlink();
 }
 
 void cursor::MoveCursorUp(){
@@ -357,6 +371,7 @@ void cursor::MoveCursorUp(){
             FindClosestPosition(line,cursorX,charPos);
         }
     }
+    BeginCursorBlink();
 }
 
 void cursor::MoveCursorDown(){
@@ -366,6 +381,7 @@ void cursor::MoveCursorDown(){
             FindClosestPosition(line,cursorX,charPos);
         }
     }
+    BeginCursorBlink();
 }
 
 void cursor::MoveSelectionUp(){
@@ -435,58 +451,59 @@ void cursor::MoveSelectionRight(){
     int limitStart=static_cast<int>(posLines[selectionStartLine].size());
     int limitEnd=static_cast<int>(posLines[selectionEndLine].size());
     if (hasSelection){
-
-            if (moveSelectionEnd){
-                if (selectionEndCharPos<(limitEnd-1))
-                {
-                    selectionEndCharPos++;
-                    selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
-                }
-            }else{
-                if (selectionEndLine==selectionStartLine)
-                {
-                    if (selectionStartCharPos<(selectionEndCharPos-1)){
-                        selectionStartCharPos++;
-                        selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
-                    }
-                }
-                else{
-                if (selectionStartCharPos<(limitStart-1))
-                {
-                    selectionStartCharPos++;
-                    selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
-                }
-            }
-        }
+       if (moveSelectionEnd){
+          if (selectionEndCharPos<(limitEnd-1))
+          {
+              selectionEndCharPos++;
+              selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
+          }
+       }else{
+          if (selectionEndLine==selectionStartLine)
+          {
+              if (selectionStartCharPos<(selectionEndCharPos-1)){
+                  selectionStartCharPos++;
+                  selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
+              }
+          }
+          else{
+              if (selectionStartCharPos<(limitStart-1))
+              {
+                  selectionStartCharPos++;
+                  selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
+              }
+          }
+       }
     }
 }
 
 void cursor::MoveSelectionLeft(){
     if (hasSelection){
-            if (!moveSelectionEnd){
-                if (selectionStartCharPos>0)
-                {
-                    selectionStartCharPos--;
-                    selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
-                }
+       if (!moveSelectionEnd){
+          if (selectionStartCharPos>0)
+          {
+             selectionStartCharPos--;
+             selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
+           }
+       }
+       else{
+         if (selectionStartLine==selectionEndLine){
+            if (selectionEndCharPos>(selectionStartCharPos+1))
+            {
+                selectionEndCharPos--;
+                selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
             }
-            else{
-                if (selectionStartLine==selectionEndLine){
-                   if (selectionEndCharPos>(selectionStartCharPos+1))
-                   {
-                       selectionEndCharPos--;
-                       selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
-                   }else{
-                       if (selectionEndCharPos>0)
-                       {
-                          selectionEndCharPos--;
-                          selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
-                       }
-                   }
-                }
+         }
+         else{
+            if (selectionEndCharPos>0)
+            {
+               selectionEndCharPos--;
+               selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
             }
-    }
+        }
+     }
+  }
 }
+
 
 void cursor::SwapEndsOfSelection(){
     moveSelectionEnd=!moveSelectionEnd;
@@ -547,6 +564,7 @@ int  cursor::GetLastPositionOfLine(int in_line){
       if (maxPos>0) maxPos--;
       return static_cast<int>(maxPos);
 }
+
 void cursor::AddPositionsToLine(int nbOfP){
     if (hasCursor){
         for (int I(0);I<nbOfP;I++)
@@ -568,6 +586,7 @@ void cursor::SetCursorAt(int in_line, int in_pos){
     line=in_line;
     ulong uln=static_cast<ulong>(in_line),upos=static_cast<ulong>(in_pos);
     cursorX=posLines[uln][upos]+offX-1;
+    BeginCursorBlink();
 }
 
 bool cursor::HasCursor(){
@@ -670,10 +689,15 @@ void cursor::DrawCursor(int cursorY){
         cursorOn=true;
     }
     if (cursorOn){
-        string crsr=string(cursorChar);
+        //string crsr=string(cursorChar);
         XPLMDrawString(ink,cursorX,cursorY,(char*)cursorChar,nullptr,xplmFont_Proportional);
     }
    }
+}
+
+void cursor::BeginCursorBlink(){
+    timePoint=XPLMGetElapsedTime();
+    cursorOn=true;
 }
 
 string cursor::ReadLineToUTF(string inLine){

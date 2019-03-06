@@ -2,8 +2,11 @@
 #define FILEPOINTER_H
 
 #include <string>
-#include <VR_Tools_global.h>
+#include "VR_Tools_global.h"
 #include <filesystem>
+#include "XPLMPlanes.h"
+
+class Layout;
 
 
 using std::string;
@@ -20,6 +23,8 @@ static void     SetCurrentFileName(string in_Name);
 static string   GetCurrentFileName();
 static void     SetCurrentDirName(string in_Dir);
 static string   GetCurrentDirName();
+static void     FindCurrentPlaneDir();
+static string   GetCurrentPlaneDir();
 static void     MakeBackups();
 static void     ReleaseBackups();
 static void     RestoreBackup();
@@ -28,7 +33,7 @@ static string   GetTempName();
 static string   GetBackupName();
 
     private:
-    static string currentFileName,currentDirName,currentBackup,currentTemp;
+    static string currentFileName,currentDirName,currentBackup,currentTemp,currentPlaneDir;
 
 };
 

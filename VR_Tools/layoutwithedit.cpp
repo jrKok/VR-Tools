@@ -1,57 +1,90 @@
 #include "layoutwithedit.h"
+#include "drawlogic.h"
+#include "temporarywindow.h"
+#include "opcenter.h"
 
-LayoutWithEdit::LayoutWithEdit() :
-    Layout(),
+LayoutWithEdit *LayoutWithEdit::myself(nullptr);
+
+LayoutWithEdit::LayoutWithEdit(int windowNumber):
+    Layout(windowNumber),
     keyb(),
     showKeyb(true),
     keyPressed(false),
     specialKey(false),
     utfKey(false),
     editMode(true),
+    hasToSave(false),
     firstChar('\0'),
     secondChar('\0'),
     fName(""),
-    tEdFileReader(new TextEdit())
+    tEdFileReader(new TextEdit()),
+    tabchar('\t'),
+    tabstring(1, tabchar),
+    quitWoSave()
 
 
 {
- keyb.DefineKeyboard(0);
- keyb.MakeKeyboard(0,0);
- lowerMargin=lowerMargin+keyb.MyHeight()+4;
- if (textWidth<keyb.MyWidth()) textWidth=keyb.MyWidth();
- autoReload=false;
- enableFreqs=true;
- splitLinePolicy=BestSplitAtSpace;
 }
 
 //End of constructor
 
+void LayoutWithEdit::ReActivateWindow(){
+if (DrawLogic::GetActiveWindowNumber()!=myWindowNumber)
+   DrawLogic::ShowMyWindow(myWindowNumber);
+}
+
+void LayoutWithEdit::StartEdit(){
+     ReActivateWindow();
+     Begin();
+     keyb.MakeKeyboard(0,0);
+}
+
 void LayoutWithEdit::BeginEdit(){
+    ReActivateWindow();
+    tEdFileReader->PointToFile();
     tEdFileReader->InitialiseEdit();
+    //if (!showFPS) ToggleFPS();
+    editMode=true;
+    showKeyb=true;
+    lowerMargin=54+keyb.MyHeight()+4;
+    if (textWidth<keyb.MyWidth()) textWidth=keyb.MyWidth();
+    hasToSave=false;
+    enableFreqs=true;
+    splitLinePolicy=BestSplitAtSpace;
 }
 
 bool LayoutWithEdit::initiate(){
+
+    ReActivateWindow();
+    keyb.SetVisibility(showKeyb);
+    canUTF=false;
     resize();
-    editMode=true;
-    tEdFileReader->PointToFile();
     wLeft=gLeft+150;
     wRight=wLeft+wWidth;
     wTop=gTop-100;//moreover this will force a new recalculation at next draw call
     wBottom=wTop-wHeight;
     defineButtons();
-    keyb.Relocate(colWidth,generalR.height-lowerMargin+58);
+    nButtons=static_cast<int>(tButtons.size());
+    keyb.Relocate(colWidth,generalR.GetHeight()-lowerMargin+58);
     ReLabelButtons();
-    nButtons=tButtons.size();
+    recalculate();
+    tButtons[B_UTF8].setSelect(false);
+
     return true;
 }
 
 void LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
-
-    if (showFPS) upperMargin+=charHeight;
+    dayPart=3;
     tEdFileReader->SetSplitPolicy(BestSplitAtSpace);
     if (textHeight<150) textHeight=150;
     tEdFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);
     tEdFileReader->ReadFileToBuff();
+    if (noResize){
+        generalR.setVisibility(true);
+        generalR.setColor(Clr_DarkGray);
+    }
+    else generalR.setVisibility(false);
+
     if (fitSizeToFile){
         int hgt=(charHeight+2)*tEdFileReader->GetNumberOfLines();
         int wdth=tEdFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
@@ -68,13 +101,12 @@ void LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
             fitSizeToFile=false;}
         return;
     }
-    generalR.width=textWidth+colWidth+10;//10 bx right margin
-    generalR.height=textHeight+upperMargin+lowerMargin;//offsetY upper margin and lower margin
-    wWidth=generalR.width;
-    wHeight=generalR.height;
+    generalR.SetDimensions(textWidth+colWidth+10,textHeight+upperMargin+lowerMargin);//offsetY upper margin and lower margin
+    wWidth=generalR.GetWidth();
+    wHeight=generalR.GetHeight();
     vrWidth=wWidth;
     vrHeight=wHeight;
-    if (XPLMWindowIsInVR(myWindow)==1){
+    if (XPLMWindowIsInVR(myWindow)){
        if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);}
     else {
        if (myWindow!=nullptr) {
@@ -83,8 +115,7 @@ void LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
           XPLMSetWindowGeometry(myWindow,l,t,l+vrWidth,t-vrHeight);
        }
     }
-    generalR.offsetX=0;
-    generalR.offsetY=0;
+    generalR.SetOffsets(0,0);
     minHeight=tEdFileReader->GetOffSetY()+180;
     maxHeight=tEdFileReader->GetOffSetY()+935;
 }
@@ -108,7 +139,7 @@ bool LayoutWithEdit::newSize(int wth, int hgt){//called by recalculate
 
      int middle=tEdFileReader->GetOffSetY()+(tEdFileReader->GetHeight()/2);
      RelocateButtons(middle);
-     keyb.Relocate(colWidth,generalR.height-lowerMargin+58);
+     keyb.Relocate(colWidth,generalR.GetHeight()-lowerMargin+58);
      return true;
  }
  return false;
@@ -125,10 +156,9 @@ void LayoutWithEdit::FitToFile(){
     textWidth=wdth;
     tEdFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);
     tEdFileReader->ReadFileToBuff();
-    generalR.width=textWidth+colWidth+10;//10 bx right margin
-    generalR.height=textHeight+tEdFileReader->GetOffSetY()+lowerMargin;//offsetY upper margin and 54lower margin
-    wWidth=generalR.width;
-    wHeight=generalR.height;
+    generalR.SetDimensions(textWidth+colWidth+10,textHeight+tEdFileReader->GetOffSetY()+lowerMargin);//offsetY upper margin and 54lower margin
+    wWidth=generalR.GetWidth();
+    wHeight=generalR.GetHeight();
     if (keepSize) KeepCurrentSize();
 }
 
@@ -137,7 +167,9 @@ void LayoutWithEdit::ReLabelButtons(){
     tButtons[B_Reload].setText("Save&Quit");
     tButtons[B_Auto].setText("Quit");
     tButtons[B_Edit_Line].setText("Cancel");
+    tButtons[B_UTF8].setText("Keyb");
 }
+
 void LayoutWithEdit::recalculate(){ //gets called at every draw callback so this is used also to process other frequent checks
     bool newGeometry (false);
     if (!noResize){
@@ -149,23 +181,19 @@ void LayoutWithEdit::recalculate(){ //gets called at every draw callback so this
     }
 
     if ((t!=wTop)|(l!=wLeft)|newGeometry){
-        if (!useBackGround){
-           tEdFileReader->SetInkColor(colorPaper);
-           tEdFileReader->SetBackGround(false);}
+        dayPart=3;
         wTop=t;
         wLeft=l;
-        generalR.in_left=l;
-        generalR.in_top=t;
+        generalR.SetOrigin(l,t);
         generalR.recalculate();
         tEdFileReader->Recalculate(l,t);
         fNav.recalculate(l,t);
         fCom.recalculate(l,t);
         fAdf.recalculate(l,t);
         lFPS.recalculate(l,t);
-        for (unsigned long long I(0);I<nButtons;I++){
-            tButtons[I].in_top=t;
-            tButtons[I].in_left=l;
-            tButtons[I].recalculate();
+        for (auto &bts:tButtons){
+            bts.SetOrigin(l,t);
+            bts.recalculate();
         }
         keyb.Recalculate(l,t);
 }
@@ -176,38 +204,38 @@ void LayoutWithEdit::DrawTextW(XPLMWindowID g_textWindow){
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
     recalculate();
 
-    XPLMSetGraphicsState(
-        0 , 0, 0, 0 , 1, 1, 0);
-
-
+    if (showFPS){
+        lFPS.setText(textToShow);
+    }
 
     float sunPtc = XPLMGetDataf(dref_SunPitch); //time of day ?
-
-     //draw commands for the buttons
-    for (auto tb:tButtons){tb.drawButton();}
-     //draw text's background and set color of characters (ink)
-    if (useBackGround){
-       if (sunPtc>=5){//sun bright in sky
-          tEdFileReader->SetBckColor(colorPaper);
-          tEdFileReader->SetInkColor(colorInk);
-       }else{
-          if ((sunPtc>-3)&(sunPtc<5)){//sun at sunset darker duron paper white
-             tEdFileReader->SetBckColor(paperWhitesomber);
-             tEdFileReader->SetInkColor(colorInk);
-                                       }
-          else {
-             tEdFileReader->SetBckColor(blackpaper);//night paper
-             tEdFileReader->SetInkColor(amberInk);}
-               }
-       }
-
-    tEdFileReader->DrawMySelf(); //Draw Text and background if necessary
-
-    if (tEdFileReader->HasNav()) fNav.DrawTextLine();
-    if (tEdFileReader->HasCom()) fCom.DrawTextLine();
-    if (tEdFileReader->HasADF()) fAdf.DrawTextLine();
-
-    if (showKeyb) keyb.DrawKb();
+    int actualD(0);
+    if ((sunPtc>-3)&&(sunPtc<5)) actualD=1;
+    if (sunPtc<=-3) actualD=2;
+    if (actualD!=dayPart)
+    {
+        dayPart=actualD;
+        if (useBackGround){
+            switch (dayPart){
+            case 0:{
+                tEdFileReader->SetBckColor(Clr_PaperWhite);
+                tEdFileReader->SetInkColor(Clr_BlackInk);
+                break;}
+            case 1:{
+                tEdFileReader->SetBckColor(Clr_PaperDusk);
+                tEdFileReader->SetInkColor(Clr_BlackInk);
+                break;}
+            case 2:{
+                tEdFileReader->SetBckColor(Clr_Black);//night paper
+                tEdFileReader->SetInkColor(Clr_Amber);
+                break;}
+            }
+        }
+    }
+    DrawLogic::DrawElements();
+    tEdFileReader->DrawSelectionRects();
+    DrawLogic::DrawStrings();
+    tEdFileReader->DrawCursor();
 }
 
 void LayoutWithEdit::DrawNoResize(XPLMWindowID g_textWindow){
@@ -217,9 +245,8 @@ void LayoutWithEdit::DrawNoResize(XPLMWindowID g_textWindow){
 void LayoutWithEdit::findClick(int mX, int mY){
 
     if (continueClick||buttonClick){
-        if (clickresult>-1) tButtons[clickresult].Release();
+        if (clickresult>-1) tButtons[static_cast<ulong>(clickresult)].Release();
         if (continueClick) tEdFileReader->ProceedEndClick();
-        autoReload=saveAuto;
         continueClick=false;
         buttonClick=false;
         clickresult=-1;
@@ -236,44 +263,54 @@ void LayoutWithEdit::findClick(int mX, int mY){
     if (keyb.PressKey(mX,mY,specialKey,keyName,keyVal)){
     if (keyb.IsKeyPressed()) ProcessKeyPress(keyName,keyVal);}
 
-    for (int I(0);I<nButtons;I++){       //Click on a button ?
-      if (tButtons[I].isHere(mX,mY)){
+    for (int I(0);I<nButtons;I++){//Click on a button ?
+        ulong indx=static_cast<ulong>(I);
+        if (tButtons[indx].isHere(mX,mY)){
            buttonClick=true;
            clickresult=I;
-           tButtons[I].Press();
+           tButtons[indx].Press();
            return;
            }
     }
 
 }
+
+void LayoutWithEdit::SetSpecialKey(bool spec){
+    specialKey=spec;
+}
+
 void LayoutWithEdit::ProcessKeyPress(std::string keyName, std::string in_String){
     //Name of special keys : "BckSp""ShftLck""Return""Shft""Ctrl""Alt""Abrv"
     //should pass on chars to text edit
     //process special keys return (with text edit), bcksp,
     // process control commands
     // then alt chars
+    dayPart=3;
     if (!specialKey&&(in_String!="")) {
         if (!keyb.IsControlKeyActive())
-            tEdFileReader->InsertLetter(in_String);
+          {tEdFileReader->InsertLetter(in_String);hasToSave=true;}
         else{
             keyb.ReleaseStates();
-            if (keyName=="S"){tEdFileReader->Save();} //Save
-            if (keyName=="X"){ tEdFileReader->Cut();}
-            if (keyName=="C"){ tEdFileReader->Copy();}
-            if (keyName=="V"){ tEdFileReader->Paste();}
-            if (keyName=="Q"){tEdFileReader->Save();editMode=false;} //Quit : Save and Quit
+            if (keyName=="S"){tEdFileReader->Save();hasToSave=false;} //Save
+            if (keyName=="X"){ tEdFileReader->Cut();hasToSave=true;}
+            if (keyName=="C"){ tEdFileReader->Copy();hasToSave=true;}
+            if (keyName=="V"){ tEdFileReader->Paste();hasToSave=true;}
+            if (keyName=="Q"){QuitCommand();} //Quit : Save and Quit
             if (keyName=="A"){FilePointer::RestoreBackup();editMode=false;} //Abandon : Quit without saving
-            if (keyName=="D") {tEdFileReader->Suppress();}
+            if (keyName=="D") {tEdFileReader->Suppress();hasToSave=true;}
             if (keyName=="T"){ToggleKeyboard();} //Toggle VR keyboard
             if (keyName=="K"){} //Use physical keyboard (stops processing keyboards commands)
-            if (keyName=="R"){tEdFileReader->ReadFileToBuff();} //Reload file,discarding non saved changes
+            if (keyName=="R"){tEdFileReader->ReadFileToBuff();hasToSave=false;} //Reload file,discarding non saved changes
             if (keyName=="F"){tEdFileReader->FlipMoveSelectionEnd();} //Flip moveSelectVR
+            if (keyName==" "){XPLMCommandOnce(screenShot);}
+            if (keyName=="H") {ToggleFPS();}
         }
     }
     if (specialKey){
-        if (keyName=="BckSpc") {tEdFileReader->Backspace();}
-        if (keyName=="TAB") {tEdFileReader->InsertLetter("   ");}
-        if (keyName=="Enter") {tEdFileReader->Enter();}
+        if (keyName=="BckSpc") {tEdFileReader->Backspace();hasToSave=true;}
+        if (keyName=="TAB") {tEdFileReader->InsertLetter("   ");hasToSave=true;}
+        if (keyName=="ShTAB") {tEdFileReader->InsertLetter(tabstring);hasToSave=true;}
+        if (keyName=="Enter") {tEdFileReader->Enter();hasToSave=true;}
         if (keyName=="UP") {tEdFileReader->MoveCursorUp();}
         if (keyName=="RIGHT") {tEdFileReader->MoveCursorRight();}
         if (keyName=="LEFT") {tEdFileReader->MoveCursorLeft();}
@@ -288,19 +325,23 @@ void LayoutWithEdit::ContinueKeyPress(){
 }
 
 void LayoutWithEdit::EndKeyPress(){
+    dayPart=3;
     keyb.ReleaseCurrentKey();
+    CheckButtonsVisibility();
 }
 
 void LayoutWithEdit::HandleMouseKeepDown(int mX,int mY){
+    dayPart=3;
     if (continueClick) tEdFileReader->ProceedClickCont(mX,mY);
 }
 
 int LayoutWithEdit::HandleMouseUp(int mX,int mY){
+    dayPart=3;
     EndKeyPress();
-    autoReload=saveAuto;
     epoch=XPLMGetElapsedTime();
     int retVal=-1;
     if (!editMode) {
+        UnfocusPhysicalKeyboard();
         FilePointer::ReleaseBackups();
         retVal=3;}
     if (continueClick){
@@ -316,8 +357,7 @@ int LayoutWithEdit::HandleMouseUp(int mX,int mY){
 
     if (buttonClick){
         tButtons[clickresult].Release();
-        if (clickresult==B_Load_File) tEdFileReader->Save();
-        else LaunchCommand(clickresult);
+        LaunchCommand(clickresult);
         continueClick=false;
         buttonClick=false;
         clickresult=-1;
@@ -325,13 +365,11 @@ int LayoutWithEdit::HandleMouseUp(int mX,int mY){
             retVal=3;
             FilePointer::ReleaseBackups();
         }
+        CheckButtonsVisibility();
     }
     return retVal;
 }
 
-void LayoutWithEdit::PhysicalKeyPressed(char in_char,XPLMKeyFlags flag,char in_VK){
-    ProcessKeyPress(keyb.Physical_Key_Handler(in_char, flag, in_VK),"");
-}
 //The following can also be used by the plugin handlers to launch a custom command
 //to implement functionnality by pressing physical commands, keys, menus ...
 //enumeration to be found in show_fps_test_global.h
@@ -339,37 +377,42 @@ void LayoutWithEdit::PhysicalKeyPressed(char in_char,XPLMKeyFlags flag,char in_V
 void LayoutWithEdit::LaunchCommand(int refCommand){
 
     switch(refCommand){
-    case B_Edit_Line : {//Cancel Command
-        FilePointer::RestoreBackup();
-        editMode=false;
-        break;
-    }
-    case B_Reload:{//Save Command
-        tEdFileReader->Save();editMode=false;;
+         case B_Edit_Line : {//Cancel Command
+           FilePointer::RestoreBackup();
+           editMode=false;
+           break;
+         }
+         case B_Load_File:{//Save command
+            tEdFileReader->Save();
+            hasToSave=false;
+            break; }
+
+         case B_Reload:{//Save and quit Command
+           tEdFileReader->Save();editMode=false;;
              //canUTF=true;
-        break;}
+           break;}
 
-    case B_Undo:{
-        tEdFileReader->UndoDelete();
-        break;}
+         case B_Undo:{//not used in edit mode
+             tEdFileReader->UndoDelete();
+             break;}
 
-         case B_Auto:{//autoreload not feasible, used to end edit mode
+         case B_Auto:{//quit command (doesn't save last modifications but keep modifications since last save)
              //end edit
-             editMode=false;
+             QuitCommand();
+             break;}
 
-         break;}
+         case B_UTF8:{//Toggle physical keyboard
+             canUTF=!canUTF;
+             if (canUTF) UsePhysicalKeyboard();
+             else UnfocusPhysicalKeyboard();
+             break;}
 
-         case B_UTF8:{
-             tEdFileReader->SetNeedsUTF(true);
-             canUTF=false;
-         break;}
-
-         case B_Toggle_Line:{
+         case B_Toggle_Line:{//not used
              if (enableDelete)
              tEdFileReader->DeleteSelectedLine();
-         break;}
+              break;}
 
-         case B_Show_All:{
+         case B_Show_All:{//not implemented here
              tEdFileReader->ShowAll();
              tEdFileReader->SetupforText();
          break;}
@@ -382,28 +425,30 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
              XPLMSetDatai(nav2freq,tEdFileReader->freqNAV);
          break;}
 
-         case B_COM1:{
-             int frac(0);
-             float val=tEdFileReader->freqCOM;
-             XPLMSetDatai(com1freq,(int)val);
-             val-=(float)XPLMGetDatai(com1freq);
-             if (val!=0){
-                 frac=XPLMGetDatai(com1freqk);
-                 frac+=(int)(val*10.0);
-                 XPLMSetDatai(com1freqk,frac);
-             }
-         break;}
-         case B_COM2:{
-             int frac(0);
-             float val=tEdFileReader->freqCOM;
-             XPLMSetDatai(com2freq,(int)val);
-             val-=(float)XPLMGetDatai(com2freq);
-             if (val!=0){
-                 frac=XPLMGetDatai(com2freqk);
-                 frac+=(int)(val*10.0);
-                 XPLMSetDatai(com2freqk,frac);
-             }
-         break;}
+        case B_COM1:{
+            int frac(0);
+            int valInt=static_cast<int>(tFileReader->freqCOM);
+            XPLMSetDatai(com1freq,valInt);
+            valInt-=XPLMGetDatai(com1freq);
+            if (valInt!=0){
+              frac=XPLMGetDatai(com1freqk);
+             frac+=valInt*10;
+             XPLMSetDatai(com1freqk,frac);
+        }
+        break;}
+
+        case B_COM2:{
+            int frac(0);
+            int valInt=static_cast<int>(tFileReader->freqCOM);
+            XPLMSetDatai(com2freq,valInt);
+            valInt-=XPLMGetDatai(com2freq);
+            if (valInt!=0){
+                frac=XPLMGetDatai(com2freqk);
+                frac+=valInt*10;
+                XPLMSetDatai(com2freqk,frac);
+        }
+        break;}
+
          case B_ADF1:{
              XPLMSetDatai(adf1freq,tEdFileReader->freqADF);
          break;}
@@ -432,26 +477,44 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
     CheckButtonsVisibility();
 }
 
+void LayoutWithEdit::QuitCommand(){
+    myself=this;
+    quitWoSave.MakeAlert("Don't Save","Save","Cancel","All recent modifications will be lost ?",HandleAlertResult);
+}
+
+void LayoutWithEdit::HandleAlertResult(){
+    int response=myself->quitWoSave.GetAnswer();
+    if (response==1) myself->editMode=false;
+    if (response==2) {myself->tEdFileReader->Save();myself->editMode=false;}
+    if (!myself->editMode) OpCenter::EndEditMode();
+ }
+
 void LayoutWithEdit::CheckButtonsVisibility(){
-    tButtons[B_Save].isVisible       =false;
-    tButtons[B_Edit_Line].isVisible  =true;
-    tButtons[B_More_Lines].isVisible =false;
-    tButtons[B_Less_Lines].isVisible =false;
+    tButtons[B_Save].setVisibility(false);
+    tButtons[B_Edit_Line].setVisibility(true);
+    tButtons[B_More_Lines].setVisibility(false);
+    tButtons[B_Less_Lines].setVisibility(false);
 
-    tButtons[B_Load_File].isVisible  =true;
-    tButtons[B_Reload].isVisible     =!autoReload;
-    tButtons[B_Auto].isVisible       =true;
-    tButtons[B_Undo].isVisible       =tEdFileReader->CanUndo()&(!autoReload)&enableDelete;
-    tButtons[B_UTF8].isVisible       =false;
-    tButtons[B_Toggle_Line].isVisible=tEdFileReader->HasSelection()&(!autoReload)&(enableDelete);
-    tButtons[B_Show_All].isVisible   =tEdFileReader->HasHiddenLine()&(!autoReload)&(enableDelete);
+    tButtons[B_Load_File].setVisibility(hasToSave);
+    tButtons[B_Reload].setVisibility(hasToSave);
+    tButtons[B_Auto].setVisibility(true);
+    tButtons[B_Undo].setVisibility(tEdFileReader->CanUndo()&(!hasToSave)&enableDelete);
+    tButtons[B_UTF8].setVisibility(true);
+    tButtons[B_Toggle_Line].setVisibility(tEdFileReader->HasSelection()&(!hasToSave)&(enableDelete));
+    tButtons[B_Show_All].setVisibility(tEdFileReader->HasHiddenLine()&(!hasToSave)&(enableDelete));
 
-    tButtons[B_NAV1].isVisible       =tEdFileReader->HasNav()&XPLMGetDatai(nav1on)&enableFreqs;
-    tButtons[B_NAV2].isVisible       =tEdFileReader->HasNav()&XPLMGetDatai(nav2on)&enableFreqs;
-    tButtons[B_COM1].isVisible       =tEdFileReader->HasCom()&XPLMGetDatai(com1on)&enableFreqs;
-    tButtons[B_COM2].isVisible       =tEdFileReader->HasCom()&XPLMGetDatai(com2on)&enableFreqs;
-    tButtons[B_ADF1].isVisible       =tEdFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs;
-    tButtons[B_ADF2].isVisible       =tEdFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs;
+    tButtons[B_NAV1].setVisibility(tEdFileReader->HasNav()&XPLMGetDatai(nav1on)&enableFreqs);
+    tButtons[B_NAV2].setVisibility(tEdFileReader->HasNav()&XPLMGetDatai(nav2on)&enableFreqs);
+    tButtons[B_COM1].setVisibility(tEdFileReader->HasCom()&XPLMGetDatai(com1on)&enableFreqs);
+    tButtons[B_COM2].setVisibility(tEdFileReader->HasCom()&XPLMGetDatai(com2on)&enableFreqs);
+    tButtons[B_ADF1].setVisibility(tEdFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs);
+    tButtons[B_ADF2].setVisibility(tEdFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs);
+
+    fCom.SetVisibility(tEdFileReader->HasCom());
+    fNav.SetVisibility(tEdFileReader->HasNav());
+    fAdf.SetVisibility(tEdFileReader->HasADF());
+    lFPS.SetVisibility(false);
+
 
 }
 
@@ -470,8 +533,21 @@ void LayoutWithEdit::ToggleKeyboard(){
     resize();
 }
 
-void LayoutWithEdit::UsePhysicalKeyboard(){
 
+void LayoutWithEdit::UsePhysicalKeyboard(){
+    keyb.EnablePhysicalKeyboard(this);
+    tButtons[B_UTF8].setSelect(true);
+    temporaryWindow::ShowAlert("Plane Keyboard commands are disabled",2);
+}
+
+void LayoutWithEdit::UnfocusPhysicalKeyboard(){
+    keyb.DisablePhysicalKeyboard(this);
+    tButtons[B_UTF8].setSelect(false);
+    temporaryWindow::ShowAlert("Plane Keyboad commands are enabled",1.5);
+}
+
+void LayoutWithEdit::SetTextToShow(string in_text){
+   textToShow=in_text;
 }
 
 void LayoutWithEdit::EndEdit(){
@@ -488,5 +564,22 @@ void LayoutWithEdit::ClosegWindow(){
         charWidth=0;
         textPointX=0;textPointY=0;
         t=0;b=0;l=0;r=0;
-        colWidth=30;idxSelected=-1;nButtons=0;
+        colWidth=
+                30;idxSelected=-1;nButtons=0;
+}
+void LayoutWithEdit::ToggleFPS(){
+    showFPS=!showFPS;
+    int offSetH=charHeight+2;
+    if (showFPS)
+    {
+        textHeight-=offSetH;
+        upperMargin+=offSetH;
+        newSize(vrWidth,vrHeight+offSetH);
+    }
+    else{
+        textHeight+=offSetH;
+        upperMargin-=offSetH;
+        newSize(vrWidth,vrHeight-offSetH);
+    }
+
 }

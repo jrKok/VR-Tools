@@ -43,12 +43,11 @@ typedef long long unsigned ulong;
 class List_Box_With_ScrB
 {
 public:
-    List_Box_With_ScrB();
+    List_Box_With_ScrB(bool modal=false);
     virtual ~List_Box_With_ScrB();
     void Setup (int hght,int larg,int in_offsetX,int in_offsetY);
     void SetupforText();
     void AddLine(string in_Line);
-    virtual void DrawMySelf();
     virtual bool ProceedClick(int x, int y);
     virtual void ProceedClickCont(int x, int y);
     virtual void ProceedEndClick();
@@ -78,6 +77,8 @@ public:
     int  GetHeight();
     int  GetOffSetX();
     int  GetOffSetY();
+    int  GetTop();
+    int  GetLeft();
     int  GetRight();
     int  GetBottom();
     int  GetNumberOfLines();
@@ -86,13 +87,14 @@ public:
     void AdjustToHeight(); //effects if pageHeight> totalNbL
     void ProportionateSizeToHeight();//3/4 proportion
     void ProportionateSizeToWidth();//3/4 proportion
-    void SetBckColor (float in_col[3]);
-    void SetInkColor (float in_col[3]);
-    void SetInkSelect (float in_col[3]);
+    void SetBckColor (char in_Color);
+    void SetInkColor (char in_Color);
     void clearText(); //has to adjust scrB also
     void SetSplitPolicy(int splitP);
     void CanDelete();
     bool CanUndo();
+    void DeleteDisplayBox();
+    void AddLineToDisplayBox(int lnNumber);
     void DontDelete();
     void convertToUTF8();
     void SetBackGround(bool opt);
@@ -110,9 +112,9 @@ protected:
     int splitPolicy;
     bool hasHiddenLines,hasSelection,dragLines,delLines,needToContClick,canUndo,filterClick,canDelete;
     bool drawBackground;
+    bool isModal;
     ScrollBars scrB;
-    rectangles general,textOnly,delButtons;
-    float backgrd[3],ink[3],inkSelect[3];
+    rectangles general,textOnly;
     std::vector<string> *displayText;
     std::vector<TextLine> box;
     stringOps strops;

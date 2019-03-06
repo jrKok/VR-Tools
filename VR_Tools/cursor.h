@@ -17,9 +17,16 @@
 #include <XPLMDisplay.h>
 #include <XPLMUtilities.h>
 #include <XPLMProcessing.h>
-#include <layout.h>
 
-class Layout;
+#if LIN
+    #include <GL/gl.h>
+#elif __GNUC__
+    #include <OpenGL/gl.h>
+#else
+    #include <GL/gl.h>
+#endif
+
+//class Layout;
 
 using std::string;
 using intVector=std::vector<int>;
@@ -40,7 +47,7 @@ public:
     void SetIndxFirstPage(int indx);
     void FindClosestXPosition(int inLine, int inX);
     int  UTFCharToPos(unsigned char * chtest);
-    int  GetLengthOfUTFString(string inLine);
+    int  GetLengthOfUTFString(const std::string &inLine);
     void FindPos(int inLine,int inX); //gets a line number and a pixel number, converts to a position, sets line and charPos hasSelection=false
     void DragPos (int inLine, int inX);// informed a drag occurs, tracks lineEnd and charEnd, modifies them if necessary hasSelection=true
     void EndOfDrag();
@@ -75,6 +82,7 @@ public:
     int  EndLineToY(int firstLine);
     void DrawRectangle(int left, int top, int right, int bottom);
     void DrawCursor(int cursorY);
+    void BeginCursorBlink();
     string ReadLineToUTF(string inLine);
     unsigned int UTFint(unsigned char in_ANSIchar);
     void DeleteFromLines(int in_line);
@@ -104,6 +112,8 @@ private:
     float ink[3],lightblue[3];
     const char * cursorChar;
     stringOps ops;
+    const char   tabchar;
+    const string tabstring;
 
 };
 

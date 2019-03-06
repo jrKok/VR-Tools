@@ -18,14 +18,17 @@ std::string GetActualPathName();
     void    ReadRootDir();
     void    ShowAll();
     void    ReadSelectedDir();
+    void    ColorFirstLines();
 
 private:
-    std::string parentPath,actualPath,actualDirName,systemCharSep,sysDir,shortCutBck,shortCutXP,ShortCutPlug,ShortCutF;
+    std::string parentPath,actualPath,actualDirName,systemCharSep,sysDir,shortCutBck,shortCutXP,ShortCutPlug,ShortCutF,ShortCutPlane;
+    int nbSpecialLines;
     //      name of parent,full path,without path ,separator
 
     std::string GetDirNameFromPath();
     std::string GetParentPathFromPath();
     std::string GetSelectedDirPath();
+
 };
 
 #endif // DIRNAMEREADER_H

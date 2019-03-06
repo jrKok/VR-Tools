@@ -99,7 +99,8 @@ int VRCommandFilter::MyFilterCommandHandler(XPLMCommandRef inCommand, XPLMComman
     return 0;//in every case its my command and i've handled it
 }
 
-int VRCommandFilter::MyBlockFilterCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){//Handels built-in commands selected by the filtering function
+int VRCommandFilter::MyBlockFilterCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){
+    //Handels built-in commands selected by the filtering function
     int refconToInt=*(static_cast<int*>(inRefcon));
     unsigned long long refVal=static_cast<unsigned long long>(refconToInt);
     switch (inPhase)

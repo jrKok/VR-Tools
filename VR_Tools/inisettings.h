@@ -1,15 +1,14 @@
 #ifndef INISETTINGS_H
 #define INISETTINGS_H
 #include <string>
-#include <string.h>
 #include <vector>
 #include <locale>
 #include <filesystem>
 #include <fstream>
-#include <stringops.h>
-#include <XPLMPlanes.h>
-#include <VR_Tools_global.h>
-#include <filepointer.h>
+#include "stringops.h"
+#include "XPLMPlanes.h"
+#include "VR_Tools_global.h"
+#include "filepointer.h"
 
 /*
 * ini options :
@@ -49,85 +48,89 @@ public:
     IniSettings();
 
     //build a vector of datarefs
-    void ReadIniFile();
-    void WriteIniFile();
-    void LogInstruction(string lf,string rg,string ct);
-    void OrientFilePointer();
+static    void GetIniParams();
+static    void ReadIniFile();
+static    void WriteIniFile();
+static    void LogInstruction(string lf,string rg,string ct);
+static    void OrientFilePointer();
 
-    bool GetOptStart();
-    bool GetOptReload();
-    bool GetOptUTF();
-    bool GetOptFlash();
-    bool GetOptLastPg();
-    int  GetWidth();
-    int  GetHeight();
-    bool GetOptFit();
-    bool GetOptFixed();
-    bool GetOptKeepSize();
-    bool GetOptBckG();
-    string GetDir();
-    string GetFile();
-    bool GetOptLastFile();
-    int  GetOptTrim();
-    bool GetOptDelete();
-    bool GetOptFreqs();
-    bool GetOptFPS();
-    bool GetOptReloadProc();
-    int  GetReloadPeriod();
+static    bool GetOptStart();
+static    bool GetOptReload();
+static    bool GetOptUTF();
+static    bool GetOptFlash();
+static    bool GetOptLastPg();
+static    int  GetWidth();
+static    int  GetHeight();
+static    bool GetOptFit();
+static    bool GetOptFixed();
+static    bool GetOptKeepSize();
+static    bool GetOptBckG();
+static    string GetDir();
+static    string GetFile();
+static    bool GetOptLastFile();
+static    int  GetOptTrim();
+static    bool GetOptDelete();
+static    bool GetOptFreqs();
+static    bool GetOptFPS();
+static    bool GetOptReloadProc();
+static    int  GetReloadPeriod();
+static    int  GetSpeedMove();
+static    bool GetOptReloadModel();
 
-    void SetOptStart(bool opt);
-    void SetOptReload(bool opt);
-    void SetOptUTF(bool opt);
-    void SetOptFlash(bool opt);
-    void SetOptLastPg(bool opt);
-    void SetWidth(int opt);
-    void SetHeight(int opt);
-    void SetOptFit(bool opt);
-    void SetOptFixed(bool opt);
-    void SetOptKeepSize(bool opt);
-    void SetOptBckG(bool opt);
-    void SetDir ();
-    void SetFile();
-    void SetOptLastFile(bool opt);
-    void SetOptTrim(int opt);
-    void SetOptDelete(bool opt);
-    void SetOptFreqs(bool opt);
-    void SetOptFPS(bool opt);
-    string CodeTrimOption(int in_option);
-    void SetOptReloadProc(bool opt);
-    void SetReloadPeriod(int opt);
-    void WriteOption(string optionName, int opt);
-    void WriteOption(string optionName, bool opt);
-    void WriteOption(string optionName, string opt);
-    int  FindOption(string optionName);
+static    void SetOptStart(bool opt);
+static    void SetOptReload(bool opt);
+static    void SetOptUTF(bool opt);
+static    void SetOptFlash(bool opt);
+static    void SetOptLastPg(bool opt);
+static    void SetWidth(int opt);
+static    void SetHeight(int opt);
+static    void SetOptFit(bool opt);
+static    void SetOptFixed(bool opt);
+static    void SetOptKeepSize(bool opt);
+static    void SetOptBckG(bool opt);
+static    void SetDir ();
+static    void SetFile();
+static    void SetOptLastFile(bool opt);
+static    void SetOptTrim(int opt);
+static    void SetOptDelete(bool opt);
+static    void SetOptFreqs(bool opt);
+static    void SetOptFPS(bool opt);
+static    void SetSpeedMove(int opt);
+static    string CodeTrimOption(int in_option);
+static    void SetOptReloadProc(bool opt);
+static    void SetReloadPeriod(int opt);
+static    void SetOptReloadModel(bool opt);
+static    void WriteOption(string optionName, int opt);
+static    void WriteOption(string optionName, bool opt);
+static    void WriteOption(string optionName, string opt);
+static    int  FindOption(string optionName);
 
-
-
-
-static void WriteDebug(string message);
-    stringOps ops;
-    string iniFileName,iniDirectory,completeName;
-    std::fstream iniFile;
-    bool openWdwAtStart;
-    bool autoReload;
-    bool periodicReload;
-    int  reloadPeriod;
-    bool autoUTF8;
-    bool changeClrOnTxtChg;
-    bool moveLastPgOnStart;
-    int width,height;
-    bool fitToFile;
-    bool noResize;
-    bool keepSize;
-    bool noBckground;
-    string directory;
-    string file;
-    bool keepLastFile;
-    int trimLineOption;
-    bool deleteEnable;
-    bool navsSetEnable;
-    bool displayFPS;
-    std::vector <string> leftH,rightH,comment;
+static    void WriteDebug(string message);
+static    stringOps ops;
+static    string iniFileName,iniDirectory,completeName;
+static    std::fstream iniFile;
+static    bool openWdwAtStart;
+static    bool autoReload;
+static    bool periodicReload;
+static    int  reloadPeriod;
+static    bool autoUTF8;
+static    bool changeClrOnTxtChg;
+static    bool moveLastPgOnStart;
+static    int  width,height;
+static    bool fitToFile;
+static    bool noResize;
+static    bool keepSize;
+static    bool noBckground;
+static    string directory;
+static    string file;
+static    bool keepLastFile;
+static    int  trimLineOption;
+static    bool deleteEnable;
+static    bool navsSetEnable;
+static    bool displayFPS;
+static     int speedOfMove;
+static    bool reloadModel;
+static    std::vector <string> leftH,rightH,comment;
 
 };
 

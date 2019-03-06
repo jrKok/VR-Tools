@@ -15,6 +15,7 @@ CONFIG += c++11
 INCLUDEPATH += C:\SDK\CHeaders\XPLM\
 INCLUDEPATH += C:\SDK\CHeaders\Wrappers\
 INCLUDEPATH += C:\SDK\CHeaders\Widgets\
+INCLUDEPATH +=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\arm64
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -35,6 +36,7 @@ DEFINES +=APL=0 IBM=1 LIN=0
 LIBS +=-LC:\SDK\Libraries\Win
 LIBS +=-lXPLM_64 -lXPWidgets_64
 LIBS +=-lOpengl32 # lodbc32 lodbccp32
+LIBS +=User32.lib
 
 
 TARGET = VR_Tools.xpl
@@ -62,7 +64,16 @@ SOURCES += \
     drefwindow.cpp \
     vrcommandfilter.cpp \
     localclipboard.cpp \
-    filepointer.cpp
+    filepointer.cpp \
+    opcenter.cpp \
+    drawlogic.cpp \
+    temporarywindow.cpp \
+    modalbutton.cpp \
+    managemodalwindow.cpp \
+    alert3buttons.cpp \
+    linedialog.cpp \
+    vrviews.cpp \
+    vrcreader.cpp
 
 HEADERS += \
     stringops.h \
@@ -88,7 +99,16 @@ HEADERS += \
     drefwindow.h \
     vrcommandfilter.h \
     localclipboard.h \
-    filepointer.h
+    filepointer.h \
+    opcenter.h \
+    drawlogic.h \
+    temporarywindow.h \
+    modalbutton.h \
+    managemodalwindow.h \
+    alert3buttons.h \
+    linedialog.h \
+    vrviews.h \
+    vrcreader.h
 
 target.path= \plugsXP
 unix {

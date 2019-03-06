@@ -7,14 +7,18 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
-#include "layout.h"
+#include "XPLMUtilities.h"
 
 using std::string;
+typedef long long unsigned ulong;
+typedef std::vector<std::shared_ptr<Key>>  lineOfKeys;
+class LayoutWithEdit;
 
 class Keyboard
 {
 public:
-    Keyboard();
+    Keyboard(bool modal=false);
+    ~Keyboard();
     void    WriteDebug(string message);
 
     void    DefineKeyboard (int type);//0 : american english, then for others waiting for development
@@ -26,26 +30,29 @@ public:
                       string &mainString,
                       string &shiftString,
                       string &altString,
+                      string &abbrName,
                       string &abbrString,
                       int &spacing,
-                      int &keyWidth);
-    int     MakeLine(const int &offY, const string &keyDefs, int lineNumber, std::vector<std::shared_ptr<Key>> &keyLine);
+                      int &keyWidth,
+                      ulong &vk_tag);
+    int     MakeLine(const int &offY, const string &keyDefs, int lineNumber, lineOfKeys &keyLine);
     void    MakeKeyboard(int oX, int oY);
 
     void    SetOrigin (int x, int y);
     void    Recalculate(int l, int t);
     void    Relocate (int newX, int newY);
-    void    DrawKb();
 
-    bool    PressKey(int cx, int cy, bool &special, std::string &keyName, std::string &keyVal);
-    string  ReadKey(std::shared_ptr<Key> key, bool &special, std::string &keyName);
-    string  Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VK);
+    bool    ReadLine(int cx, int cy, lineOfKeys in_line, bool &special, string &keyName, string &keyVal);
+    bool    PressKey(int cx, int cy, bool &special, string &keyName, string &keyVal);
+    string  ReadKey(std::shared_ptr<Key> key, bool &special, string &keyName);
+
     bool    IsKeyPressed();
     void    ReleaseCurrentKey();
     void    ShiftPressed();
     void    ReleaseStates();
     void    ShiftCapsPressed();
     void    CTRLPressed();
+    void    SetCTRLToggle(bool val);
     void    ALTPressed();
     void    AbbrPressed();
     void    ToShiftKeys();
@@ -60,17 +67,34 @@ public:
     bool    IsControlKeyActive();
     bool    IsAltKeyActive();
     bool    IsAbbreviationsKeyActive();
+    void    SetWarningMode(bool warning);
+    void    SetVisibility(bool vis);
+
+static int  Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VKs,void* inRefcon);
+static  lineOfKeys physicalKeys;
+static string activeKeyName,activeKeyString;
+static bool activeIsSpecialKey;
+static Keyboard* myKeyboard;
+     void    EnablePhysicalKeyboard(void *caller);
+     void    DisablePhysicalKeyboard(void *caller);
 
     rectangles allKeyboard,rL1,rL2,rL3,rL4,rL5;
+
 private:
-    std::vector<std::shared_ptr<Key>> kL1,kL2,kL3,kL4,kL5;
-    string defL1,defL2,defL3,defL4,defL5;
+    bool isModal;
+    lineOfKeys  kL1,kL2,kL3,kL4,kL5;
     Key* activeKey;
     Key* shiftKeyLeft,*shiftKeyRight,*ctrlKey,*altKey,*abbrvKey,*capsKey;
     int offX, offY;
     int keyHeight,keyWidth;
     int currentKeyLine,currentKeyIdx;
+    float virtualKeyTimer,virtualKeyLatency;
+    bool physicalKyBdEnabled;
     bool keyPressed,shiftToggle,capsToggle,ctrlToggle,altToggle,abbreviationsToggle,specialKey;
+static bool physicalKeyPressed;
+static int  activeVKCode;
+static float physicalKeyTimer,latency;
+
 
 };
 

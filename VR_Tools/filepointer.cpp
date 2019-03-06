@@ -1,10 +1,12 @@
 #include "filepointer.h"
+#include "layout.h"
 
 string FilePointer::currentFileName("fn");
 string FilePointer::currentDirName("dn");
 string FilePointer::DirSeparator("\\");
 string FilePointer::currentTemp("");
 string FilePointer::currentBackup("");
+string FilePointer::currentPlaneDir("");
 
 FilePointer::FilePointer()
 {
@@ -20,11 +22,32 @@ void FilePointer::SetCurrentFileName(string in_Name){
 }
 
 void   FilePointer::SetCurrentDirName(string in_Dir){
+    if (in_Dir=="") {
+        currentDirName="";
+        return;
+    }
     if (in_Dir.substr(in_Dir.length()-1,1)==DirSeparator) in_Dir=in_Dir.substr(0,in_Dir.length()-1);
     currentDirName=in_Dir;
 }
 string FilePointer::GetCurrentDirName(){
     return currentDirName;
+}
+
+void FilePointer::FindCurrentPlaneDir(){
+    char plName[512],plDir[1024];
+    string planeDir("");
+    XPLMGetNthAircraftModel(0,plName,plDir);
+    string planePath=plDir;
+    if (planePath!=""){
+        path p=planePath;
+        planeDir=p.parent_path().string();
+    }
+    FilePointer::currentPlaneDir=planeDir;
+
+}
+
+string FilePointer::GetCurrentPlaneDir(){
+    return currentPlaneDir;
 }
 
 void FilePointer::MakeBackups(){
@@ -36,12 +59,14 @@ void FilePointer::MakeBackups(){
     int itr(1);
     while (exists(p)){
         p=path(nudeRootName+std::to_string(itr)+".bck");
+        itr++;
     }
     currentBackup=p.string();
     itr=1;
     p=nudeRootName+".tmp";
     while (exists(p)){
         p=path(nudeRootName+std::to_string(itr)+".tmp");
+        itr++;
     }
     currentTemp=p.string();
     path pC(rootName), pB(currentBackup), pT(currentTemp);
@@ -53,15 +78,21 @@ void FilePointer::MakeBackups(){
 }
 
 void FilePointer::ReleaseBackups(){
-    path pB(currentBackup), pT(currentTemp);
-    if (is_regular_file(pB)&&is_regular_file(pT))
-    {
-        remove(pB);
-        remove(pT);
+    if (currentBackup!=""){
+        path pB(currentBackup);
+        if (is_regular_file(pB))
+            remove(pB);
+        currentBackup="";
     }
-    currentBackup="";
-    currentTemp="";
+
+    if (currentTemp!=""){
+        path pT(currentTemp);
+        if (is_regular_file((pT)))
+            remove(pT);
+        currentTemp="";
+    }
 }
+
 void FilePointer::RestoreBackup(){
     string rootName=currentDirName+DirSeparator+currentFileName;
     path pC(rootName), pB(currentBackup),pT(currentTemp);

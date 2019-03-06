@@ -20,12 +20,15 @@ class ShowDir
 public:
 
 
-    ShowDir();
-    rectangles general;
+    ShowDir(int in_num);
+
 
     void WriteDebug(string message);
+    void MakeButton();
+    void MakeLine();
     void SetupDirWindow(int left,int top);
     void RecalculateDirWindow();
+    void RecolorFirstLines();
     void DrawDirWindow(XPLMWindowID g_FileWindow);
     int  processMouseDn(int,int);
     void processMouseDrag(int,int);
@@ -38,15 +41,22 @@ public:
     void CloseDirWindow();
     string GetSelectedFile();
     string GetSelectedPath();
-private:
+    int  GetRight();
+    int  GetTop();
+    int  GetBottom();
+    int  GetLeft();
+    int  GetWidth();
+    int  GetHeight();
 
+private:
+    int myWindow;
+    rectangles general,leftR,rightR,slider;
     enum { button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4};
     enum {windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6};
 
-    int in_top,in_left,newT,newL,nR,nB;
+    int in_top,in_left,newT,newL,nR,nB,myWindowNumber;
     int buttonPressed, SectionPressed,charHeight,hghDisp;//section pr
     bool waitForMouseUp;
-    float ink[3],background[3],backgroundS[3],bckgW[3];
     dirNameReader dirN;
     FileNamePicker fileN;
     string fileSelected, filePathSelected;

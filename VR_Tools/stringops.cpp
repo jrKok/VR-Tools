@@ -1,5 +1,7 @@
 #include "stringops.h"
 
+string stringOps::digits("0123456789");
+string stringOps::numSigns("+.-");
 stringOps::stringOps()
 {
 
@@ -11,6 +13,7 @@ void stringOps::WriteDebug(string message){
 }
 
 bool stringOps::contains(const string inString, const string inContains){
+    if (inString=="") return false;
     std::size_t fd=inString.find(inContains);
     if (fd!=string::npos) return true;
         else return false;
@@ -202,3 +205,17 @@ string stringOps::RemoveLastUTFCharFromString(string in_string){
     }
     return in_string;
 }
+
+bool stringOps::IsANumber(string to_test){
+    if (to_test=="") return false;
+    string firstDigit=to_test.substr(0,1);
+    if (digits.find(firstDigit)!=std::string::npos) return (true);
+    if (numSigns.find(firstDigit)!=std::string::npos){
+        if (to_test.size()==1) return false;
+        firstDigit=to_test.substr(1,1);
+        if (digits.find(firstDigit)!=std::string::npos) return (true);
+        else return false;
+    }
+    else return (false);
+}
+

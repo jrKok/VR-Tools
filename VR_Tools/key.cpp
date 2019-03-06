@@ -1,6 +1,7 @@
 #include "key.h"
+#include "drawlogic.h"
 
-Key::Key() : button_VR(),
+Key::Key(bool modal) : button_VR(modal),
     ch1(0),
     ch2(0),
     isUTF8(false),
@@ -10,13 +11,14 @@ Key::Key() : button_VR(),
     keyShiftString(""),
     keyAltString(""),
     keyAbbrString(""),
+    keyAbbrName(""),
     line(0),
     column(0)
 
 {
 
 }
-void Key::DefineKey(char c1, char c2, bool utf, bool spec, std::string showVal, std::string mainVal,std::string shiftVal, std::string altVal, std::string abbrVal, int ln, int cl){
+void Key::DefineKey(char c1, char c2, bool utf, bool spec, string showVal, string mainVal,string shiftVal, string altVal, string abbrName, string abbrVal, int ln, int cl){
     ch1=c1;
     ch2=c2;
     isUTF8=utf;
@@ -26,40 +28,55 @@ void Key::DefineKey(char c1, char c2, bool utf, bool spec, std::string showVal, 
     keyShiftString=shiftVal;
     keyAltString=altVal;
     keyAbbrString=abbrVal;
+    keyAbbrName=abbrName;
     setText(showVal);
+    if (!isModal)
+        DrawLogic::ChangeColorString(stringNumber,Clr_White);
+    else
+        DrawLogic::ChangeColorModalString(stringNumber,Clr_White);
+    setColor(Clr_LightBlue);
     line=ln;
     column=cl;
+    if (!isModal)
+        DrawLogic::SetVisibilityString(stringNumber,true);
+    else {
+        DrawLogic::SetVisibilityModalString(stringNumber,true);
+    }
 }
 
 Key* Key::GetMyPointer(){
     return this;
 }
 
-std::string Key::GetKeyName(){
+string Key::GetKeyName(){
     if (isSpecial) return keyMainString;
     else return keyShowString;
 }
-std::string Key::GetKeyMainVal(){
+string Key::GetKeyMainVal(){
     return keyMainString;
 }
 
-std::string Key::GetKeyShift(){
+string Key::GetKeyShift(){
     return keyShiftString;
 }
 
-std::string Key::GetKeyAlt(){
+string Key::GetKeyAlt(){
     return keyAltString;
 }
 
-std::string Key::GetKeyAbbr(){
+string Key::GetKeyAbbrVal(){
     return keyAbbrString;
 }
 
-void Key::SetKeyShiftText(std::string sStr){
+string Key::GetKeyAbbrName(){
+    return keyAbbrName;
+}
+
+void Key::SetKeyShiftText(string sStr){
     keyShiftString=sStr;
 }
 
-void Key::SetKeyAltText(std::string aStr){
+void Key::SetKeyAltText(string aStr){
     keyAltString=aStr;
 }
 
@@ -84,5 +101,5 @@ void Key::reposition (int dX,int dY){
     offsetY+=dY;
     offsetTextX+=dX;
     offsetTextY+=dY;
-    recalculate();
+    button_VR::recalculate();
 }

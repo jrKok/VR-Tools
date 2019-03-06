@@ -23,7 +23,8 @@ public:
     void ProceedEndClick();
     bool ReadFileToBuff();
     void DisplayPage();
-    void DrawMySelf();
+    void DrawCursor();
+    void DrawSelectionRects();
     void UpdateBox(int thisLine);
     void MoveCursorUp();
     void MoveCursorDown();
@@ -45,6 +46,7 @@ public:
     void Backspace();
     void Suppress();
     void Enter();
+    void PrintATextLine(string inLine);
 
 
 private:
@@ -54,6 +56,10 @@ private:
     stringOps ops;
     LocalClipBoard localClip;
     string tempFile;
+    const char   tabchar;
+    const string tabstring;
+
+
 };
 
 #endif // TEXTEDIT_H

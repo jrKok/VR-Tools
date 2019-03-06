@@ -6,7 +6,9 @@ dirNameReader::dirNameReader():List_Box_With_ScrB(),
     actualPath(""),
     actualDirName(""),
     systemCharSep(""),
-    sysDir(""),shortCutBck(".."),shortCutXP("X Plane"),ShortCutPlug("VR Tools"),ShortCutF("Text Files")
+    sysDir(""),shortCutBck(".."),shortCutXP("X Plane"),ShortCutPlug("VR Tools"),ShortCutF("Text Files"),
+    ShortCutPlane("Current Plane"),
+    nbSpecialLines(5)
 
 {
     SetSplitPolicy(DontTruncate);
@@ -59,6 +61,7 @@ void dirNameReader::ShowAll(){
     AddLine(shortCutXP);
     AddLine(ShortCutF);
     AddLine(ShortCutPlug);
+    AddLine(ShortCutPlane);
     for (auto & p : std::experimental::filesystem::directory_iterator(actualPath)){
         if (std::experimental::filesystem::is_directory(std::experimental::filesystem::status(p.path().string()))){
             std::string fName=p.path().filename().string();
@@ -66,11 +69,13 @@ void dirNameReader::ShowAll(){
         }
         }
     SetupforText();
+    SetInkColor(Clr_BlackInk);
+    ColorFirstLines();
 }
 
 void dirNameReader::ReadSelectedDir(){
     std::string name=StringSelected();
-    if (SelectedLineNumber()<4){
+    if (SelectedLineNumber()<nbSpecialLines){
        if (name==shortCutBck) {
            ReadRootDir();
            return;}
@@ -84,8 +89,13 @@ void dirNameReader::ReadSelectedDir(){
        }
        if (name==ShortCutPlug){
            SetDirectory(sysDir+"\\Resources\\plugins\\VR_Tools");
+           WriteDebug(actualPath);
            return;
       }
+       if (name==ShortCutPlane){
+           SetDirectory(FilePointer::GetCurrentPlaneDir());
+           WriteDebug(actualPath);
+       }
     }else{
        parentPath=actualPath;
        actualPath=actualPath+systemCharSep+StringSelected();
@@ -106,4 +116,17 @@ std::string dirNameReader::GetParentPathFromPath(){
 
 std::string dirNameReader::GetSelectedDirPath(){
     return (actualPath+systemCharSep+StringSelected());
+}
+
+void dirNameReader::ColorFirstLines(){
+    if (indxFirstOnPg<nbSpecialLines){
+        int idx(indxFirstOnPg);
+        ulong bIdx(0);
+        while (idx<nbSpecialLines&&idx<=indxLastOnPg){
+            if (!box[bIdx].GetSelected())
+                box[bIdx].SetTextColor(Clr_Green);
+            bIdx++;
+            idx++;
+        }
+    }
 }

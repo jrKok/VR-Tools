@@ -70,8 +70,6 @@ if (fileName!=""){
   stringOps ops;
   std::string inputL;
   while (getline(textFile,inputL)){
-     //inputL=ops.cleanOut(inputL,"\r");
-     //inputL=ops.cleanOut(inputL,"\n");
      AddLine(inputL);
      }
   textFile.close();  
@@ -107,13 +105,13 @@ void TextReader::CheckForFrequencies(){
               }
               else {
                   floatRead=std::stof(remnant,&pos);
-                  if ((floatRead>=108.00) && (floatRead<=117.99)) {
-                      freqNAV=(int)(floatRead*100.0f);
+                  if ((floatRead>=108.00f) && (floatRead<=117.99f)) {
+                      freqNAV=static_cast<int>(floatRead*100.0f);
                       std::string conv=std::to_string(freqNAV);
                       strBuffNav=conv.substr(0,3)+"."+conv.substr(3,2);
                       hasNav=true;
                   }
-                  if ((floatRead>=118.00)&&(floatRead<=139.99)){
+                  if ((floatRead>=118.00f)&&(floatRead<=139.99f)){
                       freqCOM=floatRead*100.0f;
                       std::string conv=std::to_string(freqCOM*10);
                       strBuffCom=conv.substr(0,3)+"."+conv.substr(3,3);

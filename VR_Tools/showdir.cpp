@@ -1,11 +1,16 @@
 #include "showdir.h"
+#include "drawlogic.h"
 
 
-ShowDir::ShowDir() :
-    general(),
+ShowDir::ShowDir(int in_number) :
+    myWindow(in_number),
+    general(true),
+    leftR(true),
+    rightR(true),
+    slider(true),
     in_top(0),in_left(0),newT(0),newL(0),nR(0),nB(0),
     buttonPressed(-1), SectionPressed(-1),charHeight(0),hghDisp(190),
-    ink{0.120f,0.120f,0.120f},background{0.900f,0.900f,0.850f},backgroundS{0.720f,0.720f,0.690f},bckgW{0.150f,0.180f,0.250f},
+    waitForMouseUp(false),
     dirN(),
     fileN(),
     fileSelected(""),filePathSelected(""),
@@ -14,14 +19,6 @@ ShowDir::ShowDir() :
 
 {  //Constructor
 
-    TextLine line;
-    button_VR button;
-    button.isVisible=true;
-    for (int Cpt(0);Cpt<7;Cpt++)  displayLines.push_back(line);
-    for (int b(0);b<5;b++) buttons.push_back(button);
-
-
-    XPLMGetFontDimensions(xplmFont_Proportional,NULL,&charHeight,NULL);
 
 } //End Constructor
 
@@ -32,109 +29,133 @@ void ShowDir::WriteDebug(string message){
     XPLMDebugString((char*)in_String.c_str());
 }
 
+void ShowDir::MakeButton(){
+    button_VR button;
+    button.setVisibility(true);
+    button.SetToStateColor();
+    button.setTextColor(Clr_White);
+    buttons.push_back(button);
+}
+
+void ShowDir::MakeLine(){
+    TextLine line;
+    line.SetTextColor(Clr_White);
+    displayLines.push_back(line);
+}
+
 //class members/functions
 
 void ShowDir::SetupDirWindow(int left, int top){
+    DrawLogic::ShowMyWindow(myWindow);
+    FilePointer::FindCurrentPlaneDir();
+    if (displayLines.size()==0){
+        for (int Cpt(0);Cpt<7;Cpt++)  MakeLine();
+        for (int b(0);b<5;b++) MakeButton();
+        XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&charHeight,nullptr);
+        general.setVisibility(true);
+        general.setColor(Clr_Gray);
+        dirN.Setup(hghDisp,300,10,40);
+        fileN.Setup(hghDisp,280,320,40);
+        dirN.SetBckColor(Clr_PaperWhite);
+        fileN.SetBckColor(Clr_PaperWhite);
 
-    dirN.Setup(hghDisp,300,10,40);
-    fileN.Setup(hghDisp,280,320,40);
+        dirN.SetupDirectoryReader();
+        fileN.SetDirToRead(dirN.GetActualPathName());
 
-    dirN.SetupDirectoryReader();
-    fileN.SetDirToRead(dirN.GetActualPathName());
+        in_top=top;
+        in_left=left;
 
-    in_top=top;
-    in_left=left;
+        //windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6
+        displayLines[windowTitle].setText("Text files (.txt) in : .."+dirN.GetActualDirName());
+        displayLines[windowTitle].SetDimensions(280,charHeight+2);
+        displayLines[windowTitle].SetOffsets(320,13);
 
-//windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6
-displayLines[windowTitle].setText("Text files (.txt) in : .."+dirN.GetActualDirName());
-displayLines[windowTitle].width=280;
-displayLines[windowTitle].height=charHeight+2;
-displayLines[windowTitle].offSetX=320;
-displayLines[windowTitle].offSetY=13;
+        int TitleSize=MeasureString(displayLines[dirTitle].GetText());
+        int fileTitleSize=MeasureString(displayLines[fileTitle].GetText());
+        int dirSelectedSize=MeasureString(displayLines[DirSelected].GetText());
+        int fileSelectedSize=MeasureString(displayLines[FileSelected].GetText());
 
-displayLines[dirTitle].setText("Choose a directory :");
-displayLines[dirTitle].width=XPLMMeasureString(xplmFont_Proportional,(char*)displayLines[dirTitle].textOfLine.c_str(),displayLines[dirTitle].mySize);
-displayLines[dirTitle].height=charHeight+2;
-displayLines[dirTitle].offSetX=10;
-displayLines[dirTitle].offSetY=27;
+        displayLines[dirTitle].setText("Choose a directory :");
+        displayLines[dirTitle].SetDimensions(TitleSize,charHeight+2);
+        displayLines[dirTitle].SetOffsets(10,27);
 
-displayLines[fileTitle].setText("Click the file to display :");
-displayLines[fileTitle].width=XPLMMeasureString(xplmFont_Proportional,(char*)displayLines[fileTitle].textOfLine.c_str(),displayLines[fileTitle].mySize);
-displayLines[fileTitle].height=charHeight+2;
-displayLines[fileTitle].offSetX=320;
-displayLines[fileTitle].offSetY=27;
+        displayLines[fileTitle].setText("Click the file to display :");
+        displayLines[fileTitle].SetDimensions(fileTitleSize,charHeight+2);
+        displayLines[fileTitle].SetOffsets(320,27);
 
-displayLines[DirSelected].setText("Directory Selected :");
-displayLines[DirSelected].width=XPLMMeasureString(xplmFont_Proportional,(char*)displayLines[DirSelected].textOfLine.c_str(),displayLines[DirSelected].mySize);
-displayLines[DirSelected].height=charHeight+2;
-displayLines[DirSelected].offSetX=10;
-displayLines[DirSelected].offSetY=hghDisp+50;
+        displayLines[DirSelected].setText("Directory Selected :");
+        displayLines[DirSelected].SetDimensions(dirSelectedSize,charHeight+2);
+        displayLines[DirSelected].SetOffsets(10,hghDisp+50);
 
-displayLines[FileSelected].setText("File Selected :");
-displayLines[FileSelected].width=XPLMMeasureString(xplmFont_Proportional,(char*)displayLines[FileSelected].textOfLine.c_str(),displayLines[DirSelected].mySize);
-displayLines[FileSelected].height=charHeight+2;
-displayLines[FileSelected].offSetX=320;
-displayLines[FileSelected].offSetY=displayLines[DirSelected].offSetY;
+        displayLines[FileSelected].setText("File Selected :");
+        displayLines[FileSelected].SetDimensions(fileSelectedSize,charHeight+2);
+        displayLines[FileSelected].SetOffsets(320,displayLines[DirSelected].GetOffsetY());
 
-displayLines[FilePicker].setText("");
-displayLines[FilePicker].width= 200;
-displayLines[FilePicker].height=charHeight+6;
-displayLines[FilePicker].offSetX=320;
-displayLines[FilePicker].offSetY=displayLines[FileSelected].offSetY+charHeight+12;
+        displayLines[FilePicker].setText("");
+        displayLines[FilePicker].SetDimensions(200,charHeight+6);
+        displayLines[FilePicker].SetTextColor(Clr_BlackInk);
+        displayLines[FilePicker].SetOffsets(320,displayLines[FileSelected].GetOffsetY()+charHeight+12);
 
-displayLines[DirReader].setText("");
-displayLines[DirReader].width= 280;
-displayLines[DirReader].height=charHeight+6;
-displayLines[DirReader].offSetX=10;
-displayLines[DirReader].offSetY=displayLines[FilePicker].offSetY;
+        displayLines[DirReader].setText("");
+        displayLines[DirReader].SetDimensions(280,charHeight+6);
+        displayLines[DirReader].SetTextColor(Clr_BlackInk);
+        displayLines[DirReader].SetOffsets(10,displayLines[FilePicker].GetOffsetY());
 
-//button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4
+        //button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4
 
-buttons[button_ok].width=30;
-buttons[button_ok].height=20;
-buttons[button_ok].offsetX=365;
-buttons[button_ok].offsetY=displayLines[FilePicker].offSetY+charHeight+2;
-buttons[button_ok].isVisible=false;
-buttons[button_ok].setText("OK");
+        buttons[button_ok].SetDimensions(30,20);
+        buttons[button_ok].SetOffsets(365,displayLines[FilePicker].GetOffsetY()+charHeight+2);
+        buttons[button_ok].setText("OK");
+        buttons[button_ok].setVisibility(false);
 
-buttons[button_Cancel].width=40;
-buttons[button_Cancel].height=20;
-buttons[button_Cancel].offsetX=290;
-buttons[button_Cancel].offsetY=buttons[button_ok].offsetY;
-buttons[button_Cancel].isVisible=true;
-buttons[button_Cancel].setText("Cancel");
+        buttons[button_Cancel].SetDimensions(40,20);
+        buttons[button_Cancel].SetOffsets(290,buttons[button_ok].GetOffsetY());
+        buttons[button_Cancel].setText("Cancel");
+        buttons[button_Cancel].setVisibility(true);
 
-buttons[button_SelDir].width=40;
-buttons[button_SelDir].height=20;
-buttons[button_SelDir].offsetX=120;
-buttons[button_SelDir].offsetY=buttons[button_ok].offsetY;
-buttons[button_SelDir].isVisible=false;
-buttons[button_SelDir].setText("Select");
+        buttons[button_SelDir].SetDimensions(40,20);
+        buttons[button_SelDir].SetOffsets(120,buttons[button_ok].GetOffsetY());        
+        buttons[button_SelDir].setText("Select");
+        buttons[button_SelDir].setVisibility(false);
 
-buttons[button_All].width=30;
-buttons[button_All].height=20;
-buttons[button_All].offsetX=500;
-buttons[button_All].offsetY=15;
-buttons[button_All].setText("*.*");
+        buttons[button_All].SetDimensions(30,20);
+        buttons[button_All].SetOffsets(500,15);        
+        buttons[button_All].setText("*.*");
+        buttons[button_All].setVisibility(true);
 
-buttons[button_txt].width=30;
-buttons[button_txt].height=20;
-buttons[button_txt].offsetX=530;
-buttons[button_txt].offsetY=15;
-buttons[button_txt].isVisible=false;
-buttons[button_txt].setText(".txt");
+        buttons[button_txt].SetDimensions(30,20);
+        buttons[button_txt].SetOffsets(buttons[button_All].GetOffsetX()+30,buttons[button_All].GetOffsetY());
+        buttons[button_txt].setText(".txt");
+        buttons[button_txt].setVisibility(false);
 
-general.in_top=in_top-100;
-general.in_left=in_left+100;
-general.offsetX=0;
-general.offsetY=0;
-general.width=fileN.GetOffSetX()+330;
-general.height=buttons[button_ok].offsetY+30;
-general.recalculate();
+        slider.SetOffsets(buttons[button_All].GetOffsetX(),buttons[button_All].GetOffsetY()-1);
+        slider.SetDimensions(62,22);
+        slider.setColor(Clr_White);
+        slider.setVisibility(true);
 
-dirN.ShowAll();
-fileN.ShowAll();
+        general.SetOrigin(in_left+100,in_top-100);
+        general.SetOffsets(0,0);
+        general.SetDimensions(fileN.GetOffSetX()+330,buttons[button_ok].GetOffsetY()+30);
+        general.recalculate();
 
+        dirN.ShowAll();
+        fileN.ShowAll();
+
+        displayLines[FilePicker].recalculate();
+        leftR.SetAngles(displayLines[FilePicker].GetX()-2,displayLines[FilePicker].GetTop()-2,displayLines[FilePicker].GetRight()+2,displayLines[FilePicker].GetBottom()-3);
+        leftR.SetOffsets(displayLines[FilePicker].GetOffsetXRect(),displayLines[FilePicker].GetOffsetYRect()+2);
+        leftR.setColor(Clr_PaperWhite);
+        leftR.setVisibility(true);
+        displayLines[DirReader].recalculate();
+        rightR.SetAngles(displayLines[DirReader].GetX()-2,displayLines[DirReader].GetTop()-2,displayLines[DirReader].GetRight()+2,displayLines[DirReader].GetBottom()-3);
+        rightR.SetOffsets(displayLines[DirReader].GetOffsetXRect(),displayLines[DirReader].GetOffsetYRect()+2);
+        rightR.setColor(Clr_PaperWhite);
+        rightR.setVisibility(true);
+    }
+    else{
+        dirN.ShowAll();
+        fileN.ShowAll();
+    }
 }
 
 void ShowDir::RecalculateDirWindow(){
@@ -145,61 +166,23 @@ void ShowDir::RecalculateDirWindow(){
 
         for (ulong lg(0);lg<7;lg++) displayLines[lg].recalculate(in_left,in_top);
         for (auto & bt:buttons) {
-            bt.in_left=in_left;
-            bt.in_top=in_top;
+            bt.SetOrigin(in_left,in_top);
             bt.recalculate();
         }
         fileN.Recalculate(in_left,in_top);
         dirN.Recalculate(in_left,in_top);
+        leftR.recalculate(in_left,in_top);
+        rightR.recalculate(in_left,in_top);
+        slider.recalculate(in_left,in_top);
 
     }
 }
 
 void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
-    XPLMSetGraphicsState(
-            0 /* no fog */,
-            0 /* 0 texture units */,
-            0 /* no lighting */,
-            0 /* no alpha testing */,
-            1 /* do alpha blend */,
-            1 /* do depth testing */,
-            0 /* no depth writing */
-    );
-
     XPLMGetWindowGeometry(g_FileWindow, &newL, &newT, &nR, &nB);
     RecalculateDirWindow();
-    glColor3fv(bckgW);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-    glBegin(GL_TRIANGLE_FAN);
-      {
-      glVertex2i(general.left, general.top);
-      glVertex2i(general.right, general.top);
-      glVertex2i(general.right, general.bottom);
-      glVertex2i(general.left, general.bottom);
-      }
-    glEnd();
-    dirN.DrawMySelf();
-    fileN.DrawMySelf();
-    for (auto bt:buttons) {
-        bt.drawButton();}
-    for (ulong l(0);l<5;l++) {
-        int wdt=displayLines[l].width;
-        XPLMDrawString(background,displayLines[l].x,displayLines[l].y,(char*)displayLines[l].textOfLine.c_str(),&wdt,xplmFont_Proportional);
-    }
-    for (ulong ll(5);ll<7;ll++){
-        glColor3fv(backgroundS);
-            glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-            glBegin(GL_TRIANGLE_FAN);
-              {
-              glVertex2i(displayLines[ll].x-2, displayLines[ll].top);
-              glVertex2i(displayLines[ll].right, displayLines[ll].top);
-              glVertex2i(displayLines[ll].right, displayLines[ll].y-2);
-              glVertex2i(displayLines[ll].x-2, displayLines[ll].y-2);
-              }
-            glEnd();
-            int wdt=displayLines[ll].width;
-            XPLMDrawString(ink,displayLines[ll].x,displayLines[ll].y,(char*)displayLines[ll].textOfLine.c_str(),&wdt,xplmFont_Proportional);
-    }
+    DrawLogic::DrawElements();
+    DrawLogic::DrawStrings();
 }
 
 int  ShowDir::processMouseDn(int x,int y){
@@ -217,10 +200,16 @@ int  ShowDir::processMouseDn(int x,int y){
 void ShowDir::processMouseDrag(int x,int y){
     if (SectionPressed==DirReader){
         dirN.ProceedClickCont(x,y);
+        fileN.SetInkColor(Clr_BlackInk);
+        dirN.SetInkColor(Clr_BlackInk);
+        dirN.ColorFirstLines();
         return;
     }
     if (SectionPressed==FilePicker){
         fileN.ProceedClickCont(x,y);
+        fileN.SetInkColor(Clr_BlackInk);
+        dirN.SetInkColor(Clr_BlackInk);
+        dirN.ColorFirstLines();
         return;
     }
 }
@@ -249,8 +238,8 @@ int  ShowDir::processMouseUp(int x,int y){
             if (fileN.GetTxtOption()) {
                 fileN.ToggleAllTxt();
                 fileN.ShowAll();
-                buttons[button_All].isVisible=false;
-                buttons[button_txt].isVisible=true;
+                buttons[button_All].setVisibility(false);
+                buttons[button_txt].setVisibility(true);
                 UpdateDirInfo();
             }
             break;
@@ -259,8 +248,8 @@ int  ShowDir::processMouseUp(int x,int y){
             if (!fileN.GetTxtOption()) {
                 fileN.ToggleAllTxt();
                 fileN.ShowAll();
-                buttons[button_All].isVisible=true;
-                buttons[button_txt].isVisible=false;
+                buttons[button_All].setVisibility(true);
+                buttons[button_txt].setVisibility(false);
                 UpdateDirInfo();
             }
             break;
@@ -272,18 +261,21 @@ int  ShowDir::processMouseUp(int x,int y){
             fileN.ProceedEndClick();
             if (fileN.HasSelection()){
                 displayLines[FilePicker].setText(fileN.StringSelected());
-                buttons[button_ok].isVisible=true;}
+                buttons[button_ok].setVisibility(true);}
         }
         if (SectionPressed==DirReader) {
             dirN.ProceedEndClick();
             if (dirN.HasSelection()){
                 displayLines[DirReader].setText(dirN.StringSelected());
-                buttons[button_SelDir].isVisible=true;}
+                buttons[button_SelDir].setVisibility(true);}
         }
     }
 
     buttonPressed=-1;
     SectionPressed=-1;
+    fileN.SetInkColor(Clr_BlackInk);
+    dirN.SetInkColor(Clr_BlackInk);
+    dirN.ColorFirstLines();
     return retVal;
 }
 
@@ -291,8 +283,8 @@ void ShowDir::SelectDir(){
     dirN.ReadSelectedDir();
     string current=dirN.GetActualPathName();
     fileN.SetDirToRead(current);
-    buttons[button_ok].isVisible=false;
-    buttons[button_SelDir].isVisible=false;
+    buttons[button_ok].setVisibility(false);
+    buttons[button_SelDir].setVisibility(false);
     UpdateDirInfo();
 }
 
@@ -309,11 +301,19 @@ void ShowDir::UpdateDirInfo(){
 }
 
 int  ShowDir::MeasureString(string in_String){
-    return ((int)XPLMMeasureString(xplmFont_Proportional,(char*)in_String.c_str(),in_String.size()));
+    float mySize=XPLMMeasureString(xplmFont_Proportional,DrawLogic::ToC(in_String),static_cast<int>(in_String.size()));
+    int retSize=static_cast<int>(mySize);
+    return retSize;
 }
 
-void ShowDir::CloseDirWindow(){
+int  ShowDir::GetRight(){return general.GetRight();}
+int  ShowDir::GetTop(){return general.GetTop();}
+int  ShowDir::GetBottom(){return general.GetBottom();}
+int  ShowDir::GetLeft(){return general.GetLeft();}
+int  ShowDir::GetWidth(){return general.GetWidth();}
+int  ShowDir::GetHeight(){return general.GetHeight();}
 
+void ShowDir::CloseDirWindow(){
 }
 
 void ShowDir::SelectFileLine(){

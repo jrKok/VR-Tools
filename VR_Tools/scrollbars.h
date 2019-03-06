@@ -22,7 +22,7 @@
 class ScrollBars
 {
 public:
-    ScrollBars();
+    ScrollBars(bool modal=false);
     bool IsCommandForMe(int x, int y, int& retVal);
     bool IsVisible();
     void BeginDrag(int,int);
@@ -32,14 +32,12 @@ public:
     void EndDrag();
     void Setup(int height, int totLines, int firstLine, int linesInPage, int offX, int offY);
     void SetPosFirstLine(int firstLine);
-    void Refresh(int height, int totLines, int firstLine, int linesOnPage);
     void Recalculate(int left, int top);
     void SetVisibility(bool iV);
     void LineUpNLines(int nL);
     void LineDownNLines (int nL);
     void UpPage();
     void DownPage();
-    void DrawMySelf();
     void WriteDebug(std::string message);
     void BeginRepeat(int cmd);
     bool ShouldRepeat();
@@ -58,9 +56,8 @@ private:
     int offsetX, offsetY,y0,dragPosY, cmdToRepeat;
     float linesPPx, epoch,waitForRepeat;
     bool isVisible, drag, repeatCmd;
-    button_VR commandUp,commandDown,lift;
     rectangles general,core;
-    float colorWhite[3],colorGray[3],colorlightGray[3];
+    button_VR commandUp,commandDown,lift;
 
 };
 

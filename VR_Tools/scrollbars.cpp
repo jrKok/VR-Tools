@@ -7,7 +7,7 @@
  * ready for drag commands
 */
 
-ScrollBars::ScrollBars():
+ScrollBars::ScrollBars(bool modal):
     totalLines(0),
     page(0),
     numberfirstLine(0),limitLastLine(0),
@@ -20,24 +20,20 @@ ScrollBars::ScrollBars():
     offsetY(0),
     y0(0),
     dragPosY(0),
+    cmdToRepeat(0),
     linesPPx(1.0f),
     epoch(0.0f),
     waitForRepeat(0.7f),
-    cmdToRepeat(0),
     isVisible(false),
     drag(false),
     repeatCmd(false),
-    commandUp(),
-    commandDown(),
-    lift(),
-    general(),
-    core(),
-    colorWhite{0.950f,0.950f,0.950f},
-    colorGray{0.600f,0.600f,0.600f},
-    colorlightGray{0.750f,0.750f,0.750f}
-{
+    general(true,modal),
+    core(true,modal),
+    commandUp(modal),
+    commandDown(modal),
+    lift(modal)
+{}
 
-}
 void ScrollBars::WriteDebug(std::string message){
     std::string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
@@ -53,47 +49,32 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
     page=linesInPage;
     limitLastLine=totalLines-page;
     heightOfCore=totalheight-30;
-
-    general.height=height;
-    general.width=15;
-    general.offsetX=offX;
-    general.offsetY=offY;
-
+    general.SetDimensions(15,height);
+    general.SetOffsets(offX,offY);
     topCore=offY+15;
 
-    commandUp.offsetX=offX;
-    commandUp.offsetY=offY;
-    commandUp.height=15;
-    commandUp.width=15;
-    commandUp.hasSymbol=true;
-    commandUp.buttonText="";
-    commandUp.setColor(colorlightGray);
+    commandUp.SetOffsets(offX,offY);
+    commandUp.SetDimensions(15,15);
+    commandUp.setText("");
     commandUp.addPoint(offX+7,offY+2);
     commandUp.addPoint(offX+13,offY+13);
     commandUp.addPoint(offX+2,offY+13);
+    commandUp.setButtonColor(Clr_LightGray);
 
-    commandDown.offsetX=offX;
-    commandDown.offsetY=offY+totalheight-15;
-    commandDown.height=15;
-    commandDown.width=15;
-    commandDown.hasSymbol=true;
-    commandDown.buttonText="";
-    commandDown.setColor(colorlightGray);
-    commandDown.addPoint(offX+2,commandDown.offsetY+2);
-    commandDown.addPoint(offX+13,commandDown.offsetY+2);
-    commandDown.addPoint(offX+7,commandDown.offsetY+13);
+    commandDown.SetOffsets(offX,offY+totalheight-15);
+    commandDown.SetDimensions(15,15);
+    commandDown.setText("");
+    commandDown.setButtonColor(Clr_LightGray);
+    commandDown.addPoint(offX+2,commandDown.GetOffsetY()+2);
+    commandDown.addPoint(offX+13,commandDown.GetOffsetY()+2);
+    commandDown.addPoint(offX+7,commandDown.GetOffsetY()+13);
 
-    core.height=heightOfCore;
-    core.width=15;
-    core.offsetX=offX;
-    core.offsetY=topCore;
-
-    //define mobile element (lift, thumb or what you like)
-    lift.width=15;
-    lift.offsetX=offX;
+    core.SetDimensions(15,heightOfCore);
+    core.SetOffsets(offX,topCore);
+    lift.SetOffsets(offX,offY);
 
     if (totalLines<=page) {
-        lift.height=heightOfCore;
+        lift.SetDimensions(15,heightOfCore);
         heightOfLift=heightOfCore;
         this->isVisible=false;
     }else{
@@ -101,14 +82,16 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
     lowCore=topCore+heightOfCore-15;
     freeCore=lowCore-topCore;
     if (lowCore<(limitLastLine)){
-        lift.height=15;
+        lift.SetDimensions(15,15);
+        heightOfLift=15;
         freeCore=lowCore-topCore;
         linesPPx=(float)(limitLastLine)/(float)freeCore;
     }
     else{
         lowCore=topCore+limitLastLine;
+        lift.SetDimensions(15,heightOfCore-limitLastLine);
         freeCore=lowCore-topCore;
-        lift.height=heightOfCore-limitLastLine;
+        heightOfLift=heightOfCore-limitLastLine;
         linesPPx=1;
     }}
     SetPosFirstLine(firstLine);
@@ -116,8 +99,9 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
    else{
        this->isVisible=false;
    }
-    //compute lift height and params, its initial position at the top
-    //compute linesPPx
+    core.setColor(Clr_Gray);
+    lift.setButtonColor(Clr_White);
+    SetVisibility(isVisible);
 }
 
 bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
@@ -141,7 +125,7 @@ bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
                 return true;
             }
             else {
-                if (y>=lift.top){
+                if (y>=lift.GetTop()){
                     retVal=PageUp;
                     UpPage();
                     BeginRepeat(B_Page_Up);
@@ -157,13 +141,15 @@ bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
     }
     return false;
 }
+
 bool ScrollBars::IsVisible(){
+
     return isVisible;
 }
 
 void ScrollBars::BeginDrag(int x,int y){
     dragPosY=y;
-    y0=lift.offsetY;
+    y0=lift.GetOffsetY();
     drag=true;
 }
 
@@ -174,18 +160,18 @@ int  ScrollBars::DragY(int y){
         //limit variation of offset into bounds
         if (dy<=topCore) {
             numberfirstLine=0;
-            lift.offsetY=topCore;
+            lift.SetOffsetY(topCore);
             lift.recalculate();
             return numberfirstLine;
             }
         if (dy>=lowCore) {
             numberfirstLine=limitLastLine;
-            lift.offsetY=lowCore;
+            lift.SetOffsetY(lowCore);
             lift.recalculate();
             return numberfirstLine;}
         //if in bounds convert pixels to line number
-        numberfirstLine=(dy-topCore)*linesPPx;
-        lift.offsetY=dy;
+        numberfirstLine=(dy-topCore)*static_cast<int>(linesPPx);
+        lift.SetOffsetY(dy);
         lift.recalculate();
         return numberfirstLine;
         }
@@ -213,12 +199,12 @@ bool ScrollBars::ShouldRepeat(){
         epoch=now;
         if (cmdToRepeat==B_Line_Up){
             LineUpNLines(1);
-            waitForRepeat=0.2;
+            waitForRepeat=0.2f;
             return true;
         }
         if (cmdToRepeat==B_Line_Down){
             LineDownNLines(1);
-            waitForRepeat=0.2;
+            waitForRepeat=0.2f;
             return true;
         }
         if (cmdToRepeat==B_Page_Down){
@@ -238,7 +224,7 @@ void ScrollBars::EndRepeat(){
     repeatCmd=false;
     cmdToRepeat=-1;
     epoch=0;
-    waitForRepeat=0.7;
+    waitForRepeat=0.7f;
 }
 
 bool ScrollBars::OngoingRepeat(){
@@ -254,21 +240,22 @@ void ScrollBars::SetPosFirstLine(int firstLine){
 
     if (firstLine<=0) {
         numberfirstLine=0;
-        lift.offsetY=topCore;
+        lift.SetOffsetY(topCore);
         lift.recalculate();
     }else{
     if (firstLine>=limitLastLine){
         numberfirstLine=limitLastLine;
-        lift.offsetY=lowCore;
+        lift.SetOffsetY(lowCore);
         lift.recalculate();}
     else{
-        if (linesPPx==1){
+        if (linesPPx==1.0f){
             numberfirstLine=firstLine;
-            lift.offsetY=topCore+numberfirstLine;
+            lift.SetOffsetY(topCore+numberfirstLine);
+
             lift.recalculate();
         }else{
             numberfirstLine=firstLine;
-            lift.offsetY=topCore+(int)(numberfirstLine*freeCore/limitLastLine);
+            lift.SetOffsetY(topCore+(numberfirstLine*freeCore/limitLastLine));
             lift.recalculate();
         }
     }}
@@ -278,20 +265,27 @@ int ScrollBars::GetPosFirstLine(){
     return numberfirstLine;
 }
 
-void ScrollBars::Refresh(int height, int totLines, int firstLine, int linesOnPage){
-    //core of computation
-}
-
 void ScrollBars::Recalculate(int left, int top){
-    general.in_left=left;    general.in_top=top;    general.recalculate();
-    core.in_left=left;       core.in_top=top;       core.recalculate();
-    lift.in_left=left;       lift.in_top=top;       lift.recalculate();
-    commandUp.in_left=left;  commandUp.in_top=top;  commandUp.recalculate();
-    commandDown.in_left=left;commandDown.in_top=top;commandDown.recalculate();
+    general.SetOrigin(left,top);
+    core.SetOrigin(left,top);
+    lift.SetOrigin(left,top);
+    commandUp.SetOrigin(left,top);
+    commandDown.SetOrigin(left,top);
+    general.recalculate();
+    core.recalculate();
+    lift.recalculate();
+    commandUp.recalculate();
+    commandDown.recalculate();
 }
 
 void ScrollBars::SetVisibility(bool iV){
+    general.setVisibility(iV);
+    lift.setVisibility(iV);
+    core.setVisibility(iV);
+    commandDown.setVisibility(iV);
+    commandUp.setVisibility(iV);
     isVisible=iV;
+
 }
 
 void ScrollBars::LineUpNLines(int nL){
@@ -312,36 +306,3 @@ void ScrollBars::DownPage(){
     LineDownNLines(page);
 }
 
-
-
-void ScrollBars::DrawMySelf(){
-    if (isVisible){
-    //draw UpperButton
-    commandUp.drawButton();
-    //draw Core
-    glColor3fv(colorGray);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-    glBegin(GL_TRIANGLE_FAN);
-      {
-      glVertex2i(core.left, core.top);
-      glVertex2i(core.right, core.top);
-      glVertex2i(core.right, core.bottom);
-      glVertex2i(core.left, core.bottom);
-      }
-    glEnd();
-
-    //draw Lift
-    glColor3fv(colorWhite);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-    glBegin(GL_TRIANGLE_FAN);
-      {
-      glVertex2i(lift.left, lift.top);
-      glVertex2i(lift.right,lift.top);
-      glVertex2i(lift.right, lift.bottom);
-      glVertex2i(lift.left, lift.bottom);
-      }
-    glEnd();
-    //draw DownButton
-    commandDown.drawButton();
-   }
-}

@@ -3,68 +3,63 @@
  *
  *version 1.3
  *
- * test for international characters
- * correct bug for cursor jump when paste
- * use UTF key to toggle keyboard
  *
- * emit beta
+ * emit 1.3.0 log :
  *
-
- * improve abbreviations routines : add in keyboard's definition text file a value to be returned, make routines read this value
- *  - key shortcuts for text : RWY,ILS, CRS, HDG, BRG, VOR,NDB, ALT, qnh, hPa, WPT, FRQ, Comm, ... (2 chars or 1 spec Key)
- * enhance draw functions of all buttons in making them in a sole routine (or class)
- * implement physical keyboard callback
- * make a repeat feature for keyboards
- * bring back tuning to radios from edit window also...
- * correct bugs, the previous will be 1.3.0
+ * improved performance
+ * implemented copy to/Past from windows clipboard (text only)
+ * implemented shortcut to current airplane's directory
+ * after 11.30, fps read from new smoothed dataref
+ * implemented an editor for hotspots
+ *
+ * ver 1.3.0
+ *
+ * for hotspots : make a relog button/command
+ *
+ * improve geometry of window in case of non constrained view of a large file (to avoid having difficulties grabbing the window)
+ *
+ *  - key shortcuts for text : RWY,ILS, CRS, HDG, BRG, VOR,NDB, ALT, qnh, hPa, WPT, FRQ, Comm,
+ *    switch to,holding,flight level ... (2 chars or 1 spec Key)
+ *
  *
  * version 1.3.1 :
- * make cut/copy/paste with windows clipboard
- * Make Ini static
+ *
+ * make a .ini option to be able to toggle or not the physical keyboard (off by default),
+ *  .ini options : keyboard only when motors off/aircraft speed =0 or activation only by plugin menu
+ * change key colors if physical keyboard activated
  * define international keyboards, make a line in .ini to define which keyboard is to be used.
- *
- *  menus : new file when avaible for V2), )
- *
+ * correct bug for frequencies read when power is off
+ * bring back tuning to radios from edit window also...
+ * menus : new file when avaible for V2), )
  * look again into comm frequencies (sometimes 0.005 doesn't seem to be taken)
-
-  * add an ini option to select if toggle means close text window or hide window
+ * add an ini option to select if toggle means close text window or hide window
+ *
  * version 1.3.2
- * directory shortcuts (mostly my plane, then a more elaborate directory shortcut manager)
- * ini files in airplanes directory
+ *
+ * change logic for simultaneous keypresses
  *
  * version 1.4 :
- * create dialogs : simple with OK; simple with 2 choices (Yes No return false or true), simple with 3 choices (return int), complex with return a string
+
+ * create a "new file" command (for edit)
+ * ask for saving modifications on quit (and/or plugin stop)
  * make helper dialogs for control keys
- * headposition saver/take position to one of the config.txt positions
- * fuel manager
- * make datarefs (or static vars) for filename, directory name, positions in file
- * make const references for function calls and ranged for loops
- * modern C++ style implementation of windows
- * modern openGL
- * texture keyboard
- * multifiles
+
+ *   verify with sim/graphics/VR/teleport_on_ground	int	n not >0, verify VR is on
+ *
+ * UTF extended (with either a custom table, or use X Planes measure function)
+ * multifiles (not multiwindows) :
+ *  make a list of active files, viewable in VR and in the menu, max 15 files, navigate to a file
+ *   by click, by "next" "previous" "first" "last" button
+ *
+ * version 1.4.1
+ *
+ * make a numpad
+ * modern openGL or vulkan
+ * texture keyboard (could be done earlier)
+ * fuel manager ?
+ *
  * */
 
-#include "VR_Tools_global.h"
-#include "XPLMDisplay.h"
-#include "XPLMGraphics.h"
-#include "XPLMDataAccess.h"
-#include "XPLMPlugin.h"
-#include "XPLMProcessing.h"
-#include "XPLMUtilities.h"
-#include "XPLMMenus.h"
-#include "string.h"
-#include <string>
-#include <layout.h>
-#include <stringops.h>
-#include <textreader.h>
-#include <showdir.h>
-#include <layoutwithedit.h>
-#include <drefwindow.h>
-#include <vrcommandfilter.h>
-#include <filepointer.h>
-
-using std::string;
 
 #if IBM
     #include <Windows.h>
