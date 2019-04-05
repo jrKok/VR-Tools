@@ -185,7 +185,7 @@ int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,
     return stepper;
 }
 
-void Keyboard::MakeKeyboard(int oX, int oY){
+void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
     /*A keyboard has 5 Lines and an undefinded number of keys per line
      *
      * functionality
@@ -226,7 +226,12 @@ void Keyboard::MakeKeyboard(int oX, int oY){
     rL5.SetOffsets(offX,rL4.GetOffsetY()+keyHeight+2);
 
     //read the file containing definitions of keys, one text line per keyboard line
-    string fileName="Resources\\plugins\\VR_Tools\\keyboards\\USKB.cfg"; // in a next version, file name will come from ini, with a custom def possible
+    string fileName("");
+    if (numpad){
+        fileName="Resources\\plugins\\VR_Tools\\keyboards\\numpad2.cfg";}
+    else{
+        fileName="Resources\\plugins\\VR_Tools\\keyboards\\USKB.cfg";
+    }    // in a next version, file name will come from ini, with a custom def possible
     std::fstream textFile;
     textFile.open(fileName,std::ifstream::in);
 

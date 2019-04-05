@@ -73,7 +73,9 @@ SOURCES += \
     alert3buttons.cpp \
     linedialog.cpp \
     vrviews.cpp \
-    vrcreader.cpp
+    vrcreader.cpp \
+    advanced.cpp \
+    hotspots.cpp
 
 HEADERS += \
     stringops.h \
@@ -108,7 +110,9 @@ HEADERS += \
     alert3buttons.h \
     linedialog.h \
     vrviews.h \
-    vrcreader.h
+    vrcreader.h \
+    advanced.h \
+    hotspots.h
 
 target.path= \plugsXP
 unix {

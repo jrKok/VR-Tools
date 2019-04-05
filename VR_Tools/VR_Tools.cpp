@@ -1,5 +1,6 @@
 #include "VR_Tools.h"
 #include "opcenter.h"
+#include "hotspots.h"
 
 
 /* Variables */
@@ -18,7 +19,7 @@ PLUGIN_API int XPluginStart(
                         char *		outDesc)
 {
 
-    strcpy(outName, "VR Tools version 1.3.0 rc1");
+    strcpy(outName, "VR Tools version 1.3.2");
     strcpy(outSig, "a plug-in by jrKok");
     strcpy(outDesc, "A plug-in to display some datarefs (FPS, speeds, g-Forces), to filter commands, to edit a text file");
 
@@ -49,11 +50,15 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int msg, void * inPar
     }
 
     if (msg==XPLM_MSG_PLANE_LOADED){
-        VRCReader::GetVRConfigFileName();
-        if (VRCReader::HasVRConfig()){
-            VRCReader::AnalyzeFile();
-            WriteDebug("VRconfig : Number of Hotspots generated = "+std::to_string(VRCReader::GetHotspotCount()));
-        }
+        int idx=(int)(inParam);
 
+        if (idx==0){
+            VRCReader::GetVRConfigFileName();
+            if (VRCReader::HasVRConfig()){
+                VRCReader::AnalyzeFile();
+                WriteDebug("VRconfig : Number of Hotspots generated = "+std::to_string(VRCReader::GetHotspotCount()));
+                Hotspots::MakeMoveComplete();
+            }
+        }
     }
 }

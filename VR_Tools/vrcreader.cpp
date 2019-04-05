@@ -15,12 +15,14 @@ VRCReader::VRCReader()
 
 }
 
-  string VRCReader::ConvertFloatToString(float in_float) {
+  string VRCReader::ConvertFloatToString(float in_float,ulong prec) {
       string fString("");
       fString=std::to_string(in_float);
       ulong posDot=fString.find(".");
       if (posDot!=string::npos){
-          if (fString.length()-posDot>5) fString=fString.erase(posDot+5,string::npos);
+          if(prec==0) fString=fString.erase(posDot,string::npos);
+          else
+          {if (fString.length()-posDot>prec+1) fString=fString.erase(posDot+prec+1,string::npos);}
       }
       return(fString);
   }
@@ -161,9 +163,6 @@ string VRCReader::GetVRConfigFileName() {
      left=LeftWord(processed,right);
      if (left=="BEGIN_TELEPORT_HOTSPOT") {
          descriptor.isHotspotDef=true;
-         descriptor.hotspotNumber=numberOfGeneratedHotspots;
-         numberOfGeneratedHotspots++;
-         numberOfHotspotsInfile++;
      }
      else {
          analysis.push_back(descriptor);
@@ -192,7 +191,9 @@ string VRCReader::GetVRConfigFileName() {
       bool ended(false);      
       string left(""),right("");
       Hotspot hs;
-      int hsN=analysis[beginLineNumber].hotspotNumber;
+      int hsN=numberOfGeneratedHotspots;
+      numberOfGeneratedHotspots++;
+      numberOfHotspotsInfile++;
       hs.hotspotNumber=hsN;
 
       left=vrconfigFile[itr];
@@ -345,6 +346,8 @@ void   VRCReader::SwapHotspots(int old_number, int new_number) {
        Hotspot nhs = hotspots[nn];
        hotspots[nn]=ohs;
        hotspots[on]=nhs;
+       hotspots[nn].hotspotNumber=new_number;
+       hotspots[on].hotspotNumber=old_number;
     }
 
 }
@@ -364,12 +367,13 @@ void VRCReader::CreateHotspot(string in_name, float x, float y, float z, float r
     hs.AABBminX=x-0.3f;
     hs.AABBmaxX=x+0.3f;
     hs.AABBminY=y-0.65f;
-    hs.AABBmaxY=y-0.55f;
+    hs.AABBmaxY=y-0.45f;
     hs.AABBminZ=z-0.3f;
     hs.AABBmaxZ=z+0.3f;
     hs.type="SITTING";
     hs.hotspotNumber=numberOfGeneratedHotspots;
     hotspots.push_back(hs);
+    GotoHotspotNumber(numberOfGeneratedHotspots);
     numberOfGeneratedHotspots++;
 }
 
@@ -428,7 +432,46 @@ void VRCReader::SetHotspotName(int in_Line,string in_Name){
       //hotspots[idx].psi=rot;
       hotspots[idx].the=pitch;
       hotspots[idx].phi=tilt;
+      hotspots[idx].AABBminX=x-0.3f;
+      hotspots[idx].AABBmaxX=x+0.3f;
+      hotspots[idx].AABBminY=y-0.65f;
+      hotspots[idx].AABBmaxY=y-0.45f;
+      hotspots[idx].AABBminZ=z-0.3f;
+      hotspots[idx].AABBmaxZ=z+0.3f;
   }
+
+Hotspot VRCReader::GetCurrentHotspot(){
+    ulong aH=static_cast<ulong>(activeHotspotNumber);
+    if (aH<hotspots.size())
+  return hotspots[aH];
+    else {
+        Hotspot hs;
+        return hs;
+    }
+}
+
+void VRCReader::SetAdvancedOptions(Hotspot in_HS){
+    ulong aH=static_cast<ulong>(in_HS.hotspotNumber);
+    if (in_HS.name==hotspots[aH].name){
+        hotspots[aH].AABBmaxX=in_HS.AABBmaxX;
+        hotspots[aH].AABBmaxY=in_HS.AABBmaxY;
+        hotspots[aH].AABBmaxZ=in_HS.AABBmaxZ;
+        hotspots[aH].AABBminX=in_HS.AABBminX;
+        hotspots[aH].AABBminY=in_HS.AABBminY;
+        hotspots[aH].AABBminZ=in_HS.AABBminZ;
+        hotspots[aH].psi=in_HS.psi;
+        hotspots[aH].phi=in_HS.phi;
+        hotspots[aH].the=in_HS.the;
+        hotspots[aH].type=in_HS.type;
+    }
+    else {
+        stringOps::WriteDebug("hotspots name don't match, advanced options not set, report this to the developer");
+        stringOps::WriteDebug("hotspot received "+in_HS.name);
+        stringOps::WriteDebug("hotspot number is "+std::to_string(in_HS.hotspotNumber));
+        stringOps::WriteDebug("hotspot corresponding to number "+hotspots[aH].name);
+    }
+
+}
 
 vector<string> VRCReader::ExportHotspotNames(){
     vector<string> hsNames;

@@ -20,8 +20,6 @@ public:
     Keyboard(bool modal=false);
     ~Keyboard();
     void    WriteDebug(string message);
-
-    void    DefineKeyboard (int type);//0 : american english, then for others waiting for development
     string  ConvString(const string &in_String);
     void    MakeKeyDefs(const string &in_Line,std::vector<string> &out_keys);
     void    FindKeySpecs(const string &in_Def,
@@ -36,7 +34,7 @@ public:
                       int &keyWidth,
                       ulong &vk_tag);
     int     MakeLine(const int &offY, const string &keyDefs, int lineNumber, lineOfKeys &keyLine);
-    void    MakeKeyboard(int oX, int oY);
+    void    MakeKeyboard(int oX, int oY,bool numpad=false);
 
     void    SetOrigin (int x, int y);
     void    Recalculate(int l, int t);

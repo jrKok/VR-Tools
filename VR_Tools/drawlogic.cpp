@@ -43,7 +43,7 @@ DrawLogic::~DrawLogic(){
 }
 
 void DrawLogic::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
+    string in_String="VR Tools : " +message+"\r\n";
     XPLMDebugString((char*)in_String.c_str());
 }
 

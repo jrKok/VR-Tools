@@ -43,7 +43,9 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     mightSave(false),
     disableEdit(false),
     action(""),
-    forCursor()
+    forCursor(),
+    mouseDrag(false),
+    epochClick(0)
 
 {
 
@@ -75,7 +77,7 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
      * keyb  y 165
 */
     int buttonHeight(20);
-    int buttonwidth(80),cmdBWidth(60),textWidth(0),pos(20),nbButtons(0);
+    int buttonwidth(80),cmdBWidth(60),textWidth(0),pos(20);
     int posFirstLine(15),posSecondLine(27),posListBox(30),posCommandButtons(200),posThirdLine(230),posEditLine(240),posButtons(265),posKeyb(290);
 
     disableEdit=false;
@@ -101,19 +103,16 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     int kwidth = keyb->MyWidth()+10;
     width=width>kwidth?width:kwidth;
     cursor.Initiate(&forCursor,10,posEditLine+10,20,1);
-    if (yesStr!="") nbButtons++;
-    if (noStr!="") nbButtons++;
-    if (cancelStr!="") nbButtons++;
 
     float strwidth=XPLMMeasureString(xplmFont_Proportional,alertStr.c_str(),static_cast<int>(alertStr.size()));
     textWidth=static_cast<int>(strwidth)+textOffsetX+textOffsetX;
     if (textWidth>width) {
         width=textWidth;
-        pos=(width-((buttonwidth+20)*nbButtons))/2;
+        pos=(width-((buttonwidth+20)*4))/2;
     }
     else{
         textOffsetX=(width-textWidth)/2;
-        pos=(width-((buttonwidth+20)*nbButtons))/2;
+        pos=(width-((buttonwidth+20)*4))/2;
     }
 
     point p;
@@ -130,6 +129,7 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     yesButton=        new ModalButton();
     noButton=         new ModalButton();
     cancelButton=     new ModalButton();
+    advancedButton=   new ModalButton();
 
     relogButton=      new ModalButton();
     upButton=         new ModalButton();
@@ -145,20 +145,27 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     yesButton->setText(yesStr);
     yesButton->setVisibility(yesStr!=""?true:false);
     yesButton->SetToStateColor();
-    if (yesStr!="") pos+=buttonwidth+20;
+    pos+=buttonwidth+20;
 
     noButton->SetDimensions(buttonwidth,buttonHeight);
     noButton->SetOffsets(pos,posButtons);
     noButton->setText(noStr);
     noButton->setVisibility(noStr!=""?true:false);
     noButton->SetToStateColor();
-    if (noStr!="") pos+=buttonwidth+20;
+    pos+=buttonwidth+20;
 
     cancelButton->SetDimensions(buttonwidth,buttonHeight);
     cancelButton->SetOffsets(pos,posButtons);
     cancelButton->setText(cancelStr);
     cancelButton->SetToStateColor();
     cancelButton->setVisibility(cancelStr!=""?true:false);
+    pos+=buttonwidth+20;
+
+    advancedButton->SetDimensions(buttonwidth,buttonHeight);
+    advancedButton->SetOffsets(pos,posButtons);
+    advancedButton->setText("Advanced");
+    advancedButton->SetToStateColor();
+    advancedButton->setVisibility(true);
 
     relogButton->SetDimensions(40,40);
     relogButton->SetOffsets(360,25);
@@ -211,7 +218,9 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     textRect->SetOffsets(10,posEditLine);
     textRect->setColor(Clr_White);
 
+    editLine.SetDimensions(width-20,15);
     editLine.SetOffsets(12,posEditLine+10);
+    editLine.setText(in_String);
     ManageModalWindow::ResizeModalWindow(width,height);
     cursor.SetCursorAt(0,0);
     keyb->SetVisibility(true);
@@ -251,6 +260,7 @@ void VrViews::RecalculateDialog (){
            myself->yesButton->recalculate(left,top);
             myself->noButton->recalculate(left,top);
         myself->cancelButton->recalculate(left,top);
+      myself->advancedButton->recalculate(left,top);
          myself->relogButton->recalculate(left,top);
         myself->renameButton->recalculate(left,top);
         myself->createButton->recalculate(left,top);
@@ -279,19 +289,20 @@ void VrViews::RecalculateDialog (){
 }
 
 void VrViews::DrawMyself(XPLMWindowID in_window_id, void * unused){
+
     if (myself->keyb==nullptr) myself->WriteDebug("vrviews draw : got a call while keyb was deleted");
     int lft(left),tp(top),right,bottom;
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
     if (lft!=left||tp!=top) RecalculateDialog();
+
     DrawLogic::DrawModalElements();
-    DrawLogic::DrawModalStrings();
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetY());
     if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);
         myself->cursor.DrawRectangle(l,myself->editLine.GetTop(),r,myself->editLine.GetBottom());}
-    //drawCursor
-    //drawSelectionrect
+
+    DrawLogic::DrawModalStrings();
+    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetY());
 }
 
 int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
@@ -301,6 +312,7 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
         {
             XPLMBringWindowToFront(in_window_id);
         }else{
+            myself->mouseDrag=false;
             mouseLocated=false;
             myself->ProceedClick(x,y);
             if (!myself->needToContClick){
@@ -318,6 +330,12 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
                     mouseLocated=true;
                     myself->answer=3;
                     myself->clicked=myself->cancelButton;
+                }
+
+                if (myself->advancedButton->isHere(x,y)){
+                    mouseLocated=true;
+                    myself->answer=4;
+                    myself->clicked=myself->advancedButton;
                 }
 
                 if (myself->relogButton->isHere(x,y)){
@@ -355,21 +373,31 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
                     if (myself->keyb->IsKeyPressed()) myself->ProcessKeyPress(keyName,keyVal);
                 if (myself->textRect->isHere(x,y)){
                     myself->cursor.FindPos(0,x);
+                    myself->epochClick=XPLMGetElapsedTime();
                 }
                 if (myself->clicked!=nullptr) myself->clicked->Press();
             }
         }
         break;
     }
+
     case xplm_MouseDrag:{
         myself->ContinueKeyPress();
         myself->ProceedClickCont(x,y);
+        if (myself->epochClick>0){
+           float now=XPLMGetElapsedTime();
+           if (now-myself->epochClick>0.3f) myself->mouseDrag=true;
+           if (myself->mouseDrag){
+               myself->cursor.DragPos(0,x);
+            }
+        }
         break;
     }
+
     case xplm_MouseUp:{
-        if (mouseLocated) {
-            myself->EndAlert();
-            return 1;
+        if (myself->mouseDrag) {
+            myself->cursor.EndOfDrag();
+            myself->epochClick=0;
         }
         myself->keyb->ReleaseCurrentKey();
         if (myself->clicked!=nullptr){
@@ -381,6 +409,10 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
         myself->SetInkColor(Clr_BlackInk);
         myself->selectedHotsp=myself->SelectedLineNumber();
         myself->CheckButtonsVisibility();
+        if (mouseLocated) {
+            myself->EndAlert();
+            return 1;
+        }
         break;
     }
 
@@ -468,17 +500,19 @@ void VrViews::LaunchAction(string in_action){
 
 void VrViews::CheckButtonsVisibility(){
     bool utext=(userLine!=""),selc=myself->hasSelection;
-    myself->upButton->setVisibility(selc&&!actionLaunched&&!disableEdit);
-    myself->downButton->setVisibility(selc&&!actionLaunched&&!disableEdit);
-    myself->createButton->setVisibility(utext&&!actionLaunched&&!selc&&!disableEdit);
-    myself->deleteButton->setVisibility(selc&&!actionLaunched&&!disableEdit);
+    myself->upButton->        setVisibility(selc&&!actionLaunched&&!disableEdit);
+    myself->downButton->      setVisibility(selc&&!actionLaunched&&!disableEdit);
+    myself->createButton->    setVisibility(utext&&!actionLaunched&&!selc&&!disableEdit);
+    myself->deleteButton->    setVisibility(selc&&!actionLaunched&&!disableEdit);
     myself->repositionButton->setVisibility(selc&&!actionLaunched&&!disableEdit);
-    myself->renameButton->setVisibility(selc&&utext&&!actionLaunched&&!disableEdit);
-    myself->yesButton->setVisibility(mightSave&&!disableEdit);
-    myself->noButton->setVisibility(!actionLaunched&&selc&&!disableEdit);
-    myself->cancelButton->setVisibility(true);
+    myself->renameButton->    setVisibility(selc&&utext&&!actionLaunched&&!disableEdit);
+    myself->yesButton->       setVisibility(mightSave&&!disableEdit);
+    myself->noButton->        setVisibility(!actionLaunched&&selc&&!disableEdit);
+    myself->cancelButton->    setVisibility(true);
+    myself->advancedButton->  setVisibility(selc&&!disableEdit);
 
 }
+
 void VrViews::Relog(float inX, float inY, float inZ){
  targetX=inX;
  targetY=inY;
@@ -502,9 +536,9 @@ void VrViews::ProcessKeyPress(std::string keyName,std::string in_String){
     }
     if (specialKey){
         if (keyName=="BckSpc") {Backspace();}
-        if (keyName=="TAB") {InsertLetter("   ");}
-        if (keyName=="ShTAB") {InsertLetter("   ");}
-        if (keyName=="Enter") {mouseLocated=true;answer=1;}
+        if (keyName=="TAB") {InsertLetter(" ");}
+        if (keyName=="ShTAB") {InsertLetter(" ");}
+        if (keyName=="Enter") {}
         if (keyName=="RIGHT") {myself->MoveCursorRight();}
         if (keyName=="LEFT") {myself->MoveCursorLeft();}
     }
@@ -539,9 +573,14 @@ void VrViews::Backspace(){
         int cP=cursor.GetPos();
         if (cP>0){
             EraseFromLine(cP-1,cP);
+            cursor.SetCursorAt(0,cP-1);
         }
     }
-    if (cursor.HasSelection()) EraseSelection();
+    if (cursor.HasSelection()){
+        int cP=cursor.GetSelectionStartCharPos();
+        EraseSelection();
+        cursor.SetCursorAt(0,cP-1);
+    }
 }
 
 void VrViews::Supress(){

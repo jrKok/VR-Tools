@@ -28,6 +28,7 @@
    bool  IniSettings::displayFPS(false);
    int   IniSettings::speedOfMove(1);
    bool  IniSettings::reloadModel(false);
+   bool  IniSettings::makeHSCommands(false);
    std::vector <string>  IniSettings::leftH;
    std::vector <string>  IniSettings::rightH;
    std::vector <string>  IniSettings::comment;
@@ -213,7 +214,7 @@ void IniSettings::ReadIniFile(){
                 if(rightSide=="yes"){displayFPS=true; LogInstruction(leftSide,rightSide,commt);}
                 if(rightSide=="no") {displayFPS=false; LogInstruction(leftSide,rightSide,commt);}
             }
-         }
+
             if (leftSide=="SPEED_OF_MOVE"){
                 if (rightSide=="slow")    {speedOfMove=0;LogInstruction(leftSide,rightSide,commt);}
                 if (rightSide=="adjusted"){speedOfMove=1;LogInstruction(leftSide,rightSide,commt);}
@@ -223,6 +224,11 @@ void IniSettings::ReadIniFile(){
                 if (rightSide=="yes"){reloadModel=true;LogInstruction(leftSide,rightSide,commt);}
                 if (rightSide=="no") {reloadModel=false;LogInstruction(leftSide,rightSide,commt);}
             }
+            if (leftSide=="MAKE_COMMANDS_FOR_HOTSPOTS"){
+                if (rightSide=="yes"){makeHSCommands=true;LogInstruction(leftSide,rightSide,commt);}
+                if (rightSide=="no") {makeHSCommands=false;LogInstruction(leftSide,rightSide,commt);}
+            }
+        }
         }
 
         iniFile.close();
@@ -263,6 +269,7 @@ void IniSettings::WriteIniFile(){
         leftH.push_back("                DISPLAY_FPS");rightH.push_back("no");    comment.push_back("");//;yes/no if yes FPS will be permanently displayed");
         leftH.push_back("              SPEED_OF_MOVE");rightH.push_back("adjusted"); comment.push_back("");//;selects how to move to a hotspot : adjusted,fast, slow;
         leftH.push_back("RELOAD_MODEL_ON_NEW_HOTSPOT");rightH.push_back("no");    comment.push_back("//;yes/no if yes, the current AC model will be reloaded (with art assets) when a hotspot is created or relocated");
+        leftH.push_back(" MAKE_COMMANDS_FOR_HOTSPOTS");rightH.push_back("no");    comment.push_back("//; yes/no, if yes the plugin will make a specific command enabling to move to every one plane's hotspot");
     }
         //write .ini from vectors
     iniFile.open(completeName,std::fstream::out|std::fstream::trunc);
@@ -297,6 +304,7 @@ bool IniSettings::GetOptReloadProc()      {return periodicReload;}
 int  IniSettings::GetReloadPeriod()       {return reloadPeriod;}
 int  IniSettings::GetSpeedMove()          {return speedOfMove;}
 bool IniSettings::GetOptReloadModel()     {return reloadModel;}
+bool IniSettings::GetOptHSCommands()      {return makeHSCommands;}
 
 void IniSettings::SetOptStart(bool opt)     {openWdwAtStart=opt;    WriteOption("OPEN_TEXT_ON_START",opt);}
 void IniSettings::SetOptReload(bool opt)    {autoReload=opt;        WriteOption("AUT0_RELOAD",opt);}
@@ -326,6 +334,7 @@ void IniSettings::SetSpeedMove(int opt)     {
         case 2 :{WriteOption("SPEED_OF_MOVE",string("fast"));break;}
     }
 }
+void IniSettings::SetOptHSCommands(bool opt) {makeHSCommands=opt;   WriteOption("MAKE_COMMANDS_FOR_HOTSPOTS",opt);}
 void IniSettings::SetOptReloadModel(bool opt){reloadModel=opt;      WriteOption("RELOAD_MODEL_ON_NEW_HOTSPOT",opt);}
 
 void IniSettings::WriteOption(string optionName, int opt){

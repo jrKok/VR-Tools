@@ -38,7 +38,7 @@ class VRCReader
 {
 public:
                   VRCReader();
-    static string ConvertFloatToString(float in_float);
+    static string ConvertFloatToString(float in_float, ulong prec=4);
     static float  ConvertStringToFloat(string in_string);
     static string GetVRConfigFileName();
     static bool   HasVRConfig();
@@ -65,7 +65,9 @@ public:
     static void   SetHotspotName(int in_Line,string in_Name);
     static bool   IsCurrentHotspotSitting();
     static void   SetHotspotCoords(int in_idx, float x, float y, float z, float rot, float pitch, float tilt);//buils binding box also, parameters to be set from ini file
+    static void   SetAdvancedOptions(Hotspot in_HS);
     static void   WriteHotspotToFile(std::fstream &cFile,ulong indx);
+    static Hotspot GetCurrentHotspot();
     static vector<string> ExportHotspotNames();
     static void   DeleteHotspot(int in_idx);
 

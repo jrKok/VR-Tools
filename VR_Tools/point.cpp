@@ -11,3 +11,8 @@ void point::recalculate(int in_left, int in_top){
     myX=l+offsetX;
     myY=t-offsetY;
 }
+
+void point::SetOffsets(int oX, int oY){
+    offsetX=oX;
+    offsetY=oY;
+}

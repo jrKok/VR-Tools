@@ -76,6 +76,7 @@ static    bool GetOptReloadProc();
 static    int  GetReloadPeriod();
 static    int  GetSpeedMove();
 static    bool GetOptReloadModel();
+static    bool GetOptHSCommands();
 
 static    void SetOptStart(bool opt);
 static    void SetOptReload(bool opt);
@@ -100,6 +101,7 @@ static    string CodeTrimOption(int in_option);
 static    void SetOptReloadProc(bool opt);
 static    void SetReloadPeriod(int opt);
 static    void SetOptReloadModel(bool opt);
+static    void SetOptHSCommands(bool opt);
 static    void WriteOption(string optionName, int opt);
 static    void WriteOption(string optionName, bool opt);
 static    void WriteOption(string optionName, string opt);
@@ -130,6 +132,7 @@ static    bool navsSetEnable;
 static    bool displayFPS;
 static     int speedOfMove;
 static    bool reloadModel;
+static    bool makeHSCommands;
 static    std::vector <string> leftH,rightH,comment;
 
 };

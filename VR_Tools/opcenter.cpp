@@ -11,6 +11,7 @@ Layout*         OpCenter::ptrLayout(nullptr);
 ShowDir        *OpCenter::dispDir(nullptr);
 DRefWindow      OpCenter::drefW;
 VRCommandFilter OpCenter::commandFilter;
+Hotspots        OpCenter::htsp;
 
 int        OpCenter::menuIdx(0);
 int        OpCenter::idxOfModeMenuItem(0);
@@ -61,12 +62,12 @@ int OpCenter::SetupCenter(){
     g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
     pointerToMe  = this;
 
-    CommandText   = XPLMCreateCommand("VR/Custom/Toggle_Text_File","Toggle text");
-    CmdFirstLine  = XPLMCreateCommand("VR/Custom/Text/Select_First_Line","Select First Line");
-    CmdNextLine   = XPLMCreateCommand("VR/Custom/Text/Next_Line","Next Line");
-    CmdPrevLine   = XPLMCreateCommand("VR/Custom/Text/Previous_Line","Previous Line");
-    CmdDelLine    = XPLMCreateCommand("VR/Custom/Text/Delete_Line","Hide Line");
-    CmdReload     = XPLMCreateCommand("VR/Custom/Text/Reload","Reload");
+    CommandText   = XPLMCreateCommand("VR_Tools/Custom/Toggle_Text_File","Toggle text");
+    CmdFirstLine  = XPLMCreateCommand("VR_Tools/Custom/Text/Select_First_Line","Select First Line");
+    CmdNextLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Next_Line","Next Line");
+    CmdPrevLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Previous_Line","Previous Line");
+    CmdDelLine    = XPLMCreateCommand("VR_Tools/Custom/Text/Delete_Line","Hide Line");
+    CmdReload     = XPLMCreateCommand("VR_Tools/Custom/Text/Reload","Reload");
 
     //Register numbered text commands
     void * nb=new(int*);
@@ -85,6 +86,7 @@ int OpCenter::SetupCenter(){
     XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
 
     drefW.Setup();
+    htsp.Setup();
     MakeMenus();
     commandFilter.init();
 
@@ -160,8 +162,8 @@ void  OpCenter::MakeMenus(){
        void * nb4=new(int*);(*(int*)nb4)=4;
        XPLMAppendMenuItem(menuTextOpt,"Show FPS in Text Window",nb4,0);
     //Menu for Hotspots
-       XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",DRefWindow::CmdJumpNext);
-       XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",DRefWindow::CmdJumpBack);
+       XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",Hotspots::CmdJumpNext);
+       XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",Hotspots::CmdJumpBack);
        XPLMAppendMenuSeparator(menuHotspots);
        void * nb6=new(int*);(*(int*)nb6)=6;
        itemReload=XPLMAppendMenuItem(menuHotspots,"Reload Model if Hotspot modified",nb6,0);

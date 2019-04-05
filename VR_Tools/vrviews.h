@@ -42,7 +42,7 @@ public:
     static void RecalculateDialog ();
     static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
     static int MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused);
-    void ProcessKeyPress(std::string keyName,std::string in_String);
+    void ProcessKeyPress(string keyName,string in_String);
     void LaunchAction(string in_action);
     void CheckButtonsVisibility();
     void ContinueKeyPress();
@@ -66,7 +66,7 @@ public:
 private:
 
     std::function<void()> callBack;
-    ModalButton *yesButton,*noButton,*cancelButton;
+    ModalButton *yesButton,*noButton,*cancelButton,*advancedButton;
     ModalButton *relogButton,*upButton,*downButton,*renameButton,*createButton,*deleteButton,*repositionButton;
     ModalButton *clicked;
     rectangles *textRect;
@@ -84,6 +84,8 @@ private:
     static XPLMWindowID myXPWindow;
     static VrViews *myself;
     vector<string> forCursor;
+    bool mouseDrag;
+    float epochClick;
 };
 
 #endif // VRVIEWS_H

@@ -19,6 +19,7 @@
 #include "filepointer.h"
 #include "drawlogic.h"
 #include "temporarywindow.h"
+#include "hotspots.h"
 
 using std::string;
 
@@ -67,6 +68,7 @@ static LayoutWithEdit *wELayout;
 static Layout* ptrLayout;
 static ShowDir *dispDir;
 static DRefWindow drefW;
+static Hotspots htsp;
 static VRCommandFilter commandFilter;
 
 static int menuIdx,idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload;

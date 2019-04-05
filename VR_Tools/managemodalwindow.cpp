@@ -115,6 +115,7 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
         XPLMSetWindowGeometry(myModalWindow,l,t,l+width,t-height);       
     }
     myRect->SetDimensions(width,height);
+    myRect->recalculate();
 }
 
 void ManageModalWindow::Recalculate(int x, int y){
