@@ -12,17 +12,6 @@
  * version 1.3.3 :
  *
  *
- * Make a weather report to show like FPS :
- *  - wind speed : sim/weather/wind_speed_kt[0]
- *  - wind direction :  sim/weather/wind_direction_degt[0]
- *  - turbulence : sim/weather/turbulence[0]
- *  - qnh : sim/weather/barometer_sealevel_inhg
- *  - visibility : sim/weather/visibility_reported_m
- *  - temperature on the ground : sim/weather/temperature_sealevel_c
- *
- * full report if sim/atc/atis_enabled
- * short report if sim/atc/com1_tuned_facility	int	n >0
- *
  * make a .ini option to be able to toggle or not the physical keyboard (off by default),
  *  .ini options : keyboard only when motors off/aircraft speed =0 or activation only by plugin menu
  * define international keyboards, make a line in .ini to define which keyboard is to be used.

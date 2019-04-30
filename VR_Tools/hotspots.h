@@ -36,6 +36,7 @@ void  Setup();
     static void  Handle_End_Of_Create_Command();
     static void  Handle_End_Of_Edit();
     static void  Handle_Advanced();
+    static void  HandleErrorHotspotList();
 
     static void  ReloadCurrentAircraft();
 

@@ -479,7 +479,9 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
 
 void LayoutWithEdit::QuitCommand(){
     myself=this;
-    quitWoSave.MakeAlert("Don't Save","Save","Cancel","All recent modifications will be lost ?",HandleAlertResult);
+    if (hasToSave){
+        quitWoSave.MakeAlert("Don't Save","Save","Cancel","All recent modifications will be lost ?",HandleAlertResult);
+    }
 }
 
 void LayoutWithEdit::HandleAlertResult(){

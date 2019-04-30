@@ -38,8 +38,7 @@ class VRCReader
 {
 public:
                   VRCReader();
-    static string ConvertFloatToString(float in_float, ulong prec=4);
-    static float  ConvertStringToFloat(string in_string);
+                  ~VRCReader();
     static string GetVRConfigFileName();
     static bool   HasVRConfig();
     static bool   HasHotspots();
@@ -58,6 +57,7 @@ public:
     static void   ReloadAircraft();
     static void   NextHotspot();
     static void   PreviousHotspot();
+    static int    GetActiveHotspotNumber();
     static void   GotoHotspotNumber(int in_nb);
     static int    GetHotspotCount();
     static void   GetCurrentHotspotCoords(float &x,float &y,float &z,float &rot, float&pitch, float &tilt);
@@ -77,7 +77,7 @@ private:
     static string digits;
     static Lines vrconfigFile;
     static vector<LineDescriptor> analysis;
-    static vector<Hotspot> hotspots;
+    static vector<Hotspot> * hotspots;
 
 };
 

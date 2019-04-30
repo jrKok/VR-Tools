@@ -219,3 +219,33 @@ bool stringOps::IsANumber(string to_test){
     else return (false);
 }
 
+string stringOps::ConvertFloatToString(float in_float,ulong prec) {
+    if (prec==0) in_float=round(in_float);
+    string fString("");
+    fString=std::to_string(in_float);
+    ulong posDot=fString.find(".");
+    if (posDot!=string::npos){
+        if(prec==0) fString=fString.erase(posDot,string::npos);
+        else
+        {if (fString.length()-posDot>prec+1) fString=fString.erase(posDot+prec+1,string::npos);}
+    }
+    return(fString);
+}
+
+float  stringOps::ConvertStringToFloat(string in_string) {
+    if (in_string!=""){
+        if (stringOps::IsANumber(in_string)){
+            float out_float(0);
+            out_float=stof(in_string);
+            return out_float;
+        }
+        else{
+            stringOps::WriteDebug("vrconfig a string couldn't be converted to a float (wasn't a number)");
+            return 0;
+        }
+    }
+    else {
+    stringOps::WriteDebug("vrconfig a string couldn't be converted to a float (was empty)");
+    return 0;
+    }
+}

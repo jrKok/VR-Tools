@@ -112,7 +112,9 @@ void OpCenter::LaunchOperations(){
     if (!g_textWindow ){
         wLayout->Begin();
         wELayout->StartEdit();
-        if ((*ptrLayout).OpenWindowAtStart()) MakeTextWindow();
+        if ((*ptrLayout).OpenWindowAtStart()) {
+            MakeTextWindow();
+        }
     }
 }
 
@@ -330,6 +332,7 @@ int   OpCenter::handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, 
                 XPLMDestroyWindow(g_FileWindow);
                 g_FileWindow=nullptr;
                 dispDir->CloseDirWindow();
+                if (IniSettings::GetOptLastFile()) pointerToMe->wLayout->KeepFile();
             }
             if (cmd==1 ){//Cancel has been pressed
                 pointerToMe->MakeTextWindow();
@@ -359,7 +362,8 @@ int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef     inCommand,
                 case xplm_CommandBegin : //opens or closes the textreader, creates or destroys the window
                     {
                     if (g_textWindow==nullptr){//Toggle window in and out of existence
-                        pointerToMe->MakeTextWindow();  }
+                        pointerToMe->MakeTextWindow();
+                        }
                     else
                         {if (XPLMGetWindowIsVisible(g_textWindow)==0)
                             {XPLMSetWindowIsVisible(g_textWindow,1);

@@ -429,10 +429,10 @@ void VrViews::LaunchAction(string in_action){
         actionLaunched=true;
         callBack();
         string toPass="View logged at X="
-                      +VRCReader::ConvertFloatToString(targetX)
-                +" Y="+VRCReader::ConvertFloatToString(targetY)
-                +" Z="+VRCReader::ConvertFloatToString(targetZ)
-                +" PSI="+VRCReader::ConvertFloatToString(0);
+                      +stringOps::ConvertFloatToString(targetX)
+                +" Y="+stringOps::ConvertFloatToString(targetY)
+                +" Z="+stringOps::ConvertFloatToString(targetZ)
+                +" PSI="+stringOps::ConvertFloatToString(0);
         DrawLogic::ChangeModalString(myStringNumber,toPass);
         actionLaunched=false;
 

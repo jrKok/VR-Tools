@@ -178,6 +178,7 @@ void button_VR::resetMe(){
 }
 
 void button_VR::setVisibility(bool vis){
+    isVisible=vis;
     if (!isModalB){
         DrawLogic::SetVisibilityRect(drawNumber,vis);
         DrawLogic::SetVisibilityString(stringNumber,vis);

@@ -148,14 +148,14 @@ hsAdditionalN=DrawLogic::AddModalString("hotspot orientation : ",Clr_PushedBlue,
            GetBBoxDescription();
 
            sittingL.setText(currentHsp.type);
-           offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset));
-           rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift));
-           aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift));
-           widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth));
-           heightL.setText(VRCReader::ConvertFloatToString(bBoxheight));
-           rotL.setText(VRCReader::ConvertFloatToString(currentHsp.psi,0));
-           pitchL.setText(VRCReader::ConvertFloatToString(currentHsp.the,0));
-           tiltL.setText(VRCReader::ConvertFloatToString(currentHsp.phi,0));
+           offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset));
+           rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift));
+           aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift));
+           widthL.setText(stringOps::ConvertFloatToString(bBoxWidth));
+           heightL.setText(stringOps::ConvertFloatToString(bBoxheight));
+           rotL.setText(stringOps::ConvertFloatToString(currentHsp.psi,0));
+           pitchL.setText(stringOps::ConvertFloatToString(currentHsp.the,0));
+           tiltL.setText(stringOps::ConvertFloatToString(currentHsp.phi,0));
 
         int oX=col1+6+textBoxWidth,bW=64;
         MakeModalButton("Cancel","Cancel",0,100,20,170,rectButtons.GetOffsetY()+5);
@@ -435,30 +435,30 @@ void advanced::ButtonAction(string actionName, ulong mbutton){
    if (actionName=="Ok") {endAlert=true; Commit();}
    if (actionName=="Sitting"){sittingL.setText("SITTING");currentHsp.type="SITTING";}
    if (actionName=="Standing"){sittingL.setText(("STANDING"));currentHsp.type="STANDING";}
-   if (actionName=="Raise50"){bBoxOffset+=gapincr;offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset,nod));}
-   if (actionName=="Lower50"){bBoxOffset-=gapincr;offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset,nod));}
-   if (actionName=="Right20"){bBoxLatShift+=latshiftincr;rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift,nod));}
-   if (actionName=="Left20"){bBoxLatShift-=latshiftincr;rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift,nod));}
-   if (actionName=="For20"){bBoxAxShift-=axshiftincr;aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift,nod));}
-   if (actionName=="Aft20"){bBoxAxShift+=axshiftincr;aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift,nod));}
-   if (actionName=="Width20"){bBoxWidth+=widthincr;widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth,nod));}
-   if (actionName=="Width-20"){bBoxWidth-=widthincr;if (bBoxWidth<0.1f) bBoxWidth=0.1f;widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth,nod));}
-   if (actionName=="Taller20"){bBoxheight+=heightincr;heightL.setText(VRCReader::ConvertFloatToString(bBoxheight,nod));}
-   if (actionName=="Shorter20"){bBoxheight-=heightincr;if (bBoxheight<0.1f) bBoxheight=0.1f;heightL.setText(VRCReader::ConvertFloatToString(bBoxheight,nod));}
-   if (actionName=="rot0")   {  rot=0;rotL.setText(VRCReader::ConvertFloatToString(rot,0));}
-   if (actionName=="rot90")  { rot=90;rotL.setText(VRCReader::ConvertFloatToString(rot,0));}
-   if (actionName=="rot180") {rot=180;rotL.setText(VRCReader::ConvertFloatToString(rot,0));}
-   if (actionName=="rot270") {rot=270;rotL.setText(VRCReader::ConvertFloatToString(rot,0));}
+   if (actionName=="Raise50"){bBoxOffset+=gapincr;offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,nod));}
+   if (actionName=="Lower50"){bBoxOffset-=gapincr;offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,nod));}
+   if (actionName=="Right20"){bBoxLatShift+=latshiftincr;rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,nod));}
+   if (actionName=="Left20"){bBoxLatShift-=latshiftincr;rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,nod));}
+   if (actionName=="For20"){bBoxAxShift-=axshiftincr;aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,nod));}
+   if (actionName=="Aft20"){bBoxAxShift+=axshiftincr;aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,nod));}
+   if (actionName=="Width20"){bBoxWidth+=widthincr;widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,nod));}
+   if (actionName=="Width-20"){bBoxWidth-=widthincr;if (bBoxWidth<0.1f) bBoxWidth=0.1f;widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,nod));}
+   if (actionName=="Taller20"){bBoxheight+=heightincr;heightL.setText(stringOps::ConvertFloatToString(bBoxheight,nod));}
+   if (actionName=="Shorter20"){bBoxheight-=heightincr;if (bBoxheight<0.1f) bBoxheight=0.1f;heightL.setText(stringOps::ConvertFloatToString(bBoxheight,nod));}
+   if (actionName=="rot0")   {  rot=0;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="rot90")  { rot=90;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="rot180") {rot=180;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="rot270") {rot=270;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
    if (actionName=="pitch+5"){
        pitch+=pitchincr;
        if (pitch>90) pitch=90;
-       pitchL.setText(VRCReader::ConvertFloatToString(pitch,0));}
+       pitchL.setText(stringOps::ConvertFloatToString(pitch,0));}
    if (actionName=="pitch-5"){
        pitch-=pitchincr;
        if (pitch<-90) pitch=-90;
-       pitchL.setText(VRCReader::ConvertFloatToString(pitch,0));}
-   if (actionName=="tilt+2°"){tilt+=tiltincr;if (tilt>180) tilt=180;tiltL.setText(VRCReader::ConvertFloatToString(tilt,0));}
-   if (actionName=="tilt-2°"){tilt-=tiltincr;if (tilt<-180) tilt=-180;tiltL.setText(VRCReader::ConvertFloatToString(tilt,0));}
+       pitchL.setText(stringOps::ConvertFloatToString(pitch,0));}
+   if (actionName=="tilt+2°"){tilt+=tiltincr;if (tilt>180) tilt=180;tiltL.setText(stringOps::ConvertFloatToString(tilt,0));}
+   if (actionName=="tilt-2°"){tilt-=tiltincr;if (tilt<-180) tilt=-180;tiltL.setText(stringOps::ConvertFloatToString(tilt,0));}
    if (actionName=="Ok"){Commit();}
    if (actionName=="m") {ChangeCurrentUnit(0,mbutton);}
    if (actionName=="cm") {ChangeCurrentUnit(1,mbutton);}
@@ -487,16 +487,16 @@ void advanced::SelectLine(TextLine *in_line, int x, float *in_param){
 
 void advanced::CommitActiveLine(){
     if (activeLine!=nullptr){
-        float val=VRCReader::ConvertStringToFloat(activeLine->GetText());
+        float val=stringOps::ConvertStringToFloat(activeLine->GetText());
         if (hasInterval){
             if (val<minval) val=minval;
             if (val>maxval) val=maxval;
             *activeParameter=val;
-            activeLine->setText(VRCReader::ConvertFloatToString(val,numberOfDigits));
+            activeLine->setText(stringOps::ConvertFloatToString(val,numberOfDigits));
         }
         else{
             *activeParameter=val;
-            activeLine->setText(VRCReader::ConvertFloatToString(val,numberOfDigits));
+            activeLine->setText(stringOps::ConvertFloatToString(val,numberOfDigits));
         }
         cursor.EraseCursor();
         activeLine=nullptr;
@@ -531,10 +531,10 @@ void advanced::ProcessKeyPress(bool special,string keyName,string in_String){
         if (keyName=="BckSpc") {Backspace();}
         if (keyName=="Enter") {
             cursor.EraseCursor();
-        float toeval=VRCReader::ConvertStringToFloat(activeLine->GetText());
+        float toeval=stringOps::ConvertStringToFloat(activeLine->GetText());
         if (hasInterval){
-            if (toeval<minval) activeLine->setText(VRCReader::ConvertFloatToString(minval));
-            if (toeval>maxval) activeLine->setText(VRCReader::ConvertFloatToString(maxval));
+            if (toeval<minval) activeLine->setText(stringOps::ConvertFloatToString(minval));
+            if (toeval>maxval) activeLine->setText(stringOps::ConvertFloatToString(maxval));
         }
         }
         if (keyName=="RIGHT") {MoveCursorRight();}
@@ -669,11 +669,11 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         actionButtons[11].button.setText("+10cm");
         actionButtons[12].button.setText("-10cm");
         if (numberOfDigits>0) numberOfDigits=4;
-        offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset));
-        rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift));
-        aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift));
-        widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth));
-        heightL.setText(VRCReader::ConvertFloatToString(bBoxheight));
+        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset));
+        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift));
+        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift));
+        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth));
+        heightL.setText(stringOps::ConvertFloatToString(bBoxheight));
         break;
     }
     case 1:  {//centimeters
@@ -694,11 +694,11 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         actionButtons[11].button.setText("+10cm");
         actionButtons[12].button.setText("-10cm");
         if (numberOfDigits>0) numberOfDigits=2;
-        offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset,2));
-        rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift,2));
-        aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift,2));
-        widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth,2));
-        heightL.setText(VRCReader::ConvertFloatToString(bBoxheight,2));
+        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,2));
+        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,2));
+        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,2));
+        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,2));
+        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,2));
         break;
     }
     case 2:  {//millimeters
@@ -719,11 +719,11 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         actionButtons[11].button.setText("+10cm");
         actionButtons[12].button.setText("-10cm");
         if (numberOfDigits>0) numberOfDigits=1;
-        offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset,1));
-        rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift,1));
-        aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift,1));
-        widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth,1));
-        heightL.setText(VRCReader::ConvertFloatToString(bBoxheight,1));
+        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,1));
+        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,1));
+        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,1));
+        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,1));
+        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,1));
         break;
     }
     case 3:   {//feet
@@ -744,11 +744,11 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         actionButtons[11].button.setText("+4i");
         actionButtons[12].button.setText("-4i");
         if (numberOfDigits>0) numberOfDigits=4;
-        offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset,4));
-        rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift,4));
-        aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift,4));
-        widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth,4));
-        heightL.setText(VRCReader::ConvertFloatToString(bBoxheight,4));
+        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,4));
+        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,4));
+        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,4));
+        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,4));
+        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,4));
         break;
     }
     case 4:  {//inches
@@ -769,11 +769,11 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         actionButtons[11].button.setText("+4i");
         actionButtons[12].button.setText("-4i");
         if (numberOfDigits>0) numberOfDigits=2;
-        offsetL.setText(VRCReader::ConvertFloatToString(bBoxOffset,2));
-        rightShiftL.setText(VRCReader::ConvertFloatToString(bBoxLatShift,2));
-        aftShiftL.setText(VRCReader::ConvertFloatToString(bBoxAxShift,2));
-        widthL.setText(VRCReader::ConvertFloatToString(bBoxWidth,2));
-        heightL.setText(VRCReader::ConvertFloatToString(bBoxheight,2));
+        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,2));
+        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,2));
+        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,2));
+        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,2));
+        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,2));
         break;
     }
     }

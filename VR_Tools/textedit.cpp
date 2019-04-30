@@ -382,6 +382,7 @@ void TextEdit::ReadLineAgain(int in_line){
             l--;
             in_line--;}
     }
+
     int procSoFar(0),newline(0),newPos(0);
     if (cursor.HasCursor()) {cursorPos=cursor.GetPos();newline=cursor.GetLine();}
     string toWorkOn=GetLineToBreak(in_line,last_line,cursorPos);
@@ -403,6 +404,7 @@ void TextEdit::ReadLineAgain(int in_line){
             if ((cursorPos>=procSoFar) && (cursorPos<(procSoFar+leftStringsize))) {
                 newline=static_cast<int>(l);
                 newPos=cursorPos-procSoFar;
+                List_Box_With_ScrB::WriteDebug(" newPos in iteration = "+std::to_string(newPos));
 
             }
             procSoFar+=leftStringsize;
@@ -418,11 +420,11 @@ void TextEdit::ReadLineAgain(int in_line){
             l++;
             sz=MeasureString(inputL);
         }
-        int inputLSize=cursor.GetLengthOfUTFString(inputL);
+        //int inputLSize=cursor.GetLengthOfUTFString(inputL);
+        int inputLSize=static_cast<int>(inputL.size());
         if ((cursorPos>=procSoFar) && (cursorPos<=(procSoFar+inputLSize))) {
             newline=static_cast<int>(l);
             newPos=cursorPos-procSoFar;
-
         }
 
         procSoFar+=inputLSize;

@@ -167,14 +167,19 @@ void  Hotspots::LogPilotHead(float &phx,float &phy,float &phz){
 int Hotspots::MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){
 
     if (inPhase==xplm_CommandBegin){
+        if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
         if (inCommand==VRReset){
             doneX=true;doneY=true;doneZ=true;
             XPLMCommandEnd(CmdX);
             XPLMCommandEnd(CmdY);
-            XPLMCommandEnd(CmdZ);
-            if (phaseMove!=0) phaseMove=4;
+            XPLMCommandEnd(CmdZ);          
+            if (phaseMove!=0){
+                phaseMove=4;
+                VRCommandFilter::commandBlock=filterblock;
+            }
             return 1;
         }else{
+
         if (VRCReader::HasHotspots()&&XPLMGetDatai(g_vr_dref)){
             int whatToDo=*(static_cast<int*>(inRefcon));
             if (whatToDo==0){
@@ -193,9 +198,7 @@ int Hotspots::MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase in
               VRCReader::GotoHotspotNumber(whatToDo);
               PrepareToMove();
               }
-
              }
-
            }
        }
    }
@@ -370,15 +373,16 @@ float Hotspots::MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refco
 int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon){
     //if (inPhase==xplm_CommandBegin&&XPLMGetDatai(g_vr_dref)){
     if (!DrawLogic::IsModalWindowActive()&&phaseMove==0){
+            if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
             myself->LogPilotHead(targetX,targetY,targetZ);
             if (myself->vrconfigEditor!=nullptr)
                 delete myself->vrconfigEditor;
             myself->vrconfigEditor=new VrViews();
             string toPass="View logged at X="
-                          +VRCReader::ConvertFloatToString(targetX)
-                    +" Y="+VRCReader::ConvertFloatToString(targetY)
-                    +" Z="+VRCReader::ConvertFloatToString(targetZ)
-                    +" PSI="+VRCReader::ConvertFloatToString(targetPsi);
+                          +stringOps::ConvertFloatToString(targetX)
+                    +" Y="+stringOps::ConvertFloatToString(targetY)
+                    +" Z="+stringOps::ConvertFloatToString(targetZ)
+                    +" PSI="+stringOps::ConvertFloatToString(targetPsi);
             myself->vrconfigEditor->MakeDialog("Commit","Goto","Cancel",toPass,"",Handle_End_Of_Edit,450);
         }
     //}
@@ -482,6 +486,7 @@ void Hotspots::Handle_Advanced(){
 
 int Hotspots::Create_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void* inRefcon){
     if (inPhase==xplm_CommandBegin&&!DrawLogic::IsModalWindowActive()&&phaseMove==0&&XPLMGetDatai(g_vr_dref)){
+        if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
         if (dlg==nullptr){dlg=new LineDialog();}
             myself->LogPilotHead(targetX,targetY,targetZ);
             targetPsi=XPLMGetDataf(pilotPsi);
@@ -512,10 +517,10 @@ void Hotspots::Handle_End_Of_Create_Command(){
             delete myself->vrconfigEditor;
         myself->vrconfigEditor=new VrViews();
         string toPass="View logged at X="
-                      +VRCReader::ConvertFloatToString(targetX)
-                +" Y="+VRCReader::ConvertFloatToString(targetY)
-                +" Z="+VRCReader::ConvertFloatToString(targetZ)
-                +" PSI="+VRCReader::ConvertFloatToString(targetPsi);
+                      +stringOps::ConvertFloatToString(targetX)
+                +" Y="+stringOps::ConvertFloatToString(targetY)
+                +" Z="+stringOps::ConvertFloatToString(targetZ)
+                +" PSI="+stringOps::ConvertFloatToString(targetPsi);
         myself->vrconfigEditor->MakeDialog("Commit","Goto","Cancel",toPass,nnm,Handle_End_Of_Edit,450);
     }
 
@@ -524,4 +529,12 @@ void Hotspots::Handle_End_Of_Create_Command(){
 void Hotspots::ReloadCurrentAircraft(){
         DrawLogic::WriteDebug("going to reload aircraft");
         XPLMCommandOnce(ReloadAC);
+}
+
+void  Hotspots::HandleErrorHotspotList(){
+    int activehs=VRCReader::GetActiveHotspotNumber();
+    if (!VRCReader::HasHotspots()&&VRCReader::GetHotspotCount()>0)
+        DrawLogic::WriteDebug("Spotted accidental erase of Hotspot Vector");
+    VRCReader::AnalyzeFile();
+    VRCReader::GotoHotspotNumber(activehs);
 }
