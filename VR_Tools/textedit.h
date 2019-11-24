@@ -5,9 +5,8 @@
 #include <stringops.h>
 #include <cursor.h>
 #include <localclipboard.h>
+#include "VR_Tools_global.h"
 using std::string;
-
-typedef long long unsigned ulong;
 
 class TextEdit : public TextReader
 

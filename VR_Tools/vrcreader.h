@@ -3,18 +3,13 @@
 
 #include <string>
 #include "VR_Tools_global.h"
-#include <filesystem>
 #include "XPLMPlanes.h"
 #include "stringops.h"
-#include <filesystem>
 
 
 using std::string;
 using std::vector;
-using namespace std::experimental::filesystem;
 typedef   std::vector<string> Lines;
-typedef long long unsigned ulong;
-
 struct LineDescriptor
 {
     int linenumber;

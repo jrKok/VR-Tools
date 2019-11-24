@@ -7,17 +7,10 @@
 #include <XPLMDisplay.h>
 #include <XPLMUtilities.h>
 #include <XPLMProcessing.h>
-#if IBM
-    #include <windows.h>
-#endif
-#if LIN
-    #include <GL/gl.h>
-#elif __GNUC__
-    #include <OpenGL/gl.h>
-#else
-    #include <GL/gl.h>
-#endif
 
+#if IBM
+  #include <windows.h>
+#endif
 
 class ScrollBars
 {

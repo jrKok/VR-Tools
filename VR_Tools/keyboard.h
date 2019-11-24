@@ -8,9 +8,9 @@
 #include <iostream>
 #include <vector>
 #include "XPLMUtilities.h"
+#include "VR_Tools_global.h"
 
 using std::string;
-typedef long long unsigned ulong;
 typedef std::vector<std::shared_ptr<Key>>  lineOfKeys;
 class LayoutWithEdit;
 

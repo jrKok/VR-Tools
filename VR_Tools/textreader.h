@@ -4,14 +4,10 @@
 #include <chrono>
 #include <stringops.h>
 #include <fstream>
-#include <filesystem>
 #include <vector>
 #include <inisettings.h>
 #include "VR_Tools_global.h"
 #include "list_box_with_scrb.h"
-namespace fs=std::experimental::filesystem;
-
-
 
 class TextReader:public List_Box_With_ScrB
 {
@@ -50,8 +46,8 @@ protected:
     std::fstream textFile;
     bool fileExists,needsUTF8;
     bool hasNav,hasCom,hasADF;
-    fs::file_time_type fT;
-    fs::path filePath;
+    file_time_type fT;
+    path filePath;
     std::uintmax_t keepsize;
 
 

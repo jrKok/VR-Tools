@@ -30,8 +30,8 @@ string VRCReader::GetVRConfigFileName() {
           planeDir=p.parent_path().string();
           planeModelName=plName;
           planeModelName=planeModelName.erase(planeModelName.size()-4,4);//erase extension ".acf"
-          vrConfigFileName=planeDir+"\\"+planeModelName+"_vrconfig.txt";
-          vrConfigBackup=planeDir+"\\"+planeModelName+"_vrconfig.bck";
+          vrConfigFileName=planeDir+"/"+planeModelName+"_vrconfig.txt";
+          vrConfigBackup=planeDir+"/"+planeModelName+"_vrconfig.bck";
       }
 
       stringOps::WriteDebug("VR config file is "+vrConfigFileName);

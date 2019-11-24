@@ -23,6 +23,12 @@
 #include "vrviews.h"
 #include "advanced.h"
 
+#if LIN
+    #include <GL/gl.h>
+#else
+    #include <GL/gl.h>
+#endif
+
 using std::string;
 using std::vector;
 
@@ -51,7 +57,7 @@ public:
 
 
     static XPLMWindowID	idDrefWindow;
-    static bool isInVRMode,isShowModeOnPress;
+    static bool isInVRMode,isShowModeOnPress,alwaysWeather;
     static float cyan[3],gray[3];
     static int counter,whatToShow;
     static float currentDRefValue, currentmeasure,period;

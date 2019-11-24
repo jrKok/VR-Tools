@@ -19,7 +19,7 @@ PLUGIN_API int XPluginStart(
                         char *		outDesc)
 {
 
-    strcpy(outName, "VR Tools version 1.3.2");
+    strcpy(outName, "VR Tools version 1.3.3");
     strcpy(outSig, "a plug-in by jrKok");
     strcpy(outDesc, "A plug-in to display some datarefs (FPS, speeds, g-Forces), to filter commands, to edit a text file");
 

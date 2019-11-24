@@ -214,7 +214,23 @@ bool stringOps::IsANumber(string to_test){
         if (to_test.size()==1) return false;
         firstDigit=to_test.substr(1,1);
         if (digits.find(firstDigit)!=std::string::npos) return (true);
-        else return false;
+        else
+        {
+            if ((firstDigit==".")){
+                if (to_test.size()==2) return false;
+                else
+                    if (digits.find(to_test.substr(2,1))!=std::string::npos)
+                        return true;
+                    else {
+                        return false;
+                    }
+            }
+            else {
+                return false;
+            }
+        }
+
+
     }
     else return (false);
 }

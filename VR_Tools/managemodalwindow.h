@@ -26,6 +26,7 @@ public:
     static void DestroyModalWindow();
     static void Recalculate(int x, int y);
     static void PrintmyRectvisstatus();
+    static XPLMWindowID GetCurrentWindowId();
 
 private:
     static rectangles *myRect;

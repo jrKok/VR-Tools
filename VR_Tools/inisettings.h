@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <locale>
-#include <filesystem>
 #include <fstream>
 #include "stringops.h"
 #include "XPLMPlanes.h"
@@ -73,7 +72,7 @@ static    bool GetOptDelete();
 static    bool GetOptFreqs();
 static    bool GetOptFPS();
 static    bool GetOptReloadProc();
-static    int  GetReloadPeriod();
+static    float GetReloadPeriod();
 static    int  GetSpeedMove();
 static    bool GetOptReloadModel();
 static    bool GetOptHSCommands();
@@ -114,7 +113,7 @@ static    std::fstream iniFile;
 static    bool openWdwAtStart;
 static    bool autoReload;
 static    bool periodicReload;
-static    int  reloadPeriod;
+static    float  reloadPeriod;
 static    bool autoUTF8;
 static    bool changeClrOnTxtChg;
 static    bool moveLastPgOnStart;

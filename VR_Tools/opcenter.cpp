@@ -90,7 +90,7 @@ int OpCenter::SetupCenter(){
     MakeMenus();
     commandFilter.init();
 
-    WriteDebug("VR Tools version 1.3.0 final - Show FPS, speeds, g-forces, filter commands, edit text files");
+    WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
     IsLaunched=true;
     return g_vr_dref != nullptr;
 }

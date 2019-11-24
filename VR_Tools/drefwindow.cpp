@@ -6,6 +6,7 @@ XPLMWindowID DRefWindow::idDrefWindow;
 
 bool  DRefWindow::isInVRMode=true;
 bool  DRefWindow::isShowModeOnPress=true;
+bool  DRefWindow::alwaysWeather=true;
 float DRefWindow::cyan[]={0,1.0,1.0};
 float DRefWindow::gray[]={0.375f,0.375f,0.368f};
 vector<float> DRefWindow::movingAverage(10,0);
@@ -98,7 +99,7 @@ void DRefWindow::Setup(){
     g_accY           = XPLMFindDataRef("sim/flightmodel/position/local_ay");
     g_accZ           = XPLMFindDataRef("sim/flightmodel/position/local_az");
     mousejoy         = XPLMFindDataRef("sim/operation/override/override_joystick");
-    w_radio1Tuned    = XPLMFindDataRef("sim/atc/com1_tuned_facility");
+    w_radio1Tuned    = XPLMFindDataRef("sim/atc/com1_active");
     w_radio2Tuned    = XPLMFindDataRef("sim/atc/com2_tuned_facility");
     w_ATISon         = XPLMFindDataRef("sim/atc/atis_enabled");
     w_cloudType0     = XPLMFindDataRef("sim/weather/cloud_type[0]");
@@ -384,15 +385,17 @@ void DRefWindow::GetWeatherReport(){
     s_vis="";
     s_clouds="no comms available";
     s_winds="";
-
-    if ((XPLMGetDatai(w_radio1Tuned)||XPLMGetDatai(w_radio2Tuned))){
-        if (XPLMGetDatai(w_ATISon)){
-            GetATISWeatherReport();
-        }
-        else{
-            GetSmallWeatherReport();
-            s_thunderStorms="radio 1 to " +std::to_string(XPLMGetDatai(w_radio1Tuned))
-                    +" radio 2 to "+std::to_string(XPLMGetDatai(w_radio2Tuned));
+    if (alwaysWeather) GetATISWeatherReport();
+    else{
+        if ((XPLMGetDatai(w_radio1Tuned)||XPLMGetDatai(w_radio2Tuned))){
+            if (XPLMGetDatai(w_ATISon)){
+                GetATISWeatherReport();
+            }
+            else{
+                GetSmallWeatherReport();
+                s_thunderStorms="radio 1 to " +std::to_string(XPLMGetDatai(w_radio1Tuned))
+                        +" radio 2 to "+std::to_string(XPLMGetDatai(w_radio2Tuned));
+            }
         }
     }
 }

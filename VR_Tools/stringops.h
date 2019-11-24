@@ -7,10 +7,13 @@
 #include <XPLMDisplay.h>
 #include <XPLMGraphics.h>
 #include <XPLMUtilities.h>
+#include "VR_Tools_global.h"
+#if LIN
+   #include <cmath>
+#endif
 
 using std::string;
 
-typedef long long unsigned ulong;
 class stringOps
 {
 public:

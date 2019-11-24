@@ -209,7 +209,12 @@ void DrawLogic::ChangeString(const int in_Element, const string &to_String){
     if (here<(*strings).size()){
         ulong sz=to_String.size();sz++;
         char * fromString=new char [sz];
+         #if IBM
         strncpy_s(fromString,sz,to_String.c_str(),sz);
+         #endif
+         #if LIN
+        strcpy(fromString,to_String.c_str());
+         #endif
         (*strings)[here].s_String=fromString;
     }
 }
@@ -288,6 +293,7 @@ void DrawLogic::SetVisibilityRect(const int in_Element,const bool &is_Visible){
 bool  DrawLogic::GetVisibilityTriangle(const int in_Element){
     ulong here=IndexOfTriangleElement(in_Element);
     if (here<(*triangles).size()) return (*triangles)[here].tr_visible;
+    else return false;
 }
 bool  DrawLogic::GetVisibilityString(const int in_Element){
     ulong here=IndexOfString(in_Element);
@@ -536,7 +542,13 @@ char* DrawLogic::ToC(const string &in_String){
         *fromString='\0';
         return fromString;
     }
-    strncpy_s(fromString,sz,in_String.c_str(),sz);
+#if IBM
+strncpy_s(fromString,sz,in_String.c_str(),sz);
+#endif
+#if LIN
+strcpy(fromString,in_String.c_str());
+#endif
+
     return fromString;
 }
 
@@ -642,7 +654,13 @@ void DrawLogic::ChangeModalString(const int in_Element, const string &to_String)
     if (here<modalStrings->size()){
         ulong sz=to_String.size();sz++;
         char * fromString=new char [sz];
+#if IBM
         strncpy_s(fromString,sz,to_String.c_str(),sz);
+#endif
+#if LIN
+        strcpy(fromString,to_String.c_str());
+#endif
+
         (*modalStrings)[here].s_String=fromString;
     }
 }

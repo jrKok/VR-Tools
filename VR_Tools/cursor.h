@@ -20,8 +20,6 @@
 
 #if LIN
     #include <GL/gl.h>
-#elif __GNUC__
-    #include <OpenGL/gl.h>
 #else
     #include <GL/gl.h>
 #endif
@@ -32,7 +30,6 @@ using std::string;
 using intVector=std::vector<int>;
 using strVector=std::vector<std::string>;
 
-typedef long long unsigned ulong;
 class cursor
 
 {

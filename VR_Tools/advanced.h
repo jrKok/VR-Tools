@@ -1,10 +1,10 @@
 #ifndef ADVANCED_H
 #define ADVANCED_H
 
+#include "VR_Tools_global.h"
 #include "list_box_with_scrb.h"
 #include <functional>
 #include <vector>
-#include <filesystem>
 #include <memory>
 #include <string>
 #include "XPLMDisplay.h"
@@ -24,6 +24,11 @@
 #include "textline.h"
 #include "keyboard.h"
 #include "vrcreader.h"
+
+#if LIN
+   #include <cmath>
+   using std::max;
+#endif
 
 using std::string;
 using std::vector;

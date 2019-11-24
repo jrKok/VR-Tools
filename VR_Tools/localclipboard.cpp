@@ -1,7 +1,12 @@
 #include "localclipboard.h"
-#include "WinUser.h"
+
 #include "layout.h"
 #include "drawlogic.h"
+
+#if IBM
+#include "WinUser.h"
+#endif
+
 
 string LocalClipBoard::clip ("");
 
@@ -14,6 +19,7 @@ void LocalClipBoard::PushText(string text){
     clip=text;
     if (text=="") return;
     //push onto windows clipboard if available
+#if IBM
     if (OpenClipboard(nullptr)){
         EmptyClipboard();
         char* toClip=DrawLogic::ToC(text);
@@ -26,11 +32,13 @@ void LocalClipBoard::PushText(string text){
         }
         CloseClipboard();
     }
+#endif
 }
 
 string LocalClipBoard::PullText(){
     if (clip==""){
         //try windows clipboard
+        #if IBM
         if (OpenClipboard(nullptr)){
             HGLOBAL hText;
             hText=GetClipboardData(CF_TEXT);
@@ -47,7 +55,9 @@ string LocalClipBoard::PullText(){
             else clip="";
             CloseClipboard();
         }
+           #endif
     }
+
     return clip;
 }
 

@@ -1,14 +1,24 @@
 #include "vrviews.h"
 #include "managemodalwindow.h"
 #include "drawlogic.h"
+#include "vrcommandfilter.h"
 
-VrViews *VrViews::myself;
-bool VrViews::mouseLocated(false);
-int VrViews::top(0);
-int VrViews::left(0);
-XPLMWindowID VrViews::myXPWindow(nullptr);
+VrViews       *VrViews::myself;
+bool           VrViews::mouseLocated(false);
+int            VrViews::top(0);
+int            VrViews::left(0);
+int            VrViews::bottom(0);
+int            VrViews::right(0);
+XPLMWindowID   VrViews::myXPWindow(nullptr);
+XPLMCommandRef VrViews::CmdRight(nullptr);
+XPLMCommandRef VrViews::CmdLeft(nullptr);
+XPLMCommandRef VrViews::CmdUp(nullptr);
+XPLMCommandRef VrViews::CmdDown(nullptr);
+XPLMCommandRef VrViews::CmdForward(nullptr);
+XPLMCommandRef VrViews::CmdBackward(nullptr);
 
 VrViews::VrViews():List_Box_With_ScrB (true),
+    CommandLaunched(nullptr),
     callBack(),
     yesButton(nullptr),
     noButton(nullptr),
@@ -42,9 +52,11 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     actionLaunched(false),
     mightSave(false),
     disableEdit(false),
-    action(""),
+    filterblock(true),
+    action(0),
     forCursor(),
     mouseDrag(false),
+    mouseUp(true),
     epochClick(0)
 
 {
@@ -63,6 +75,13 @@ VrViews::~VrViews(){
     if (repositionButton!=nullptr) delete repositionButton;
     if (        textRect!=nullptr) delete textRect;
     if (            keyb!=nullptr) delete keyb;
+    if (     vdownButton!=nullptr) delete vdownButton;
+    if (       vupButton!=nullptr) delete vupButton;
+    if (    vrightButton!=nullptr) delete vrightButton;
+    if (     vleftButton!=nullptr) delete vleftButton;
+    if (      vaftButton!=nullptr) delete vaftButton;
+    if (     vforwButton!=nullptr) delete vforwButton;
+
 }
 
 void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string &cancelStr, const string alertStr, const std::string &in_String, std::function<void()>cBck, int in_width){
@@ -80,6 +99,16 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     int buttonwidth(80),cmdBWidth(60),textWidth(0),pos(20);
     int posFirstLine(15),posSecondLine(27),posListBox(30),posCommandButtons(200),posThirdLine(230),posEditLine(240),posButtons(265),posKeyb(290);
 
+    CmdRight      = XPLMFindCommand("sim/general/right_slow");
+    CmdLeft       = XPLMFindCommand("sim/general/left_slow");
+    CmdUp         = XPLMFindCommand("sim/general/up_slow");
+    CmdDown       = XPLMFindCommand("sim/general/down_slow");
+    CmdForward    = XPLMFindCommand("sim/general/forward_slow");
+    CmdBackward   = XPLMFindCommand("sim/general/backward_slow");
+
+
+
+
     disableEdit=false;
     callBack=cBck;
     Setup(160,240,100,posListBox);
@@ -91,7 +120,7 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     top=0;
     selectedHotsp=0;
     textOffsetX=10;textOffsetY=posFirstLine;
-    action="";
+    action=0;
 
     myXPWindow=ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LighterGray,width,height);
 
@@ -118,7 +147,7 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     point p;
     p.myX=textOffsetX;
     p.myY=textOffsetY;
-    myStringNumber=DrawLogic::AddModalString(alertStr,Clr_Green,p);
+    myStringNumber=DrawLogic::AddModalString(alertStr,Clr_Black,p);
     p.myX=100;
     p.myY=posSecondLine;
     myStringN2=DrawLogic::AddModalString("If needed, Select a hotspot :",Clr_BlackInk,p);
@@ -132,6 +161,13 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     advancedButton=   new ModalButton();
 
     relogButton=      new ModalButton();
+    vupButton  =      new ModalButton();
+    vdownButton=      new ModalButton();
+    vforwButton=      new ModalButton();
+    vaftButton =      new ModalButton();
+    vleftButton=      new ModalButton();
+    vrightButton=     new ModalButton();
+    vaftButton =      new ModalButton();
     upButton=         new ModalButton();
     downButton=       new ModalButton();
 
@@ -168,10 +204,46 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     advancedButton->setVisibility(true);
 
     relogButton->SetDimensions(40,40);
-    relogButton->SetOffsets(360,25);
+    relogButton->SetOffsets(365,25);
     relogButton->setText("Relog");
     relogButton->setColor(Clr_Green);
     relogButton->setVisibility(true);
+
+    vforwButton->SetDimensions(20,20);
+    vforwButton->SetOffsets(375,70);
+    vforwButton->setText("\xcb\x84");
+    vforwButton->SetToStateColor();
+    vforwButton->setVisibility(true);
+
+    vleftButton->SetDimensions(20,20);
+    vleftButton->SetOffsets(359,91);
+    vleftButton->setText("\xcb\x82");
+    vleftButton->SetToStateColor();
+    vleftButton->setVisibility(true);
+
+    vrightButton->SetDimensions(20,20);
+    vrightButton->SetOffsets(391,91);
+    vrightButton->setText("\xcb\x83");
+    vrightButton->SetToStateColor();
+    vrightButton->setVisibility(true);
+
+    vaftButton->SetDimensions(20,20);
+    vaftButton->SetOffsets(375,112);
+    vaftButton->setText("\xcb\x85");
+    vaftButton->SetToStateColor();
+    vaftButton->setVisibility(true);
+
+    vupButton->SetDimensions(20,20);
+    vupButton->SetOffsets(330,91);
+    vupButton->setText("\xe2\x86\xa5");
+    vupButton->SetToStateColor();
+    vupButton->setVisibility(true);
+
+    vdownButton->SetDimensions(20,20);
+    vdownButton->SetOffsets(419,91);
+    vdownButton->setText("\xe2\x86\xa7");
+    vdownButton->SetToStateColor();
+    vdownButton->setVisibility(true);
 
     pos=20;
     upButton->SetDimensions(20,buttonHeight);
@@ -251,7 +323,7 @@ int  VrViews::GetSelectedHotspot(){
     return selectedHotsp;
 }
 
-string VrViews::GetActionLaunched(){
+int VrViews::GetActionLaunched(){
     return action;
 }
 
@@ -269,6 +341,12 @@ void VrViews::RecalculateDialog (){
             myself->upButton->recalculate(left,top);
           myself->downButton->recalculate(left,top);
                 myself->keyb->Recalculate(left,top);
+           myself->vupButton->recalculate(left,top);
+         myself->vdownButton->recalculate(left,top);
+          myself->vaftButton->recalculate(left,top);
+         myself->vforwButton->recalculate(left,top);
+         myself->vleftButton->recalculate(left,top);
+        myself->vrightButton->recalculate(left,top);
             myself->textRect->recalculate(left,top);
              myself->editLine.recalculate(left,top);
            ManageModalWindow::Recalculate(left,top);
@@ -283,7 +361,8 @@ void VrViews::RecalculateDialog (){
     p.myY=p.myY-203;
     p.myX=left+myself->textOffsetX;
     DrawLogic::RelocateModalString(myself->myStringN3,p);
-
+    right=left+myself->width;
+    bottom=top-myself->height;
 
     myself->cursor.Recalculate(myself->editLine.GetX(),myself->editLine.GetY());
 }
@@ -308,6 +387,8 @@ void VrViews::DrawMyself(XPLMWindowID in_window_id, void * unused){
 int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
     switch (is_down){
     case xplm_MouseDown:{
+
+        myself->mouseUp=false;
         if(!XPLMIsWindowInFront(in_window_id))
         {
             XPLMBringWindowToFront(in_window_id);
@@ -320,16 +401,19 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
                     mouseLocated=true;
                     myself->answer=1;
                     myself->clicked=myself->yesButton;
+
                 }
                 if (myself->noButton->isHere(x,y)){
                     mouseLocated=true;
                     myself->answer=2;
                     myself->clicked=myself->noButton;
+
                 }
                 if (myself->cancelButton->isHere(x,y)){
                     mouseLocated=true;
                     myself->answer=3;
                     myself->clicked=myself->cancelButton;
+
                 }
 
                 if (myself->advancedButton->isHere(x,y)){
@@ -339,32 +423,56 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
                 }
 
                 if (myself->relogButton->isHere(x,y)){
-                    myself->LaunchAction("Relog");
+                    myself->LaunchAction(action_Relog);
                     myself->clicked=myself->relogButton;
                 }
 
                 if (myself->upButton->isHere(x,y)){
-                    myself->LaunchAction("Up");
+                    myself->LaunchAction(action_Up);
                     myself->clicked=myself->upButton;
                 }
                 if (myself->downButton->isHere(x,y)){
-                    myself->LaunchAction("Down");
+                    myself->LaunchAction(action_Down);
                     myself->clicked=myself->downButton;
                 }
                 if (myself->renameButton->isHere(x,y)){
-                    myself->LaunchAction("Rename");
+                    myself->LaunchAction(action_Rename);
                     myself->clicked=myself->renameButton;
                 }
                 if (myself->createButton->isHere(x,y)){
-                    myself->LaunchAction("Create");
+                    myself->LaunchAction(action_Create);
                     myself->clicked=myself->createButton;
                 }
                 if (myself->repositionButton->isHere(x,y)){
-                    myself->LaunchAction("Reposition");
+                    myself->LaunchAction(action_Reposition);
                     myself->clicked=myself->repositionButton;
                 }
                 if (myself->deleteButton->isHere(x,y)){
-                    myself->LaunchAction("Delete");
+                    myself->LaunchAction(action_Delete);
+                    myself->clicked=myself->deleteButton;
+                }
+                if (myself->vaftButton->isHere(x,y)){
+                    myself->LaunchAction(action_MoveAft);
+                    myself->clicked=myself->deleteButton;
+                }
+                if (myself->vforwButton->isHere(x,y)){
+                    myself->LaunchAction(action_MoveFor);
+                    myself->clicked=myself->deleteButton;
+                }
+                if (myself->vupButton->isHere(x,y)){
+                    myself->LaunchAction(action_MoveUp);
+                    myself->clicked=myself->deleteButton;
+                }
+                if (myself->vdownButton->isHere(x,y)){
+                    myself->LaunchAction(action_MoveDown);
+                    myself->clicked=myself->deleteButton;
+                }
+                if (myself->vrightButton->isHere(x,y)){
+                    myself->LaunchAction(action_MoveRight);
+                    myself->clicked=myself->deleteButton;
+                }
+                if (myself->vleftButton->isHere(x,y)){
+                    myself->LaunchAction(action_MoveLeft);
                     myself->clicked=myself->deleteButton;
                 }
 
@@ -382,6 +490,7 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
     }
 
     case xplm_MouseDrag:{
+
         myself->ContinueKeyPress();
         myself->ProceedClickCont(x,y);
         if (myself->epochClick>0){
@@ -391,41 +500,69 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, 
                myself->cursor.DragPos(0,x);
             }
         }
+        if (x>=(myself->right-4)||x<=myself->left+4||y>=(myself->top-4)||y<=myself->bottom+4)
+        {
+            myself->MouseToUp();
+            DrawLogic::WriteDebug("x = "+std::to_string(x)+" y = "+std::to_string(y));
+            DrawLogic::WriteDebug("width = "+std::to_string(myself->width)+" height = "+std::to_string(myself->height));
+        }
         break;
     }
 
     case xplm_MouseUp:{
-        if (myself->mouseDrag) {
-            myself->cursor.EndOfDrag();
-            myself->epochClick=0;
-        }
-        myself->keyb->ReleaseCurrentKey();
-        if (myself->clicked!=nullptr){
-            myself->clicked->Release();
-            if (myself->clicked==myself->relogButton) myself->relogButton->setColor(Clr_Green);
-            myself->clicked=nullptr;
-        }
-        myself->ProceedEndClick();
-        myself->SetInkColor(Clr_BlackInk);
-        myself->selectedHotsp=myself->SelectedLineNumber();
-        myself->CheckButtonsVisibility();
-        if (mouseLocated) {
-            myself->EndAlert();
+            myself->MouseToUp();
             return 1;
         }
         break;
-    }
+
 
     }
 
     return 1;
 }
 
-void VrViews::LaunchAction(string in_action){
+void VrViews::MouseToUp(){
+    myself->mouseUp=true;
+    if (myself->mouseDrag) {
+        myself->cursor.EndOfDrag();
+        myself->epochClick=0;
+    }
+    myself->keyb->ReleaseCurrentKey();
+    if (myself->clicked!=nullptr){
+        myself->clicked->Release();
+        if (myself->clicked==myself->relogButton) myself->relogButton->setColor(Clr_Green);
+        myself->clicked=nullptr;
+        if (myself->action>=8 && myself->action<=13 && myself->CommandLaunched!=nullptr){
+            XPLMCommandEnd(myself->CommandLaunched);
+            myself->action=action_Relog;
+            myself->actionLaunched=true;
+            myself->callBack();
+            myself->CommandLaunched=nullptr;
+            string toPass="View logged at X="
+                          +stringOps::ConvertFloatToString(myself->targetX)
+                    +" Y="+stringOps::ConvertFloatToString(myself->targetY)
+                    +" Z="+stringOps::ConvertFloatToString(myself->targetZ)
+                    +" PSI="+stringOps::ConvertFloatToString(0);
+            DrawLogic::ChangeModalString(myself->myStringNumber,toPass);
+            myself->actionLaunched=false;
+            VRCommandFilter::commandBlock=myself->filterblock;
+            myself->action=0;
+        }
+    }
+    myself->ProceedEndClick();
+    myself->SetInkColor(Clr_BlackInk);
+    myself->selectedHotsp=myself->SelectedLineNumber();
+    myself->CheckButtonsVisibility();
+    if (mouseLocated) {
+        myself->EndAlert();}
+}
+
+void VrViews::LaunchAction(int in_action){
     answer=0;
     action=in_action;
     selectedHotsp=SelectedLineNumber();
-    if (in_action=="Relog"){
+    switch (action){
+    case action_Relog:{
         actionLaunched=true;
         callBack();
         string toPass="View logged at X="
@@ -436,8 +573,8 @@ void VrViews::LaunchAction(string in_action){
         DrawLogic::ChangeModalString(myStringNumber,toPass);
         actionLaunched=false;
 
-    }
-    if (in_action=="Up"){
+    }break;
+    case action_Up:{
         //internal action but calls back for immediate action
         if (hasSelection){
             if (selectedHotsp>1) {
@@ -448,8 +585,9 @@ void VrViews::LaunchAction(string in_action){
                 mightSave=true;
             }
         }
+        break;
     }
-    if (in_action=="Down"){
+    case action_Down:{
         //internal action but calls back for immediate action
         if (hasSelection){
             if ((selectedHotsp>0)&&(selectedHotsp<(totalNbL-1))) {
@@ -459,15 +597,15 @@ void VrViews::LaunchAction(string in_action){
                 actionLaunched=false;mightSave=true;
             }
         }
-    }
-    if (in_action=="Create"){
+    }break;
+    case action_Create:{
         answer=0;
         if (userLine!=""){
             actionLaunched=true;mightSave=true;
             callBack();
         }
-    }
-    if (in_action=="Delete"){
+    }break;
+    case action_Delete:{
         if (hasSelection){
             if (selectedHotsp>0){//you cannot delete pilote position
                 actionLaunched=true;
@@ -478,25 +616,60 @@ void VrViews::LaunchAction(string in_action){
                 actionLaunched=false;
             }
         }
-    }
-    if (in_action=="Reposition"){
+    }break;
+    case action_Reposition:{
         if (hasSelection){
             selectedHotsp=SelectedLineNumber();
             actionLaunched=true;
             callBack();
             mightSave=true;
         }
-    }
-    if (in_action=="Rename"){
+    }break;
+    case action_Rename:{
         if (hasSelection&&userLine!=""){
             selectedHotsp=SelectedLineNumber();
             actionLaunched=true;
             callBack();
             mightSave=true;
             ShowAll();
-        }
+        }break;
+    case action_MoveAft:{
+            CommandLaunched=CmdBackward;
+            LaunchMoveCommand();
+        }break;
+    case action_MoveFor:{
+            CommandLaunched=CmdForward;
+            LaunchMoveCommand();
+            }break;
+    case action_MoveRight:{
+            CommandLaunched=CmdRight;
+            LaunchMoveCommand();
+            }break;
+    case action_MoveLeft:{
+            CommandLaunched=CmdLeft;
+            LaunchMoveCommand();
+            }break;
+    case action_MoveUp:{
+            CommandLaunched=CmdUp;
+            LaunchMoveCommand();
+            }break;
+    case action_MoveDown:{
+            CommandLaunched=CmdDown;
+            LaunchMoveCommand();
+            }break;
+    }
     }
 }
+
+void VrViews::LaunchMoveCommand(){
+
+
+    filterblock=VRCommandFilter::commandBlock;
+    VRCommandFilter::commandBlock=false;
+    XPLMCommandBegin(CommandLaunched);
+
+}
+
 
 void VrViews::CheckButtonsVisibility(){
     bool utext=(userLine!=""),selc=myself->hasSelection;

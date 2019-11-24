@@ -35,7 +35,7 @@ bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
     if (textFile.is_open()){
         fileExists=true;
         filePath=fileName;
-        fT=fs::last_write_time(filePath);
+        fT=last_write_time(filePath);
         keepsize=std::experimental::filesystem::file_size(filePath);
     }else{
         List_Box_With_ScrB::WriteDebug("Couldn't open file "+fileName);

@@ -7,7 +7,6 @@
 #include <rectangles.h>
 #include <textline.h>
 #include <point.h>
-#include <filesystem>
 #include <inisettings.h>
 #include "filenamepicker.h"
 #include "dirnamereader.h"

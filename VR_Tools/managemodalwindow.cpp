@@ -131,3 +131,7 @@ void                ManageModalWindow::dummy_key_handler(XPLMWindowID in_window_
 void ManageModalWindow::PrintmyRectvisstatus(){
    myRect->PrintModalParams();
 }
+
+XPLMWindowID ManageModalWindow::GetCurrentWindowId(){
+    return myModalWindow;
+}

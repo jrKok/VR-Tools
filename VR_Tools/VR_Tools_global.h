@@ -6,6 +6,16 @@
 #else
 #  define SHOW_FPS_TESTSHARED_EXPORT Q_DECL_IMPORT
 #endif
+#if IBM
+   #include <filesystem>
+    using ulong=unsigned long long;
+    using namespace std::experimental::filesystem;
+   //#include <GL/gl.h>
+#endif
+#if LIN
+   #include <experimental/filesystem>
+    using namespace  std::experimental::filesystem;
+#endif
 
 enum{B_Load_File=0,
      B_Reload=1,

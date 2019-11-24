@@ -3,7 +3,7 @@
 
 string FilePointer::currentFileName("fn");
 string FilePointer::currentDirName("dn");
-string FilePointer::DirSeparator("\\");
+string FilePointer::DirSeparator("/");
 string FilePointer::currentTemp("");
 string FilePointer::currentBackup("");
 string FilePointer::currentPlaneDir("");

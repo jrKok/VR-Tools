@@ -46,7 +46,7 @@ std::string dirNameReader::GetActualPathName(){
 }
 
 void dirNameReader::ReadRootDir(){
-    if ((parentPath!="")&&(parentPath!="C:\\")&&(parentPath!="C:")){
+    if ((parentPath!="")&&(parentPath!="C:/")&&(parentPath!="C:")){
         actualPath=parentPath;
         actualDirName=GetDirNameFromPath();
         parentPath=GetParentPathFromPath();
@@ -84,11 +84,11 @@ void dirNameReader::ReadSelectedDir(){
            return;
        }
        if (name==ShortCutF){
-           SetDirectory(sysDir+"\\Output\\textfiles");
+           SetDirectory(sysDir+"/Output/textfiles");
            return;
        }
        if (name==ShortCutPlug){
-           SetDirectory(sysDir+"\\Resources\\plugins\\VR_Tools");
+           SetDirectory(sysDir+"/Resources/plugins/VR_Tools");
            WriteDebug(actualPath);
            return;
       }

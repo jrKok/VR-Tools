@@ -17,7 +17,7 @@ VRCommandFilter::VRCommandFilter()
 void VRCommandFilter::init(){
     commandBlock=false;
     filterEnabled=false;
-    CommandFilter = XPLMCreateCommand("VR/Custom/Filter_Stick_Commands","Filter Stick");
+    CommandFilter = XPLMCreateCommand("VR_Tools/Custom/Filter_Stick_Commands","Filter Stick");
     //Register Filter command Handler, will create other commands
     XPLMRegisterCommandHandler(CommandFilter,MyFilterCommandHandler,1,(void *)0); //to apply to the button handling the filtering like a "ctrl" key
     g_vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
@@ -46,7 +46,7 @@ bool VRCommandFilter::SetupFiltering(){
      * Builds a vector of states for each command (which will block or pass the command)
      */
     int nbcmd=0;
-    std::ifstream jSettings("Output\\preferences\\X-Plane Joystick Settings.prf", std::ifstream::in);
+    std::ifstream jSettings("Output/preferences/X-Plane Joystick Settings.prf", std::ifstream::in);
     std::string lineRead;
     stringOps sto;
     while (getline(jSettings,lineRead)){

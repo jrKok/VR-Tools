@@ -18,10 +18,11 @@
 #if IBM
     #include <windows.h>
 #endif
+
 #if LIN
     #include <GL/gl.h>
-#elif __GNUC__
-    #include <OpenGL/gl.h>
+    #include <cstring>
+    #include <cstdint>
 #else
     #include <GL/gl.h>
 #endif
@@ -31,7 +32,7 @@ using std::vector;
 using  color=float[3];
 using triangle=std::array<int,6>;
 using rectangle=std::array<int,4>;//tlrb
-using ulong=unsigned long long;
+
 
 struct TriangleToDraw
 {

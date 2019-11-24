@@ -76,6 +76,7 @@ Hotspots::~Hotspots(){
     dlg=nullptr;
     vrconfigEditor=nullptr;
     advancedEditor=nullptr;
+    XPLMDestroyFlightLoop(moveLoopId);
 }
 
 void Hotspots::Setup(){
@@ -391,25 +392,25 @@ int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase in
 
 void Hotspots::Handle_End_Of_Edit(){
     int resp=myself->vrconfigEditor->GetAnswer();
-    if (resp==0){
-        if (myself->vrconfigEditor->GetActionLaunched()=="Relog"){
+    if (resp==0){// not really end of edit but a callback from vr views to handle/synchronize hotspots
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Relog){
             myself->LogPilotHead(targetX,targetY,targetZ);
             myself->vrconfigEditor->Relog(targetX,targetY,targetZ);
 
             return;
         }
-        if (myself->vrconfigEditor->GetActionLaunched()=="Up"){
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Up){
             int idx=myself->vrconfigEditor->GetSelectedHotspot();
             VRCReader::SwapHotspots(idx,idx-1);
             return;
         }
-        if (myself->vrconfigEditor->GetActionLaunched()=="Down"){
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Down){
             int idx=myself->vrconfigEditor->GetSelectedHotspot();
             VRCReader::SwapHotspots(idx,idx+1);
             return;
         }
 
-        if (myself->vrconfigEditor->GetActionLaunched()=="Rename"){
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Rename){
             int idx=myself->vrconfigEditor->GetSelectedHotspot();
             VRCReader::GotoHotspotNumber(idx);
             string newName=myself->vrconfigEditor->GetUserLine();
@@ -417,7 +418,7 @@ void Hotspots::Handle_End_Of_Edit(){
             return;
         }
 
-        if (myself->vrconfigEditor->GetActionLaunched()=="Create"){
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Create){
             if (XPLMGetDatai(outside)) {
                 myself->vrconfigEditor->MessageLine3("can't create a hotspot after teleport outside,press cancel");
                 myself->vrconfigEditor->DisableEdit();
@@ -427,7 +428,7 @@ void Hotspots::Handle_End_Of_Edit(){
             return;
         }
 
-        if (myself->vrconfigEditor->GetActionLaunched()=="Reposition"){
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Reposition){
             if (XPLMGetDatai(outside)) {
                 myself->vrconfigEditor->MessageLine3("can't reposition a hotspot after teleport outside,press cancel");
                 myself->vrconfigEditor->DisableEdit();
@@ -438,7 +439,7 @@ void Hotspots::Handle_End_Of_Edit(){
             return;
         }
 
-        if (myself->vrconfigEditor->GetActionLaunched()=="Delete"){
+        if (myself->vrconfigEditor->GetActionLaunched()==action_Delete){
              int idx=myself->vrconfigEditor->GetSelectedHotspot();
              VRCReader::DeleteHotspot(idx);
         }
@@ -447,8 +448,8 @@ void Hotspots::Handle_End_Of_Edit(){
         VRCReader::SaveVRConfig();
         VRCReader::AnalyzeFile();
         if (IniSettings::GetOptReloadModel()&&
-                (myself->vrconfigEditor->GetActionLaunched()=="Create"||
-                 myself->vrconfigEditor->GetActionLaunched()=="Reposition")) ReloadCurrentAircraft();
+                (myself->vrconfigEditor->GetActionLaunched()==action_Create||
+                 myself->vrconfigEditor->GetActionLaunched()==action_Reposition)) ReloadCurrentAircraft();
     }
     if (resp==2){
         VRCReader::GotoHotspotNumber(myself->vrconfigEditor->GetSelectedHotspot());

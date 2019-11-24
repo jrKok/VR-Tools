@@ -4,19 +4,12 @@
 #include <vector>
 #include "rectangles.h"
 #include <XPLMDisplay.h>
+#include "VR_Tools_global.h"
 
 
 #if IBM
     #include <windows.h>
 #endif
-#if LIN
-    #include <GL/gl.h>
-#elif __GNUC__
-    #include <OpenGL/gl.h>
-#else
-    #include <GL/gl.h>
-#endif
-using ulong=unsigned long long;
 
 class button_VR:public rectangles
 {

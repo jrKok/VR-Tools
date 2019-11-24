@@ -3,14 +3,12 @@
 
 #include <string>
 #include "VR_Tools_global.h"
-#include <filesystem>
 #include "XPLMPlanes.h"
 
 class Layout;
 
 
 using std::string;
-using namespace std::experimental::filesystem;
 
 
 class FilePointer

@@ -18,11 +18,8 @@
     #include <windows.h>
 #endif
 #if LIN
-    #include <GL/gl.h>
-#elif __GNUC__
-    #include <OpenGL/gl.h>
-#else
-    #include <GL/gl.h>
+    #include <cmath>
+    #include <ctgmath>
 #endif
 
 /*This abstract class sets up a list box for displaying lines of text held
@@ -38,7 +35,6 @@
  * It processes clicks, and recalculates its position when necessary*/
 
 using std::string;
-typedef long long unsigned ulong;
 
 class List_Box_With_ScrB
 {

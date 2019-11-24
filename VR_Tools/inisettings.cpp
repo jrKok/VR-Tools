@@ -9,7 +9,7 @@
    bool  IniSettings::IniSettings::openWdwAtStart(false);//ini parameters to be read
    bool  IniSettings::IniSettings::autoReload(false);
    bool  IniSettings::periodicReload(true);
-   int   IniSettings::reloadPeriod(1);
+   float IniSettings::reloadPeriod(1);
    bool  IniSettings::autoUTF8(false);
    bool  IniSettings::changeClrOnTxtChg(false); //to create a flash effect when text changes
    bool  IniSettings::moveLastPgOnStart(false);
@@ -19,7 +19,7 @@
    bool  IniSettings::noResize(false);
    bool  IniSettings::keepSize(false);
    bool  IniSettings::noBckground(false);
- string  IniSettings::directory("output\\textfiles");
+ string  IniSettings::directory("output/textfiles");
  string  IniSettings::file("flightnotes.txt");
    bool  IniSettings::keepLastFile(false);
    int   IniSettings::trimLineOption(0);
@@ -121,7 +121,7 @@ void IniSettings::ReadIniFile(){
                 rP=std::stoi(rightSide);}
                 catch(std::invalid_argument& e){
                     rP=1;}
-                reloadPeriod=rP;
+                reloadPeriod=static_cast<float>(rP);
                 LogInstruction(leftSide,string(" "+std::to_string(rP)),commt);
             }
             if (leftSide=="FLASH_TEXT_ON_CHANGE"){
@@ -259,7 +259,7 @@ void IniSettings::WriteIniFile(){
         leftH.push_back("                FIT_TO_FILE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the text display will be sized to a best compromise for holding text tightly");
         leftH.push_back("                  NO_RESIZE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the user won't be able to resize the display, in a non-titled Window, no hide button");
         leftH.push_back("                  KEEP_SIZE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the size of a window will be kept in the ini after user resizes wdw");
-        leftH.push_back("                  DIRECTORY");rightH.push_back("output\\Textfiles");comment.push_back("");//;first directory where text files will be searched, if empty, XPlane's system directory");
+        leftH.push_back("                  DIRECTORY");rightH.push_back("output/Textfiles");comment.push_back("");//;first directory where text files will be searched, if empty, XPlane's system directory");
         leftH.push_back("                       FILE");rightH.push_back("flightnotes.txt");comment.push_back("");//;Filename, will be searched in previous directory");
         leftH.push_back("             KEEP_LAST_FILE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the last opened file will be the first opened file on restart");
         leftH.push_back("           TRIM_LINE_OPTION");rightH.push_back("split_at_space");comment.push_back(";split_at_space,split_at_width,no_clip,clip_left,clip_right");
@@ -301,7 +301,7 @@ bool IniSettings::GetOptDelete()          {return deleteEnable;}
 bool IniSettings::GetOptFreqs()           {return navsSetEnable;}
 bool IniSettings::GetOptFPS()             {return displayFPS;}
 bool IniSettings::GetOptReloadProc()      {return periodicReload;}
-int  IniSettings::GetReloadPeriod()       {return reloadPeriod;}
+float IniSettings::GetReloadPeriod()       {return reloadPeriod;}
 int  IniSettings::GetSpeedMove()          {return speedOfMove;}
 bool IniSettings::GetOptReloadModel()     {return reloadModel;}
 bool IniSettings::GetOptHSCommands()      {return makeHSCommands;}
@@ -309,7 +309,7 @@ bool IniSettings::GetOptHSCommands()      {return makeHSCommands;}
 void IniSettings::SetOptStart(bool opt)     {openWdwAtStart=opt;    WriteOption("OPEN_TEXT_ON_START",opt);}
 void IniSettings::SetOptReload(bool opt)    {autoReload=opt;        WriteOption("AUT0_RELOAD",opt);}
 void IniSettings::SetOptReloadProc(bool opt){periodicReload=opt;    WriteOption("PERIODIC_RELOAD",opt);}
-void IniSettings::SetReloadPeriod(int opt)  {reloadPeriod=opt;      WriteOption("RELOAD_PERIOD",opt);}
+void IniSettings::SetReloadPeriod(int opt)  {reloadPeriod=static_cast<float>(opt);      WriteOption("RELOAD_PERIOD",opt);}
 void IniSettings::SetOptUTF(bool opt)       {autoUTF8 =opt;         WriteOption("AUTO_UTF8",opt);}
 void IniSettings::SetOptFlash(bool opt)     {changeClrOnTxtChg=opt; WriteOption("FLASH_TEXT_ON_CHANGE",opt);}
 void IniSettings::SetOptLastPg(bool opt)    {moveLastPgOnStart =opt;WriteOption("MOVE_TO_LAST_PAGE",opt);}

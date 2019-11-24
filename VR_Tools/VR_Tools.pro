@@ -10,12 +10,7 @@ CONFIG +=warn_on plugin release
 CONFIG-=thread exceptions qt rtti
 CONFIG += c++11
 
-#DEFINES += testVR_LIBRARY
 
-INCLUDEPATH += C:\SDK\CHeaders\XPLM\
-INCLUDEPATH += C:\SDK\CHeaders\Wrappers\
-INCLUDEPATH += C:\SDK\CHeaders\Widgets\
-INCLUDEPATH +=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\arm64
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -32,11 +27,37 @@ DEFINES +=XPLM301
 DEFINES +=XPLM300
 DEFINES +=XPLM210
 DEFINES +=XPLM200
+
+unix:!macx{
+DEFINES +=APL=0 IBM=0 LIN=1
+
+INCLUDEPATH += /home/jeroen/Documents/dev_X-Plane/libs/XPSDK301/SDK/CHeaders/XPLM/
+INCLUDEPATH += /home/jeroen/Documents/dev_X-Plane/libs/XPSDK301/SDK/CHeaders/Wrappers/
+INCLUDEPATH += /home/jeroen/Documents/dev_X-Plane/libs/XPSDK301/SDK/CHeaders/Widgets/
+
+LIBS += -lstdc++fs
+
+    target.path = /usr/lib
+    INSTALLS += target
+   QMAKE_CFLAGS += -std=c++11 -fpermissive
+   QMAKE_CXXFLAGS += -std=c++11 -fpermissive
+   QMAKE_LFLAGS += -std=c++11 -fpermissive
+}
+
+win32{
 DEFINES +=APL=0 IBM=1 LIN=0
+
+INCLUDEPATH += C:\SDK\CHeaders\XPLM\
+INCLUDEPATH += C:\SDK\CHeaders\Wrappers\
+INCLUDEPATH += C:\SDK\CHeaders\Widgets\
+INCLUDEPATH +=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\arm64
+
 LIBS +=-LC:\SDK\Libraries\Win
 LIBS +=-lXPLM_64 -lXPWidgets_64
 LIBS +=-lOpengl32 # lodbc32 lodbccp32
 LIBS +=User32.lib
+
+}
 
 
 TARGET = VR_Tools.xpl
