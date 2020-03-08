@@ -94,10 +94,11 @@ public:
     void DontDelete();
     void convertToUTF8();
     void SetBackGround(bool opt);
+    void PrintMyText();
     virtual void ShowAll()=0;
 
 protected:
-    int in_top,in_left;
+    int in_bottom,in_left;
     int grlOffsetX,grlOffsetY;
     int charHeight,maxStringWidth;
     int pageHeightInL,totalNbL,indxFirstOnPg,indxLastOnPg,indxLastPage,lineLength;

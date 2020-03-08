@@ -11,6 +11,7 @@
 #include "filenamepicker.h"
 #include "dirnamereader.h"
 #include "button_vr.h"
+#include "drawlogic.h"
 
 using std::string;
 
@@ -19,14 +20,13 @@ class ShowDir
 public:
 
 
-    ShowDir(int in_num);
+    ShowDir(DrawLogic *newPad);
 
 
     void WriteDebug(string message);
     void MakeButton();
     void MakeLine();
     void SetupDirWindow(int left,int top);
-    void RecalculateDirWindow();
     void RecolorFirstLines();
     void DrawDirWindow(XPLMWindowID g_FileWindow);
     int  processMouseDn(int,int);
@@ -47,8 +47,9 @@ public:
     int  GetWidth();
     int  GetHeight();
 
+
 private:
-    int myWindow;
+    DrawLogic  *myDrawPad;
     rectangles general,leftR,rightR,slider;
     enum { button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4};
     enum {windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6};

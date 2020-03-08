@@ -14,8 +14,8 @@ float Keyboard::latency(0.6f);
 
 Keyboard::Keyboard(bool modal):
 
-    allKeyboard(false,modal),
-    rL1(false,modal),rL2(false,modal),rL3(false,modal),rL4(false,modal),rL5(false,modal),//rectangles for localisation of clics
+    allKeyboard(false),
+    rL1(false),rL2(false),rL3(false),rL4(false),rL5(false),//rectangles for localisation of clics
     isModal(modal),
     kL1(),kL2(),kL3(),kL4(),kL5(),//vectors of keys
     activeKey(nullptr),
@@ -162,7 +162,7 @@ int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,
         FindKeySpecs(newkeyString,isSpecialKey,showS,mainS,shiftS,altS,abbrN,abbrS,offset,width,vk_tag);
         auto nextkey=std::make_shared<Key>(isModal);
         nextkey->setVisibility(true);
-        nextkey->SetOffsets(offX+stepper+offset,offY);
+        nextkey->SetOrigin(offX+stepper+offset,offY);
         stepper+=width+offset;
         nextkey->SetDimensions(width,keyHeight);
         nextkey->DefineKey(char(0),char(0),false,isSpecialKey,showS,mainS,shiftS,altS,abbrN, abbrS,lineNumber,col);    
@@ -174,7 +174,6 @@ int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,
             if (nextkey->GetKeyName()=="Abbr") abbrvKey=nextkey->GetMyPointer();
             if (nextkey->GetKeyName()=="CpsLck") capsKey=nextkey->GetMyPointer();
         }
-
         keyLine.push_back(nextkey);
         if (vk_tag<=250) physicalKeys[vk_tag]=nextkey;
         else WriteDebug("keyboard implementation, can't take virtual key codes over 250 : check keyb definition file");
@@ -217,14 +216,13 @@ void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
     kL3.clear();
     kL4.clear();
     kL5.clear();
-    allKeyboard.SetOffsets(offX,offY);
+    allKeyboard.SetOrigin(offX,offY);
 
-    rL1.SetOffsets(offX,offY);
-    rL2.SetOffsets(offX,offY+keyHeight+2);
-    rL3.SetOffsets(offX,rL2.GetOffsetY()+keyHeight+2);
-    rL4.SetOffsets(offX,rL3.GetOffsetY()+keyHeight+2);
-    rL5.SetOffsets(offX,rL4.GetOffsetY()+keyHeight+2);
-
+    rL1.SetOrigin(offX,offY);
+    rL2.SetOrigin(offX,offY+keyHeight+2);
+    rL3.SetOrigin(offX,rL2.GetBottom()+keyHeight+2);
+    rL4.SetOrigin(offX,rL3.GetBottom()+keyHeight+2);
+    rL5.SetOrigin(offX,rL4.GetBottom()+keyHeight+2);
     //read the file containing definitions of keys, one text line per keyboard line
     string fileName("");
     if (numpad){
@@ -234,29 +232,27 @@ void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
     }    // in a next version, file name will come from ini, with a custom def possible
     std::fstream textFile;
     textFile.open(fileName,std::ifstream::in);
-
     if (textFile.is_open()){
         //read lines, define the lines of keys in a vector per line, calculate widths
         string inputL;
         int maxWidth(0);
         getline(textFile,inputL);
-        rL1.SetDimensions(MakeLine(rL1.GetOffsetY(),inputL,1,kL1),keyHeight+2);
+        rL1.SetDimensions(MakeLine(rL1.GetBottom(),inputL,1,kL1),keyHeight+2);
         if (rL1.GetWidth()>maxWidth) maxWidth=rL1.GetWidth();
         getline(textFile,inputL);
-        rL2.SetDimensions(MakeLine(rL2.GetOffsetY(),inputL,2,kL2),rL1.GetHeight());
+        rL2.SetDimensions(MakeLine(rL2.GetBottom(),inputL,2,kL2),rL1.GetHeight());
         if (rL2.GetWidth()>maxWidth) maxWidth=rL2.GetWidth();
         getline(textFile,inputL);
-        rL3.SetDimensions(MakeLine(rL3.GetOffsetY(),inputL,3,kL3),rL1.GetHeight());
+        rL3.SetDimensions(MakeLine(rL3.GetBottom(),inputL,3,kL3),rL1.GetHeight());
         if (rL3.GetWidth()>maxWidth) maxWidth=rL3.GetWidth();
         getline(textFile,inputL);
-        rL4.SetDimensions(MakeLine(rL4.GetOffsetY(),inputL,4,kL4),rL1.GetHeight());
+        rL4.SetDimensions(MakeLine(rL4.GetBottom(),inputL,4,kL4),rL1.GetHeight());
         if (rL4.GetWidth()>maxWidth) maxWidth=rL4.GetWidth();
         getline(textFile,inputL);
-        rL5.SetDimensions(MakeLine(rL5.GetOffsetY(),inputL,5,kL5),rL1.GetHeight());
+        rL5.SetDimensions(MakeLine(rL5.GetBottom(),inputL,5,kL5),rL1.GetHeight());
         if (rL5.GetWidth()>maxWidth) maxWidth=rL5.GetWidth();
         allKeyboard.SetDimensions(maxWidth,rL1.GetHeight()*5);
            }
-
 }
 
 void Keyboard::SetOrigin (int x, int y){
@@ -266,38 +262,18 @@ void Keyboard::SetOrigin (int x, int y){
 void Keyboard::Relocate (int newX, int newY){
     int deltaX(newX-offX),deltaY(offY==0?(newY):newY-offY);
     offX=newX;offY=newY;
-    allKeyboard.SetOffsets(newX,newY);
-    allKeyboard.recalculate();
-    rL1.SetOffsets(offX,offY);
-    rL1.recalculate();
-    rL2.SetOffsets(rL2.GetOffsetX()+deltaX,rL2.GetOffsetY()+deltaY);
-    rL2.recalculate();
-    rL3.SetOffsets(rL3.GetOffsetX()+deltaX,rL3.GetOffsetY()+deltaY);
-    rL3.recalculate();
-    rL4.SetOffsets(rL4.GetOffsetX()+deltaX,rL4.GetOffsetY()+deltaY);
-    rL4.recalculate();
-    rL5.SetOffsets(rL5.GetOffsetX()+deltaX,rL5.GetOffsetY()+deltaY);
-    rL5.recalculate();
-    for (std::shared_ptr<Key> k: kL1)  k->reposition(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL2)  k->reposition(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL3)  k->reposition(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL4)  k->reposition(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL5)  k->reposition(deltaX,deltaY);
+    allKeyboard.SetOrigin(newX,newY);
+    rL1.SetOrigin(offX,offY);
+    rL2.SetOrigin(rL2.GetLeft()+deltaX,rL2.GetBottom()+deltaY);
+    rL3.SetOrigin(rL3.GetLeft()+deltaX,rL3.GetBottom()+deltaY);
+    rL4.SetOrigin(rL4.GetLeft()+deltaX,rL4.GetBottom()+deltaY);
+    rL5.SetOrigin(rL5.GetLeft()+deltaX,rL5.GetBottom()+deltaY);
+    for (std::shared_ptr<Key> k: kL1)  k->Shift(deltaX,deltaY);
+    for (std::shared_ptr<Key> k: kL2)  k->Shift(deltaX,deltaY);
+    for (std::shared_ptr<Key> k: kL3)  k->Shift(deltaX,deltaY);
+    for (std::shared_ptr<Key> k: kL4)  k->Shift(deltaX,deltaY);
+    for (std::shared_ptr<Key> k: kL5)  k->Shift(deltaX,deltaY);
 
-}
-
-void Keyboard::Recalculate(int l, int t){
-    rL1.recalculate(l,t);
-    rL2.recalculate(l,t);
-    rL3.recalculate(l,t);
-    rL4.recalculate(l,t);
-    rL5.recalculate(l,t);
-    allKeyboard.recalculate(l,t);
-    for (std::shared_ptr<Key> k: kL1) {k->SetOrigin(l,t);k->recalculate();}
-    for (std::shared_ptr<Key> k: kL2) {k->SetOrigin(l,t);k->recalculate();}
-    for (std::shared_ptr<Key> k: kL3) {k->SetOrigin(l,t);k->recalculate();}
-    for (std::shared_ptr<Key> k: kL4) {k->SetOrigin(l,t);k->recalculate();}
-    for (std::shared_ptr<Key> k: kL5) {k->SetOrigin(l,t);k->recalculate();}
 }
 
 bool  Keyboard::ReadLine(int cx, int cy, lineOfKeys in_line, bool &special, std::string &keyName, std::string &keyVal){

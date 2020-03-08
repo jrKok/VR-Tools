@@ -6,9 +6,13 @@ class point
 {
 public:
     point();
-    int offsetX,offsetY,t,l,myX,myY;
+
+    void SetCoords(int x, int y);
     void SetOffsets(int oX,int oY);
-    void recalculate (int, int);
+    int GetX();
+    int GetY();
+private:
+    int offsetX,offsetY,x,y,screenX,screenY;
 };
 
 #endif // POINT_H

@@ -17,22 +17,19 @@ public:
     void   DeleteLine();
     void   setText (const string &in_Str);
     string GetText();
+    void   PrintString();
     bool   isHere(int,int);
     void   SetTextColor(char in_clr);
     void   SetOrigin(int in_x,int in_y);
-    void   SetOffsets(int oX,int oY);
     void   SetDimensions(int in_W, int in_H);
-    void   SetXY (int in_x, int in_y);
+    void   SetTextXY (int in_x, int in_y);
     void   SetIndex(int idx);
     void   SetSelected(bool sel);
     void   SetVisibility(bool in_vis);
     bool   GetVisibility();
-    int    GetX();
-    int    GetY();
-    int    GetOffsetX();
-    int    GetOffsetY();
-    int    GetOffsetYRect();
-    int    GetOffsetXRect();
+    int    GetTextX();
+    int    GetTextY();
+
     int    GetTop();
     int    GetLeft();
     int    GetBottom();
@@ -46,7 +43,7 @@ public:
 private:
     string textOfLine;
     int    myStringNumber;
-    int    index,x,y,offSetX,offSetY,in_top,in_left,width,height,top,bottom,left,right;
+    int    index,textX,textY,textOx,textOy,width,height,top,bottom,left,right;
     int    mySize;
     bool   isSelected, isModal;
     char   textColor;

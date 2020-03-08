@@ -30,18 +30,12 @@ void Key::DefineKey(char c1, char c2, bool utf, bool spec, string showVal, strin
     keyAbbrString=abbrVal;
     keyAbbrName=abbrName;
     setText(showVal);
-    if (!isModal)
-        DrawLogic::ChangeColorString(stringNumber,Clr_White);
-    else
-        DrawLogic::ChangeColorModalString(stringNumber,Clr_White);
+    DrawLogic::ChangeColorString(stringNumber,Clr_White);
     setColor(Clr_LightBlue);
     line=ln;
     column=cl;
-    if (!isModal)
-        DrawLogic::SetVisibilityString(stringNumber,true);
-    else {
-        DrawLogic::SetVisibilityModalString(stringNumber,true);
-    }
+    DrawLogic::SetVisibilityString(stringNumber,true);
+
 }
 
 Key* Key::GetMyPointer(){
@@ -96,10 +90,3 @@ bool Key::IsUTFKey(){
     return isUTF8;
 }
 
-void Key::reposition (int dX,int dY){
-    offsetX+=dX;
-    offsetY+=dY;
-    offsetTextX+=dX;
-    offsetTextY+=dY;
-    button_VR::recalculate();
-}

@@ -73,40 +73,39 @@ void LineDialog::MakeDialog(const string &yesStr, const string &noStr, const str
         textOffsetX=(width-textWidth)/2;
     }
     point p;
-    p.myX=textOffsetX;
-    p.myY=textOffsetY;
-    myStringNumber=DrawLogic::AddModalString(alertStr,Clr_Black,p);
+    p.SetCoords(textOffsetX,textOffsetY);
+    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,p);
 
-    yesButton=new ModalButton();
-    noButton=new ModalButton();
-    cancelButton=new ModalButton();
+    yesButton=new button_VR();
+    noButton=new button_VR();
+    cancelButton=new button_VR();
 
     yesButton->SetDimensions(buttonwidth,buttonHeight);
-    yesButton->SetOffsets(pos,80);
+    yesButton->SetOrigin(pos,80);
     yesButton->setText(yesStr);
     yesButton->setVisibility(yesStr!=""?true:false);
     yesButton->SetToStateColor();
     if (yesStr!="") pos+=buttonwidth+20;
 
     noButton->SetDimensions(buttonwidth,buttonHeight);
-    noButton->SetOffsets(pos,80);
+    noButton->SetOrigin(pos,80);
     noButton->setText(noStr);
     noButton->setVisibility(noStr!=""?true:false);
     noButton->SetToStateColor();
     if (noStr!="") pos+=buttonwidth+20;
 
     cancelButton->SetDimensions(buttonwidth,buttonHeight);
-    cancelButton->SetOffsets(pos,80);
+    cancelButton->SetOrigin(pos,80);
     cancelButton->setText(cancelStr);
     cancelButton->SetToStateColor();
     cancelButton->setVisibility(cancelStr!=""?true:false);
 
-    textRect= new rectangles(true,true);
+    textRect= new rectangles(true);
     textRect->SetDimensions(width-20,20);
-    textRect->SetOffsets(10,30);
+    textRect->SetOrigin(10,30);
     textRect->setColor(Clr_White);
 
-    editLine.SetOffsets(12,40);
+    editLine.SetOrigin(12,40);
     ManageModalWindow::ResizeModalWindow(width,height);
     keyb->SetVisibility(true);
     cursor.SetCursorAt(0,0);
@@ -121,28 +120,13 @@ int  LineDialog::GetAnswer(){
 string LineDialog::GetUserLine(){
     return userLine;
 }
-void LineDialog::Recalculate (){
-    myself->yesButton->recalculate(left,top);
-    myself->noButton->recalculate(left,top);
-    myself->cancelButton->recalculate(left,top);
-    ManageModalWindow::Recalculate(left,top);
-    point p;
-    p.myX=left+myself->textOffsetX;
-    p.myY=top-myself->textOffsetY;
-    DrawLogic::RelocateModalString(myself->myStringNumber,p);
-    myself->keyb->Recalculate(left,top);
-    myself->textRect->recalculate(left,top);
-    myself->editLine.recalculate(left,top);
-    myself->cursor.Recalculate(myself->editLine.GetX(),myself->editLine.GetY());
-}
 
 void LineDialog::DrawMyself(XPLMWindowID in_window_id, void * unused){
     int lft(left),tp(top),right,bottom;
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||tp!=top) Recalculate();
-    DrawLogic::DrawModalElements();
-    DrawLogic::DrawModalStrings();
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetY());
+    if (lft!=left||tp!=top) DrawLogic::SetScreenOrigin(left,top);
+    DrawLogic::DrawContent();
+    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetTextY());
     if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);

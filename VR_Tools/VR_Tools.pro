@@ -45,17 +45,26 @@ LIBS += -lstdc++fs
 }
 
 win32{
+ QMAKE_LFLAGS += /NODEFAULTLIB:LIBCMT
+ QMAKE_CXXFLAGS += -wd4996
+ QMAKE_CXXFLAGS_DEBUG = -Zi -MTd
+ QMAKE_CXXFLAGS_RELEASE = -MT
 DEFINES +=APL=0 IBM=1 LIN=0
 
 INCLUDEPATH += C:\SDK\CHeaders\XPLM\
 INCLUDEPATH += C:\SDK\CHeaders\Wrappers\
 INCLUDEPATH += C:\SDK\CHeaders\Widgets\
-INCLUDEPATH +=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\arm64
+INCLUDEPATH += C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\arm64
+INCLUDEPATH += C:\Users\jeroen\Documents\freetype-2.10.1\include
 
+DEFINES+=FREETYPE2_STATIC
+
+LIBS += C:\Users\jeroen\Documents\freetype-2.10.1\include\freetype.lib
 LIBS +=-LC:\SDK\Libraries\Win
 LIBS +=-lXPLM_64 -lXPWidgets_64
-LIBS +=-lOpengl32 # lodbc32 lodbccp32
+LIBS +=-lOpengl32
 LIBS +=User32.lib
+LIBS +=-lmsvcrt -lmsvcmrt
 
 }
 
@@ -89,14 +98,14 @@ SOURCES += \
     opcenter.cpp \
     drawlogic.cpp \
     temporarywindow.cpp \
-    modalbutton.cpp \
     managemodalwindow.cpp \
     alert3buttons.cpp \
     linedialog.cpp \
     vrviews.cpp \
     vrcreader.cpp \
     advanced.cpp \
-    hotspots.cpp
+    hotspots.cpp \
+    globals.cpp
 
 HEADERS += \
     stringops.h \
@@ -126,14 +135,14 @@ HEADERS += \
     opcenter.h \
     drawlogic.h \
     temporarywindow.h \
-    modalbutton.h \
     managemodalwindow.h \
     alert3buttons.h \
     linedialog.h \
     vrviews.h \
     vrcreader.h \
     advanced.h \
-    hotspots.h
+    hotspots.h \
+    globals.h
 
 target.path= \plugsXP
 unix {

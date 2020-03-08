@@ -1,6 +1,6 @@
 #include "textreader.h"
 
-TextReader::TextReader(): List_Box_With_ScrB(),
+TextReader::TextReader(): List_Box_With_ScrB(false),
     freqADF(0),
     freqNAV(0),
     freqCOM(0.0f),
@@ -18,7 +18,7 @@ TextReader::TextReader(): List_Box_With_ScrB(),
     keepsize(0)
 
 {
-fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
+    fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
 }
 
 TextReader::~TextReader(){

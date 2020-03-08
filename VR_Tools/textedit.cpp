@@ -47,7 +47,7 @@ bool TextEdit::Save(){
 
 void TextEdit::Recalculate(int in_lft,int in_tp){
     List_Box_With_ScrB::Recalculate(in_lft,in_tp);
-    cursor.Recalculate(box[0].GetX(),box[0].GetY());
+    cursor.Recalculate(box[0].GetTextX(),box[0].GetTextY());
 }
 
 
@@ -179,7 +179,7 @@ void TextEdit::DisplayPage(){
 void TextEdit::DrawCursor(){
     if (cursor.HasCursor()){
         for (auto bx:box){
-            if ((bx.GetIndex()+indxFirstOnPg)==cursor.GetLine()) cursor.DrawCursor(bx.GetY()+3);
+            if ((bx.GetIndex()+indxFirstOnPg)==cursor.GetLine()) cursor.DrawCursor(bx.GetTextY()+3);
         }
     }
 
@@ -448,7 +448,6 @@ void TextEdit::ReadLineAgain(int in_line){
     indxLastPage=totalNbL-pageHeightInL;
     if (indxLastPage<0) indxLastPage=0;
     scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
-    scrB.Recalculate(in_left,in_top);
     if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
     indxLastOnPg=indxFirstOnPg+pageHeightInL;
     if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;

@@ -13,7 +13,7 @@ class TextEdit;
 class LayoutWithEdit : public Layout
 {
 public:
-    LayoutWithEdit(int windowNumber);
+    LayoutWithEdit(DrawLogic *newPad);
     void StartEdit();
     void BeginEdit();
     void ReLabelButtons();
@@ -36,7 +36,7 @@ public:
     void DrawNoResize(XPLMWindowID g_textWindow);
     void findClick(int mX, int mY);
     void HandleMouseKeepDown(int mX,int mY);
-    int  HandleMouseUp(int mX,int mY);
+    int  HandleMouseUp(int, int);
     void LaunchCommand(int refCommand);
     void QuitCommand();
     static void HandleAlertResult();

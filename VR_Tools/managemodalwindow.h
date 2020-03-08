@@ -14,6 +14,7 @@
 #include <rectangles.h>
 #include <point.h>
 #include <functional>
+#include "drawlogic.h"
 
 class ManageModalWindow
 {
@@ -22,22 +23,24 @@ public:
     ~ManageModalWindow();
     static XPLMWindowID CreateModalWindow( void drawCB(XPLMWindowID,void*),char myColor,int width, int height);
     static XPLMWindowID CreateMousedModalWindow(int mouseH(XPLMWindowID, int, int, int, void*), void drawCB(XPLMWindowID,void*), char myColor, int width, int height);
-    static void ResizeModalWindow(int width, int height);
-    static void DestroyModalWindow();
-    static void Recalculate(int x, int y);
-    static void PrintmyRectvisstatus();
+    static void         ResizeModalWindow(int width, int height);
+    static void         DestroyModalWindow();
+    static void         Recalculate(int x, int y);
+    static void         PrintmyRectvisstatus();
     static XPLMWindowID GetCurrentWindowId();
+    static void         MakeTopWindow();
 
 private:
-    static rectangles *myRect;
-    static XPLMDataRef g_vr_dref;
-    static XPLMWindowID myModalWindow;
-    static int myWidth,myHeight;
-    static int	dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon);
-    static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon);
-    static int	dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon);
-    static void dummy_key_handler(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus);
-    static float UpdateValue(float elpSc,float elpTime,int countr,void* refcon);
+    static rectangles      *myRect;
+    static XPLMDataRef      g_vr_dref;
+    static XPLMWindowID     myModalWindow;
+    static int              myWidth,myHeight;
+    static int              dummy_mouse_handler(XPLMWindowID, int, int, int, void *);
+    static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID, int, int, void *);
+    static int              dummy_wheel_handler(XPLMWindowID, int, int, int, int, void *);
+    static void             dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
+    static float            UpdateValue(float elpSc,float elpTime,int countr,void* refcon);
+    static DrawLogic       *myDrawPad;
 };
 
 #endif // MANAGEMODALWINDOW_H

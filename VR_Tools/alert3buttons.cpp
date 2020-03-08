@@ -5,7 +5,7 @@
 Alert3Buttons *Alert3Buttons::myself(nullptr);
 XPLMWindowID Alert3Buttons::myXPWindow(nullptr);
 int Alert3Buttons::left(0);
-int Alert3Buttons::top(0);
+int Alert3Buttons::bottom(0);
 bool Alert3Buttons::mouseLocated(false);
 
 Alert3Buttons::Alert3Buttons():
@@ -25,24 +25,21 @@ Alert3Buttons::Alert3Buttons():
 }
 
 void Alert3Buttons::MakeAlert(const string &yesStr, const string &noStr, const string &cancelStr,const string alertStr, std::function<void()>cBck){
-    int buttonHeight(20);
+    int buttonHeight(20),buttonwidth(80),textWidth(0),pos(20),nbButtons(0);
     answer=0;
     left=0;
-    top=0;
+    bottom=0;
     height=90;
     myself=this;
     callBack=cBck;
-    width = 20;
-    int buttonwidth(80),textWidth(0),pos(20),nbButtons(0);
-    textOffsetX=10;textOffsetY=10;
+    textOffsetX=10;textOffsetY=40;
 
     if (yesStr!="") nbButtons++;
     if (noStr!="") nbButtons++;
     if (cancelStr!="") nbButtons++;
-
+    width=nbButtons*(buttonwidth+20)+20;
     float strwidth=XPLMMeasureString(xplmFont_Proportional,alertStr.c_str(),static_cast<int>(alertStr.size()));
     textWidth=static_cast<int>(strwidth)+textOffsetX+textOffsetX;
-    width=nbButtons*(buttonwidth+20)+20;
 
     if (textWidth>width) {
         width=textWidth;
@@ -53,34 +50,36 @@ void Alert3Buttons::MakeAlert(const string &yesStr, const string &noStr, const s
     }
 
     point p;
-    p.myX=textOffsetX;
-    p.myY=textOffsetY;
-    myStringNumber=DrawLogic::AddModalString(alertStr,Clr_Black,p);
-    myXPWindow=ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,width,height);
+    p.SetCoords(textOffsetX,textOffsetY);
 
-    yesButton=new ModalButton();
-    noButton=new ModalButton();
-    cancelButton=new ModalButton();
+    myXPWindow=ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,width,height);
+    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,p);
+
+    yesButton=new button_VR();
+    noButton=new button_VR();
+    cancelButton=new button_VR();
 
     yesButton->SetDimensions(buttonwidth,buttonHeight);
-    yesButton->SetOffsets(pos,40);
+    yesButton->SetOrigin(pos,10);
     yesButton->setText(yesStr);
     yesButton->setVisibility(yesStr!=""?true:false);
     yesButton->SetToStateColor();
     if (yesStr!="") pos+=buttonwidth+20;
 
     noButton->SetDimensions(buttonwidth,buttonHeight);
-    noButton->SetOffsets(pos,40);
+    noButton->SetOrigin(pos,10);
     noButton->setText(noStr);
     noButton->setVisibility(noStr!=""?true:false);
     noButton->SetToStateColor();
     if (noStr!="") pos+=buttonwidth+20;
 
     cancelButton->SetDimensions(buttonwidth,buttonHeight);
-    cancelButton->SetOffsets(pos,40);
+    cancelButton->SetOrigin(pos,10);
     cancelButton->setText(cancelStr);
     cancelButton->SetToStateColor();
     cancelButton->setVisibility(cancelStr!=""?true:false);
+
+    DrawLogic::UpdateTexture();
 
 }
 
@@ -88,23 +87,11 @@ int  Alert3Buttons::GetAnswer(){
  return answer;
 }
 
-void Alert3Buttons::Recalculate (){
-    myself->yesButton->recalculate(left,top);
-    myself->noButton->recalculate(left,top);
-    myself->cancelButton->recalculate(left,top);
-    ManageModalWindow::Recalculate(left,top);
-    point p;
-    p.myX=left+myself->textOffsetX;
-    p.myY=top-myself->textOffsetY;
-    DrawLogic::RelocateModalString(myself->myStringNumber,p);
-}
-
-void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void * unused){
-    int lft(left),tp(top),right,bottom;
+void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void *){
+    int lft(left),top,right,bottm(bottom);
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||tp!=top) Recalculate();
-    DrawLogic::DrawModalElements();
-    DrawLogic::DrawModalStrings();
+    if (lft!=left||bottm!=bottom) DrawLogic::SetScreenOrigin(left,bottom);
+    DrawLogic::DrawContent();
 }
 
 int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
@@ -112,7 +99,7 @@ int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_
     case xplm_MouseDown:{
         if(!XPLMIsWindowInFront(in_window_id))
         {
-            XPLMBringWindowToFront(in_window_id);
+            ManageModalWindow::MakeTopWindow();
         }else{
         if (myself->yesButton->isHere(x,y)){
             mouseLocated=true;

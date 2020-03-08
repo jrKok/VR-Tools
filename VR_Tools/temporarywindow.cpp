@@ -1,6 +1,9 @@
 #include "temporarywindow.h"
 #include "drawlogic.h"
 #include "managemodalwindow.h"
+/* the temporarywindow class makes a floating window which appears only for a few seconds
+ * with a simple text alert
+ * */
 
 float temporaryWindow::duration(0);
 float temporaryWindow::timeStamp(0);
@@ -23,8 +26,7 @@ void temporaryWindow::DrawMyself(XPLMWindowID in_window_id, void * in_refcon){
     if (lft!=left||tp!=top) recalculate();
     float tm=XPLMGetElapsedTime();
     if ((tm-timeStamp)<duration){
-        DrawLogic::DrawModalElements();
-        DrawLogic::DrawModalStrings();
+        DrawLogic::DrawContent;
     }
     else StopAlert();
     //else calls StopAlert
@@ -32,9 +34,8 @@ void temporaryWindow::DrawMyself(XPLMWindowID in_window_id, void * in_refcon){
 
 void temporaryWindow::recalculate(){
     point p;
-    p.myX=left+5;
-    p.myY=top-20;
-    DrawLogic::RelocateModalString(myStringNumber,p);
+    p.SetCoords(left+5,top-20);
+    DrawLogic::RelocateString(myStringNumber,p);
     ManageModalWindow::Recalculate(left,top);
 }
 
@@ -42,9 +43,8 @@ void temporaryWindow::ShowAlert(string in_String,float time_to_show){
 
     duration=time_to_show;
     point p;
-    p.myX=5;
-    p.myY=5;
-    myStringNumber=DrawLogic::AddModalString(in_String,Clr_Amber,p);
+    p.SetCoords(5,5);
+    myStringNumber=DrawLogic::AddString(in_String,Clr_Amber,p);
     float width=XPLMMeasureString(xplmFont_Proportional,in_String.c_str(),static_cast<int>(in_String.size()));
     myXPWindow = ManageModalWindow::CreateModalWindow(DrawMyself,Clr_Gray,static_cast<int>(width)+10,50);
     timeStamp=XPLMGetElapsedTime();

@@ -18,14 +18,13 @@ public:
     ScrollBars(bool modal=false);
     bool IsCommandForMe(int x, int y, int& retVal);
     bool IsVisible();
-    void BeginDrag(int,int);
+    void BeginDrag(int y);
     int  DragY(int);
     bool OngoingDrag();
     int  GetPosFirstLine();
     void EndDrag();
     void Setup(int height, int totLines, int firstLine, int linesInPage, int offX, int offY);
     void SetPosFirstLine(int firstLine);
-    void Recalculate(int left, int top);
     void SetVisibility(bool iV);
     void LineUpNLines(int nL);
     void LineDownNLines (int nL);
@@ -45,12 +44,12 @@ public:
         };
 private:
     int totalLines,page,numberfirstLine,limitLastLine;
-    int totalheight,topCore,lowCore,freeCore,heightOfCore,heightOfLift,posOfLift;
+    int totalheight,topCore,lowCore,heightOfCore,heightOfLift,posOfLift;
     int offsetX, offsetY,y0,dragPosY, cmdToRepeat;
     float linesPPx, epoch,waitForRepeat;
     bool isVisible, drag, repeatCmd;
-    rectangles general,core;
-    button_VR commandUp,commandDown,lift;
+    rectangles general,core,lift;
+    button_VR commandUp,commandDown;
 
 };
 

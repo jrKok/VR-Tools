@@ -34,12 +34,14 @@ OpCenter::OpCenter():
     CmdReload(nullptr),
     ini(),
     drw(),
-    tw()
+    tw(),
+    colordefs()
 {
 
 }
 
 OpCenter::~OpCenter(){
+    DrawLogic::EndFreeType();
     delete (wLayout);
     delete (wELayout);
     if (dispDir!=nullptr) delete dispDir;
@@ -57,7 +59,7 @@ void OpCenter::WriteDebug(string in_String){
 int OpCenter::SetupCenter(){
 
     WriteDebug("Go To GetIniParams");
-    DrawLogic::DefineColors();
+    colordefs.DefineColors();
     IniSettings::GetIniParams();
     g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
     pointerToMe  = this;
@@ -84,7 +86,6 @@ int OpCenter::SetupCenter(){
     XPLMRegisterCommandHandler(CmdDelLine,MyTextReaderCommandHandler,1,nb);
     nb=new(int*);(*(int*)nb)=6;
     XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
-
     drefW.Setup();
     htsp.Setup();
     MakeMenus();
@@ -96,12 +97,18 @@ int OpCenter::SetupCenter(){
 }
 
 void OpCenter::LaunchOperations(){
-    int wdw(DrawLogic::CreateMyWindow());
-    wLayout=new Layout(wdw);
-    int wdw2=DrawLogic::CreateMyWindow();
-    wELayout=new LayoutWithEdit(wdw2);
-    int wdw3=DrawLogic::CreateMyWindow();
-    dispDir=new ShowDir(wdw3);
+    DrawLogic *ndp=new DrawLogic();
+    ndp->Initiate();
+    ndp->SetId("Layout");
+    wLayout=new Layout(ndp);
+   ndp=new DrawLogic();
+   ndp->Initiate();
+   ndp->SetId("LayoutWEdit");
+    wELayout=new LayoutWithEdit(ndp);
+   ndp=new DrawLogic();
+   ndp->Initiate();
+   ndp->SetId("Directory");
+   dispDir=new ShowDir(ndp);
 
     if (is_In_Edit_Mode){
         ptrLayout=wELayout;
@@ -116,6 +123,7 @@ void OpCenter::LaunchOperations(){
             MakeTextWindow();
         }
     }
+    ndp=nullptr;
 }
 
 void OpCenter::HaltOperations(){
@@ -164,6 +172,7 @@ void  OpCenter::MakeMenus(){
        void * nb4=new(int*);(*(int*)nb4)=4;
        XPLMAppendMenuItem(menuTextOpt,"Show FPS in Text Window",nb4,0);
     //Menu for Hotspots
+       XPLMAppendMenuItemWithCommand(menuHotspots,"Hotspot Editor",Hotspots::CmdEditHotspot);
        XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",Hotspots::CmdJumpNext);
        XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",Hotspots::CmdJumpBack);
        XPLMAppendMenuSeparator(menuHotspots);
@@ -189,7 +198,7 @@ void  OpCenter::MakeMenus(){
 
 
 }
-void  OpCenter::menuHandler(void* inMenuRef, void* inItemRef){
+void  OpCenter::menuHandler(void*, void* inItemRef){
     int menuItem=*((int*)inItemRef);
         switch (menuItem){
             case 1:{
@@ -245,17 +254,18 @@ void  OpCenter::menuHandler(void* inMenuRef, void* inItemRef){
             break;}
         }
 }
-void  OpCenter::drawText(XPLMWindowID in_window_id, void * in_refcon){
+void  OpCenter::drawText(XPLMWindowID , void *){
     (*ptrLayout).DrawTextW(g_textWindow);
 }
 
-void  OpCenter::drawFileWindow(XPLMWindowID in_window_id, void * in_refcon){
+void  OpCenter::drawFileWindow(XPLMWindowID in_window_id, void *){
     dispDir->DrawDirWindow(in_window_id);
 }
 
-int   OpCenter::handle_mouse_for_TextW (XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void * in_refcon)
+int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *)
 
-{ if (DrawLogic::IsModalWindowActive()) return 1;
+{
+    if (DrawLogic::IsModalWindow()) return 1;
     switch (mouse_status){
 
         case xplm_MouseDown: {
@@ -306,8 +316,8 @@ void OpCenter::EndEditMode(){
     ptrLayout->CheckButtonsVisibility();
 }
 
-int   OpCenter::handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void * in_refcon){
-    if (DrawLogic::IsModalWindowActive()) return 1;
+int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *){
+    if (DrawLogic::IsModalWindow()) return 1;
     switch (mouse_status){
 
         case xplm_MouseDown: {
@@ -351,8 +361,8 @@ void  OpCenter::handle_physical_keyboard(XPLMWindowID in_window_id,char in_key,X
 
 
 int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef     inCommand,
-                                   XPLMCommandPhase   inPhase,
-                                   void               *inRefcon)
+                                             XPLMCommandPhase   inPhase,
+                                             void               *inRefcon)
 {
     int cmdIssued=*((int*)inRefcon);
     switch(cmdIssued){
@@ -409,7 +419,9 @@ int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef     inCommand,
 
     return 0;//no one else needs to handle this
 }
+
 void  OpCenter::MakeTextWindow(){
+
     if (g_textWindow==nullptr){
          const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
          g_in_vr = vr_is_enabled;

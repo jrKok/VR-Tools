@@ -1,7 +1,6 @@
 #include "list_box_with_scrb.h"
 
 List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
-     in_top(0),
      in_left(0),
      grlOffsetX(0),
      grlOffsetY(0),
@@ -34,14 +33,15 @@ List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      drawBackground(true),
      isModal(modal),
      scrB(modal),
-     general(false,modal),
-     textOnly(true,modal),
+     general(false),
+     textOnly(true),
      displayText(new std::vector<string>),
      box(),
      delStr1(""),
      delStr2("")
 
 {
+
 }
 
 void List_Box_With_ScrB::WriteDebug(string message){
@@ -67,9 +67,9 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
     heightPx=hght;if (heightPx<120) heightPx=120;if (heightPx>900) heightPx=900;
     widthPx=larg;if (widthPx<230) widthPx=230;if (widthPx>1500) widthPx=1500;
     general.SetDimensions(widthPx,heightPx);
-    general.SetOffsets(in_offsetX,in_offsetY);
+    general.SetOrigin(grlOffsetX,grlOffsetY);
     textOnly.SetDimensions(widthPx-15,heightPx);
-    textOnly.SetOffsets(in_offsetX,in_offsetY);
+    textOnly.SetOrigin(grlOffsetX,grlOffsetY);
     lineLength=textOnly.GetWidth()-25;
 
 //calculate text params
@@ -101,7 +101,20 @@ void List_Box_With_ScrB::SetupforText(){
     indxLastOnPg=indxFirstOnPg+pageHeightInL;
     if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
     DisplayPage();
-    Recalculate(in_left,in_top);
+}
+
+void List_Box_With_ScrB::DeleteDisplayBox(){
+    for (auto &line:box)
+        line.DeleteLine();
+    box.clear();
+}
+
+void List_Box_With_ScrB::AddLineToDisplayBox(int lnNumber){
+    TextLine nTL(isModal);
+    nTL.SetDimensions(textOnly.GetWidth()-10,charHeight);
+    nTL.SetOrigin(textOnly.GetLeft()+5,textOnly.GetTop()-15-lnNumber*(charHeight+2));
+    nTL.SetIndex(lnNumber);
+    box.push_back(nTL);
 }
 
 void List_Box_With_ScrB::AddLine(string in_Line){
@@ -225,6 +238,7 @@ void List_Box_With_ScrB::ProceedClickCont(int x, int y){
         if (scrB.OngoingRepeat()){
             scrB.ShouldRepeat();
             DisplayAtLineN(scrB.GetPosFirstLine());
+            PrintMyText();
             return;
         }
 
@@ -235,6 +249,7 @@ void List_Box_With_ScrB::ProceedClickCont(int x, int y){
              if (nbLns!=0) {
                 DisplayAtLineN(currentIndxFP+nbLns);
                 scrB.SetPosFirstLine(indxFirstOnPg);
+                PrintMyText();
                 return;
              }
           }else{ //determine if there is some significant movement along x or y
@@ -244,6 +259,7 @@ void List_Box_With_ScrB::ProceedClickCont(int x, int y){
                 dragLines=true;
                 delLines=false;//you cannot both drag the display and delete a line
                 DisplayAtLineN(currentIndxFP+nbLns);
+                PrintMyText();
                 return;
              }
              if ((diffX>30)|(diffX<-30)){ //only if movement along x is significant (a horizontal swipe) a delete will be generated
@@ -272,15 +288,9 @@ void List_Box_With_ScrB::ProceedEndClick(){//Mouse Up
     if (scrB.OngoingRepeat()) scrB.EndRepeat();
 }
 
-void List_Box_With_ScrB::Recalculate(int in_lft, int in_tp){
-    in_top=in_tp;
+void List_Box_With_ScrB::Recalculate(int in_lft, int in_bt){
+    in_bottom=in_bt;
     in_left=in_lft;
-    general.recalculate(in_lft,in_tp);
-    textOnly.recalculate(in_lft,in_tp);
-    scrB.Recalculate(in_lft,in_tp);
-    for (auto &bx:box){
-        bx.recalculate(in_left,in_top);
-    }
 }
 void List_Box_With_ScrB::MoveUpNLines(int uL){
     DisplayAtLineN(indxFirstOnPg-uL);
@@ -418,7 +428,6 @@ void List_Box_With_ScrB::DeleteLine(int nbLn){
         DisplayAtLineN(indxFirstOnPg);
         scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
         scrB.SetPosFirstLine(indxFirstOnPg);
-        Recalculate(in_left,in_top);
     }
     else DisplayPage();
 }
@@ -469,7 +478,6 @@ void List_Box_With_ScrB::AdjustToWidth(){
         lineLength=textOnly.GetWidth()-25;
         scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
         scrB.SetPosFirstLine(indxFirstOnPg);
-        Recalculate(in_left,in_top);
     }
 }
 
@@ -567,16 +575,8 @@ void List_Box_With_ScrB::convertToUTF8(){
     for (auto &tln:(*displayText))
         tln=strops.ToUTF8(tln);
 }
-void List_Box_With_ScrB::DeleteDisplayBox(){
-    for (auto &line:box)
-        line.DeleteLine();
-    box.clear();
-}
 
-void List_Box_With_ScrB::AddLineToDisplayBox(int lnNumber){
-    TextLine nTL(isModal);
-    nTL.SetDimensions(textOnly.GetWidth()-10,charHeight);
-    nTL.SetOffsets(textOnly.GetOffsetX()+5,textOnly.GetOffsetY()+10+lnNumber*(charHeight+2));
-    nTL.SetIndex(lnNumber);
-    box.push_back(nTL);
+void List_Box_With_ScrB::PrintMyText(){
+    for (auto lineInBox:box)
+        lineInBox.PrintString();
 }

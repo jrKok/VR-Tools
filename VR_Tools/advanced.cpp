@@ -2,7 +2,7 @@
 #include "managemodalwindow.h"
 #include "drawlogic.h"
 ulong advanced::selectedB(0);
-int advanced::top(0);
+int advanced::bottom(0);
 int advanced::left(0);
 advanced *advanced::myself(nullptr);
 
@@ -20,8 +20,8 @@ advanced::advanced():
     sittingT(""),offsetT(""),rightShiftT(""),aftShiftT(""),heightT(""),widthT(""),rotT(""),tiltT(""),pitchT(""),
     sittingN(0),offsetN(0),rightShiftN(0),aftShiftN(0),heightN(0),widthN(0),rotN(0),tiltN(0),pitchN(0),
     hsNameN(0),hsBoxN(0),hsAdditionalN(0),
-    rectSit(true,true),rectBox(true,true),rectParam(true,true),rectButtons(true,true),
-    sittingB(true,true),offsetB(true,true),rightShiftB(true,true),aftShiftB(true,true),heightB(true,true),widthB(true,true),rotB(true,true),tiltB(true,true),pitchB(true,true),
+    rectSit(true),rectBox(true),rectParam(true),rectButtons(true),
+    sittingB(true),offsetB(true),rightShiftB(true),aftShiftB(true),heightB(true),widthB(true),rotB(true),tiltB(true),pitchB(true),
     sittingP(),offsetP(),rightShiftP(),aftShiftP(),heightP(),widthP(),rotP(),tiltP(),pitchP(),
     hsNameP(),hsBoxP(),hsAdditionalP(),
     actionSelected(""),
@@ -55,26 +55,28 @@ advanced::~advanced(){
 
 void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
     left=0;
-    top=0;
+    bottom=0;
     endAlert=false;
     callBack=cBck;
     int wWidth=380,col1=140,lH=22,textBoxWidth=60,textBoxHeight=15,bH=15;;
     currentHsp=htsp;
     ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,wWidth,450);
 
-
     rectSit.SetDimensions(wWidth,52);
-    rectSit.SetOffsets(0,0);
+    rectSit.SetOrigin(0,398);
     rectSit.setColor(Clr_LighterGray);
-         rectBox.SetDimensions(wWidth,140);
-         rectBox.SetOffsets(0,rectSit.GetOffsetY()+rectSit.GetHeight());
-         rectBox.setColor(Clr_LightGray);
+
+    rectBox.SetDimensions(wWidth,140);
+    rectBox.SetOrigin(0,rectSit.GetBottom()-rectSit.GetHeight());
+    rectBox.setColor(Clr_LightGray);
+
     rectParam.SetDimensions(wWidth,95);
-    rectParam.SetOffsets(0,rectBox.GetOffsetY()+rectBox.GetHeight());
+    rectParam.SetOrigin(0,rectBox.GetBottom()-rectBox.GetHeight());
     rectParam.setColor(Clr_LighterGray);
-      rectButtons.SetDimensions(wWidth,30);
-      rectButtons.SetOffsets(0,rectParam.GetOffsetY()+rectParam.GetHeight());
-      rectButtons.setColor(Clr_LightGray);
+
+    rectButtons.SetDimensions(wWidth,30);
+    rectButtons.SetOrigin(0,rectParam.GetBottom()-rectParam.GetHeight());
+    rectButtons.setColor(Clr_LightGray);
 
        sittingT="sitting/Standing :";
         offsetT="gap between box-spot :";
@@ -87,43 +89,43 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
           tiltT="Tilt (PHI) : ";
       string nm="Advanced Parameters for Hotspot : "+currentHsp.name;
 
-       sittingP.SetOffsets(col1-8-stringOps::StringSize(sittingT),rectSit.GetOffsetY()+lH+lH);
-        offsetP.SetOffsets(col1-3-stringOps::StringSize(offsetT),rectBox.GetOffsetY()+lH+lH);
-    rightShiftP.SetOffsets(col1-3-stringOps::StringSize(rightShiftT),offsetP.offsetY+lH);
-      aftShiftP.SetOffsets(col1-3-stringOps::StringSize(aftShiftT),rightShiftP.offsetY+lH);
-         widthP.SetOffsets(col1-3-stringOps::StringSize(widthT),aftShiftP.offsetY+lH);
-        heightP.SetOffsets(col1-3-stringOps::StringSize(heightT),widthP.offsetY+lH);
-           rotP.SetOffsets(col1-3-stringOps::StringSize(rotT),rectParam.GetOffsetY()+lH+20);
-         pitchP.SetOffsets(col1-3-stringOps::StringSize(pitchT),rotP.offsetY+lH);
-          tiltP.SetOffsets(col1-3-stringOps::StringSize(tiltT),pitchP.offsetY+lH);
-        hsNameP.SetOffsets(col1-100,rectSit.GetOffsetY()+lH);
-         hsBoxP.SetOffsets(col1-100,rectBox.GetOffsetY()+lH);
-  hsAdditionalP.SetOffsets(col1-100,rectParam.GetOffsetY()+lH);
+       sittingP.SetCoords(col1-8-stringOps::StringSize(sittingT),rectSit.GetBottom()+lH+lH);
+        offsetP.SetCoords(col1-3-stringOps::StringSize(offsetT),rectBox.GetBottom()+lH+lH);
+    rightShiftP.SetCoords(col1-3-stringOps::StringSize(rightShiftT),offsetP.GetY()+lH);
+      aftShiftP.SetCoords(col1-3-stringOps::StringSize(aftShiftT),rightShiftP.GetY()+lH);
+         widthP.SetCoords(col1-3-stringOps::StringSize(widthT),aftShiftP.GetY()+lH);
+        heightP.SetCoords(col1-3-stringOps::StringSize(heightT),widthP.GetY()+lH);
+           rotP.SetCoords(col1-3-stringOps::StringSize(rotT),rectParam.GetBottom()+lH+20);
+         pitchP.SetCoords(col1-3-stringOps::StringSize(pitchT),rotP.GetY()+lH);
+          tiltP.SetCoords(col1-3-stringOps::StringSize(tiltT),pitchP.GetY()+lH);
+        hsNameP.SetCoords(col1-100,rectSit.GetBottom()+lH);
+         hsBoxP.SetCoords(col1-100,rectBox.GetBottom()+lH);
+  hsAdditionalP.SetCoords(col1-100,rectParam.GetBottom()+lH);
 
-     sittingN=DrawLogic::AddModalString(sittingT,Clr_BlackInk,sittingP);
-      offsetN=DrawLogic::AddModalString(offsetT,Clr_BlackInk,offsetP);
-  rightShiftN=DrawLogic::AddModalString(rightShiftT,Clr_BlackInk,rightShiftP);
-    aftShiftN=DrawLogic::AddModalString(aftShiftT,Clr_BlackInk,aftShiftP);
-       widthN=DrawLogic::AddModalString(widthT,Clr_BlackInk,widthP);
-      heightN=DrawLogic::AddModalString(heightT,Clr_BlackInk,heightP);
-         rotN=DrawLogic::AddModalString(rotT,Clr_BlackInk,rotP);
-       pitchN=DrawLogic::AddModalString(pitchT,Clr_BlackInk,pitchP);
-        tiltN=DrawLogic::AddModalString(tiltT,Clr_BlackInk,tiltP);
+     sittingN=DrawLogic::AddString(sittingT,Clr_BlackInk,sittingP);
+      offsetN=DrawLogic::AddString(offsetT,Clr_BlackInk,offsetP);
+  rightShiftN=DrawLogic::AddString(rightShiftT,Clr_BlackInk,rightShiftP);
+    aftShiftN=DrawLogic::AddString(aftShiftT,Clr_BlackInk,aftShiftP);
+       widthN=DrawLogic::AddString(widthT,Clr_BlackInk,widthP);
+      heightN=DrawLogic::AddString(heightT,Clr_BlackInk,heightP);
+         rotN=DrawLogic::AddString(rotT,Clr_BlackInk,rotP);
+       pitchN=DrawLogic::AddString(pitchT,Clr_BlackInk,pitchP);
+        tiltN=DrawLogic::AddString(tiltT,Clr_BlackInk,tiltP);
 
-      hsNameN=DrawLogic::AddModalString(nm,Clr_PushedBlue,hsNameP);
-       hsBoxN=DrawLogic::AddModalString("Position of Binding Box relative to Hotspot :",Clr_PushedBlue,hsBoxP);
-hsAdditionalN=DrawLogic::AddModalString("hotspot orientation : ",Clr_PushedBlue,hsAdditionalP);
+      hsNameN=DrawLogic::AddString(nm,Clr_PushedBlue,hsNameP);
+       hsBoxN=DrawLogic::AddString("Position of Binding Box relative to Hotspot :",Clr_PushedBlue,hsBoxP);
+hsAdditionalN=DrawLogic::AddString("hotspot orientation : ",Clr_PushedBlue,hsAdditionalP);
 
      int corr=10;
-     sittingB.SetDimensions(textBoxWidth+7,textBoxHeight);sittingB.SetOffsets(col1-10,sittingP.offsetY-corr);
-      offsetB.SetDimensions(textBoxWidth,textBoxHeight);offsetB.SetOffsets(col1-3,offsetP.offsetY-10);
-  rightShiftB.SetDimensions(textBoxWidth,textBoxHeight);rightShiftB.SetOffsets(col1-3,rightShiftP.offsetY-corr);
-    aftShiftB.SetDimensions(textBoxWidth,textBoxHeight);aftShiftB.SetOffsets(col1-3,aftShiftP.offsetY-corr);
-       widthB.SetDimensions(textBoxWidth,textBoxHeight);widthB.SetOffsets(col1-3,widthP.offsetY-corr);
-      heightB.SetDimensions(textBoxWidth,textBoxHeight);heightB.SetOffsets(col1-3,heightP.offsetY-corr);
-         rotB.SetDimensions(textBoxWidth-20,textBoxHeight);rotB.SetOffsets(col1-3,rotP.offsetY-corr);
-       pitchB.SetDimensions(textBoxWidth-20,textBoxHeight);pitchB.SetOffsets(col1-3,pitchP.offsetY-corr);
-        tiltB.SetDimensions(textBoxWidth-20,textBoxHeight);tiltB.SetOffsets(col1-3,tiltP.offsetY-corr);
+     sittingB.SetDimensions(textBoxWidth+7,textBoxHeight);sittingB.SetOrigin(col1-10,sittingP.GetY()-corr);
+      offsetB.SetDimensions(textBoxWidth,textBoxHeight);offsetB.SetOrigin(col1-3,offsetP.GetY()-10);
+  rightShiftB.SetDimensions(textBoxWidth,textBoxHeight);rightShiftB.SetOrigin(col1-3,rightShiftP.GetY()-corr);
+    aftShiftB.SetDimensions(textBoxWidth,textBoxHeight);aftShiftB.SetOrigin(col1-3,aftShiftP.GetY()-corr);
+       widthB.SetDimensions(textBoxWidth,textBoxHeight);widthB.SetOrigin(col1-3,widthP.GetY()-corr);
+      heightB.SetDimensions(textBoxWidth,textBoxHeight);heightB.SetOrigin(col1-3,heightP.GetY()-corr);
+         rotB.SetDimensions(textBoxWidth-20,textBoxHeight);rotB.SetOrigin(col1-3,rotP.GetY()-corr);
+       pitchB.SetDimensions(textBoxWidth-20,textBoxHeight);pitchB.SetOrigin(col1-3,pitchP.GetY()-corr);
+        tiltB.SetDimensions(textBoxWidth-20,textBoxHeight);tiltB.SetOrigin(col1-3,tiltP.GetY()-corr);
 
         sittingB.setColor(Clr_White);
         offsetB.setColor(Clr_White);
@@ -135,15 +137,15 @@ hsAdditionalN=DrawLogic::AddModalString("hotspot orientation : ",Clr_PushedBlue,
         pitchB.setColor(Clr_White);
         tiltB.setColor(Clr_White);
        corr=10;
-        sittingL.SetDimensions(textBoxWidth+7,textBoxHeight);sittingL.SetOffsets(col1-10,sittingB.GetOffsetY()+corr);
-         offsetL.SetDimensions(textBoxWidth,textBoxHeight);offsetL.SetOffsets(col1-3,offsetB.GetOffsetY()+corr);
-     rightShiftL.SetDimensions(textBoxWidth,textBoxHeight);rightShiftL.SetOffsets(col1-3,rightShiftB.GetOffsetY()+corr);
-       aftShiftL.SetDimensions(textBoxWidth,textBoxHeight);aftShiftL.SetOffsets(col1-3,aftShiftB.GetOffsetY()+corr);
-          widthL.SetDimensions(textBoxWidth,textBoxHeight);widthL.SetOffsets(col1-3,widthB.GetOffsetY()+corr);
-         heightL.SetDimensions(textBoxWidth,textBoxHeight);heightL.SetOffsets(col1-3,heightB.GetOffsetY()+corr);
-            rotL.SetDimensions(textBoxWidth-20,textBoxHeight);rotL.SetOffsets(col1-3,rotB.GetOffsetY()+corr);
-          pitchL.SetDimensions(textBoxWidth-20,textBoxHeight);pitchL.SetOffsets(col1-3,pitchB.GetOffsetY()+corr);
-           tiltL.SetDimensions(textBoxWidth-20,textBoxHeight);tiltL.SetOffsets(col1-3,tiltB.GetOffsetY()+corr);
+        sittingL.SetDimensions(textBoxWidth+7,textBoxHeight);sittingL.SetOrigin(col1-10,sittingB.GetBottom()+corr);
+         offsetL.SetDimensions(textBoxWidth,textBoxHeight);offsetL.SetOrigin(col1-3,offsetB.GetBottom()+corr);
+     rightShiftL.SetDimensions(textBoxWidth,textBoxHeight);rightShiftL.SetOrigin(col1-3,rightShiftB.GetBottom()+corr);
+       aftShiftL.SetDimensions(textBoxWidth,textBoxHeight);aftShiftL.SetOrigin(col1-3,aftShiftB.GetBottom()+corr);
+          widthL.SetDimensions(textBoxWidth,textBoxHeight);widthL.SetOrigin(col1-3,widthB.GetBottom()+corr);
+         heightL.SetDimensions(textBoxWidth,textBoxHeight);heightL.SetOrigin(col1-3,heightB.GetBottom()+corr);
+            rotL.SetDimensions(textBoxWidth-20,textBoxHeight);rotL.SetOrigin(col1-3,rotB.GetBottom()+corr);
+          pitchL.SetDimensions(textBoxWidth-20,textBoxHeight);pitchL.SetOrigin(col1-3,pitchB.GetBottom()+corr);
+           tiltL.SetDimensions(textBoxWidth-20,textBoxHeight);tiltL.SetOrigin(col1-3,tiltB.GetBottom()+corr);
 
            GetBBoxDescription();
 
@@ -158,30 +160,30 @@ hsAdditionalN=DrawLogic::AddModalString("hotspot orientation : ",Clr_PushedBlue,
            tiltL.setText(stringOps::ConvertFloatToString(currentHsp.phi,0));
 
         int oX=col1+6+textBoxWidth,bW=64;
-        MakeModalButton("Cancel","Cancel",0,100,20,170,rectButtons.GetOffsetY()+5);
-        MakeModalButton("SITTING","Sitting",1,bW,bH,oX,sittingB.GetOffsetY());
-        MakeModalButton("STANDING","Standing",2,bW,bH,oX+bW+2,sittingB.GetOffsetY());
-        MakeModalButton("+5cm","Raise50",3,bW,bH,oX,offsetB.GetOffsetY());
-        MakeModalButton("-5cm","Lower50",4,bW,bH,oX+bW+2,offsetB.GetOffsetY());
-        MakeModalButton("+2cm(R)","Right20",5,bW,bH,oX,rightShiftB.GetOffsetY());
-        MakeModalButton("-2cm(L)","Left20",6,bW,bH,oX+bW+2,rightShiftB.GetOffsetY());
-        MakeModalButton("-2cm(F)","For20",7,bW,bH,oX,aftShiftB.GetOffsetY());
-        MakeModalButton("+2cm(B)","Aft20",8,bW,bH,oX+bW+2,aftShiftB.GetOffsetY());
-        MakeModalButton("+5cm","Width20",9,bW,bH,oX,widthB.GetOffsetY());
-        MakeModalButton("-5cm","Width-20",10,bW,bH,oX+bW+2,widthB.GetOffsetY());
-        MakeModalButton("+10cm","Taller20",11,bW,bH,oX,heightB.GetOffsetY());
-        MakeModalButton("-10cm","Shorter20",12,bW,bH,oX+bW+2,heightB.GetOffsetY());
-        MakeModalButton("Forw","rot0",13,bW/2,bH,oX,rotB.GetOffsetY());
-        MakeModalButton("Right","rot90",14,bW/2,bH,oX+bW/2+2,rotB.GetOffsetY());
-        MakeModalButton("Back","rot180",15,bW/2,bH,oX+bW+4,rotB.GetOffsetY());
-        MakeModalButton("Left","rot270",16,bW/2,bH,oX+3*bW/2+6,rotB.GetOffsetY());
-        MakeModalButton("+5°","pitch+5",17,bW,bH,oX,pitchB.GetOffsetY());
-        MakeModalButton("-5°","pitch-5",18,bW,bH,oX+bW+2,pitchB.GetOffsetY());
-        MakeModalButton("+2°","tilt+2°",19,bW,bH,oX,tiltB.GetOffsetY());
-        MakeModalButton("-2°","tilt-2°",20,bW,bH,oX+bW+2,tiltB.GetOffsetY());
-        MakeModalButton("Commit","Ok",21,100,20,40,rectButtons.GetOffsetY()+5);
+        MakeModalButton("Cancel","Cancel",0,100,20,170,rectButtons.GetBottom()+5);
+        MakeModalButton("SITTING","Sitting",1,bW,bH,oX,sittingB.GetBottom());
+        MakeModalButton("STANDING","Standing",2,bW,bH,oX+bW+2,sittingB.GetBottom());
+        MakeModalButton("+5cm","Raise50",3,bW,bH,oX,offsetB.GetBottom());
+        MakeModalButton("-5cm","Lower50",4,bW,bH,oX+bW+2,offsetB.GetBottom());
+        MakeModalButton("+2cm(R)","Right20",5,bW,bH,oX,rightShiftB.GetBottom());
+        MakeModalButton("-2cm(L)","Left20",6,bW,bH,oX+bW+2,rightShiftB.GetBottom());
+        MakeModalButton("-2cm(F)","For20",7,bW,bH,oX,aftShiftB.GetBottom());
+        MakeModalButton("+2cm(B)","Aft20",8,bW,bH,oX+bW+2,aftShiftB.GetBottom());
+        MakeModalButton("+5cm","Width20",9,bW,bH,oX,widthB.GetBottom());
+        MakeModalButton("-5cm","Width-20",10,bW,bH,oX+bW+2,widthB.GetBottom());
+        MakeModalButton("+10cm","Taller20",11,bW,bH,oX,heightB.GetBottom());
+        MakeModalButton("-10cm","Shorter20",12,bW,bH,oX+bW+2,heightB.GetBottom());
+        MakeModalButton("Forw","rot0",13,bW/2,bH,oX,rotB.GetBottom());
+        MakeModalButton("Right","rot90",14,bW/2,bH,oX+bW/2+2,rotB.GetBottom());
+        MakeModalButton("Back","rot180",15,bW/2,bH,oX+bW+4,rotB.GetBottom());
+        MakeModalButton("Left","rot270",16,bW/2,bH,oX+3*bW/2+6,rotB.GetBottom());
+        MakeModalButton("+5°","pitch+5",17,bW,bH,oX,pitchB.GetBottom());
+        MakeModalButton("-5°","pitch-5",18,bW,bH,oX+bW+2,pitchB.GetBottom());
+        MakeModalButton("+2°","tilt+2°",19,bW,bH,oX,tiltB.GetBottom());
+        MakeModalButton("-2°","tilt-2°",20,bW,bH,oX+bW+2,tiltB.GetBottom());
+        MakeModalButton("Commit","Ok",21,100,20,40,rectButtons.GetBottom()+5);
 
-        int offcmX(195),offcmY(rectButtons.GetOffsetY()+30);
+        int offcmX(195),offcmY(rectButtons.GetBottom()+30);
         MakeModalButton("m","m",22,40,20,offcmX,offcmY);
         MakeModalButton("cm","cm",23,40,20,offcmX,offcmY+22);
         MakeModalButton("mm","mm",24,40,20,offcmX,offcmY+44);
@@ -191,7 +193,7 @@ hsAdditionalN=DrawLogic::AddModalString("hotspot orientation : ",Clr_PushedBlue,
         forcursor.push_back("");
 
         numpad=new Keyboard(true);
-        numpad->MakeKeyboard(100,rectButtons.GetOffsetY()+30,true);
+        numpad->MakeKeyboard(100,rectButtons.GetBottom()+30,true);
         numpad->SetVisibility(true);
         ChangeCurrentUnit(0,22);
 
@@ -199,9 +201,9 @@ hsAdditionalN=DrawLogic::AddModalString("hotspot orientation : ",Clr_PushedBlue,
 }
 
 void advanced::MakeModalButton(string name,string actionName,ulong myNumber,int width, int height, int offsetX, int offsetY){
-    ModalButton thisButton;
+    button_VR thisButton;
     thisButton.SetDimensions(width,height);
-    thisButton.SetOffsets(offsetX,offsetY);   
+    thisButton.SetOrigin(offsetX,offsetY);
     thisButton.SetToStateColor();
     thisButton.setText(name);
     thisButton.setVisibility(true);
@@ -212,82 +214,21 @@ void advanced::MakeModalButton(string name,string actionName,ulong myNumber,int 
     actionButtons.push_back(newAction);
 }
 
-void advanced::RecalculateDialog (){
-    for (auto &bt:myself->actionButtons){
-        bt.button.recalculate(left,top);
-    }
-     myself->rectBox.recalculate(left,top);
-     myself->rectSit.recalculate(left,top);
-     myself->rectParam.recalculate(left,top);
-     myself->rectButtons.recalculate(left,top);
-     myself->numpad->Recalculate(left,top);
-     myself->sittingP.recalculate(left,top);
-      myself->offsetP.recalculate(left,top);
-  myself->rightShiftP.recalculate(left,top);
-    myself->aftShiftP.recalculate(left,top);
-       myself->widthP.recalculate(left,top);
-      myself->heightP.recalculate(left,top);
-         myself->rotP.recalculate(left,top);
-       myself->pitchP.recalculate(left,top);
-        myself->tiltP.recalculate(left,top);
-       myself->hsBoxP.recalculate(left,top);
-      myself->hsNameP.recalculate(left,top);
-myself->hsAdditionalP.recalculate(left,top);
 
-    myself->sittingB.recalculate(left,top);
-     myself->offsetB.recalculate(left,top);
- myself->rightShiftB.recalculate(left,top);
-   myself->aftShiftB.recalculate(left,top);
-      myself->widthB.recalculate(left,top);
-     myself->heightB.recalculate(left,top);
-        myself->rotB.recalculate(left,top);
-      myself->pitchB.recalculate(left,top);
-       myself->tiltB.recalculate(left,top);
+void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
 
-    myself->sittingL.recalculate(left,top);
-     myself->offsetL.recalculate(left,top);
- myself->rightShiftL.recalculate(left,top);
-   myself->aftShiftL.recalculate(left,top);
-      myself->widthL.recalculate(left,top);
-     myself->heightL.recalculate(left,top);
-        myself->rotL.recalculate(left,top);
-      myself->pitchL.recalculate(left,top);
-       myself->tiltL.recalculate(left,top);
-
-       DrawLogic::RelocateModalString(myself->sittingN,myself->sittingP);
-       DrawLogic::RelocateModalString(myself->offsetN,myself->offsetP);
-       DrawLogic::RelocateModalString(myself->rightShiftN,myself->rightShiftP);
-       DrawLogic::RelocateModalString(myself->aftShiftN,myself->aftShiftP);
-       DrawLogic::RelocateModalString(myself->widthN,myself->widthP);
-       DrawLogic::RelocateModalString(myself->heightN,myself->heightP);
-       DrawLogic::RelocateModalString(myself->rotN,myself->rotP);
-       DrawLogic::RelocateModalString(myself->pitchN,myself->pitchP);
-       DrawLogic::RelocateModalString(myself->tiltN,myself->tiltP);
-       DrawLogic::RelocateModalString(myself->hsNameN,myself->hsNameP);
-       DrawLogic::RelocateModalString(myself->hsBoxN,myself->hsBoxP);
-       DrawLogic::RelocateModalString(myself->hsAdditionalN,myself->hsAdditionalP);
-
-       ManageModalWindow::Recalculate(left,top);
-       if (myself->activeLine!=nullptr){
-           myself->cursor.Recalculate(myself->activeLine->GetX(),myself->activeLine->GetY());
-       }
-}
-
-void advanced::DrawMyself(XPLMWindowID in_window_id, void * in_refcon){
-
-    int lft(left),tp(top),right,bottom;
+    int lft(left),top(0),right(0),btm(bottom);
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||tp!=top) RecalculateDialog();
-    DrawLogic::DrawModalElements();
+    if (lft!=left||btm!=bottom) DrawLogic::SetScreenOrigin(left,bottom);
+    DrawLogic::DrawContent();
     if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);
         myself->cursor.DrawRectangle(l,myself->activeLine->GetTop(),r,myself->activeLine->GetBottom());}
-    DrawLogic::DrawModalStrings();
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->activeLine->GetY());
+    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->activeLine->GetTextY());
 }
 
-int advanced::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
+int advanced::MouseHandler(XPLMWindowID, int x, int y, int is_down, void *){
     if (is_down==xplm_MouseDown){
         string selAct("");
         myself->mouseDrag=false;
@@ -427,7 +368,7 @@ int advanced::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down,
 }
 
 void advanced::ButtonAction(string actionName, ulong mbutton){
-    int nod(1);
+    ulong nod(1);
     if (currentUnit==0||currentUnit==3) nod=4;
     if (currentUnit==1||currentUnit==4) nod=2;
     actionSelected=actionName;
@@ -479,9 +420,8 @@ void advanced::SelectLine(TextLine *in_line, int x, float *in_param){
         activeLine=in_line;
         activeParameter=in_param;
         forcursor[0]=activeLine->GetText();
-        cursor.Initiate(&forcursor,activeLine->GetOffsetX(),activeLine->GetOffsetY(),10,1);
+        cursor.Initiate(&forcursor,activeLine->GetTextX(),activeLine->GetTextY(),10,1);
         cursor.SetCursorAt(0,0);
-        cursor.Recalculate(activeLine->GetX(),activeLine->GetY());
     }
 }
 

@@ -15,13 +15,14 @@
 #include "XPLMMenus.h"
 #include "VR_Tools_global.h"
 #include <localclipboard.h>
-#include "modalbutton.h"
 #include <rectangles.h>
 #include <point.h>
 #include "cursor.h"
 #include "textline.h"
 #include "keyboard.h"
 #include "vrcreader.h"
+#include "button_vr.h"
+#include "drawlogic.h"
 
 
 using std::string;
@@ -88,14 +89,13 @@ public:
 private:
 
     void LaunchMoveCommand();
-
     static XPLMCommandRef CmdRight,CmdLeft,CmdUp,CmdDown,CmdForward,CmdBackward;
     XPLMCommandRef CommandLaunched;
     std::function<void()> callBack;
-    ModalButton *yesButton,*noButton,*cancelButton,*advancedButton;
-    ModalButton *relogButton,*upButton,*downButton,*renameButton,*createButton,*deleteButton,*repositionButton;
-    ModalButton *vaftButton,*vforwButton,*vupButton,*vdownButton,*vleftButton,*vrightButton;
-    ModalButton *clicked;
+    button_VR *yesButton,*noButton,*cancelButton,*advancedButton;
+    button_VR *relogButton,*upButton,*downButton,*renameButton,*createButton,*deleteButton,*repositionButton;
+    button_VR *vaftButton,*vforwButton,*vupButton,*vdownButton,*vleftButton,*vrightButton;
+    button_VR *clicked;
     rectangles *textRect;
     int width, height,answer,myStringNumber,myStringN2,myStringN3,textOffsetX,textOffsetY,selectedHotsp;
     float targetX,targetY,targetZ;

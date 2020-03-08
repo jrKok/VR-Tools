@@ -11,38 +11,40 @@
 class rectangles
 {
 public:
-    rectangles(bool drawable=true,bool ismodal=false);
-    rectangles(int in_top, int in_left, int in_bottom, int in_right, char in_Color, bool in_visibility);
+    rectangles(bool drawable=true);
+    rectangles(int in_top,
+               int in_left,
+               int in_bottom,
+               int in_right,
+              char in_Color,
+              bool in_visibility);
 
+  virtual     ~rectangles();
   virtual void setVisibility(bool in_Visibility);
-  virtual      ~rectangles();
-  virtual  void recalculate();
-  virtual  void recalculate(int lt,int tp);
+  virtual void SetOrigin(int in_x,int in_y);
 
     void setColor(char in_Color);
-    void setText(std::string);
     bool isHere(int,int);
     void resetMe();
     void WriteDebug(std::string message);
-
-    void SetOrigin(int in_x,int in_y);
-    void SetOffsets(int ox, int oy);
     void SetDimensions(int in_width, int in_height);
-    void SetAngles(int in_left,int in_top, int in_right,int in_bottom);
+    void SetAngles(int in_left, int in_bottom, int in_right, int in_top);
     int  GetTop()const ;
     int  GetBottom()const;
     int  GetLeft()const;
     int  GetRight()const;
     int  GetWidth()const;
     int  GetHeight()const;
-    int  GetOffsetX()const;
-    int  GetOffsetY()const;
+    int  GetId()const;
+    bool IsVisible()const;
+    char GetColor()const;
     void PrintParameters();
-    void PrintModalParams();
-    void SetAsModalRect0();
+    void Shift(int dx,int dy);
+    void UpdateMyTexture();
 
 protected:
-    int top,left,bottom,right,in_top,in_left,height,width,offsetX,offsetY;
+    int top,left,bottom,right,height,width;
+    char my_currentColor;
     bool isVisible,isModal;
     int drawNumber;
 };

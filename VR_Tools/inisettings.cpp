@@ -74,7 +74,7 @@ void IniSettings::OrientFilePointer(){
     char sysPath[512];
     XPLMGetSystemPath(sysPath);
     string sysDir=sysPath;//conversion from char[]
-    sysDir=sysDir.substr(0,(sysDir.size()-1));//remove trailing "\"
+    sysDir=sysDir.substr(0,(sysDir.size()-1));//remove trailing "/"
     string systemCharSep=XPLMGetDirectorySeparator();
     FilePointer::DirSeparator=systemCharSep;
     FilePointer::SetCurrentFileName(file);
@@ -301,7 +301,7 @@ bool IniSettings::GetOptDelete()          {return deleteEnable;}
 bool IniSettings::GetOptFreqs()           {return navsSetEnable;}
 bool IniSettings::GetOptFPS()             {return displayFPS;}
 bool IniSettings::GetOptReloadProc()      {return periodicReload;}
-float IniSettings::GetReloadPeriod()       {return reloadPeriod;}
+float IniSettings::GetReloadPeriod()      {return reloadPeriod;}
 int  IniSettings::GetSpeedMove()          {return speedOfMove;}
 bool IniSettings::GetOptReloadModel()     {return reloadModel;}
 bool IniSettings::GetOptHSCommands()      {return makeHSCommands;}

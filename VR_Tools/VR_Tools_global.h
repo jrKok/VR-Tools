@@ -17,6 +17,9 @@
     using namespace  std::experimental::filesystem;
 #endif
 
+const int MaxWWidth(1500);
+const int MaxWHeight(900);
+
 enum{B_Load_File=0,
      B_Reload=1,
      B_Auto=2,

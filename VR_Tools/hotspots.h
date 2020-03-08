@@ -30,7 +30,7 @@ void  Setup();
     static void  PrepareToMove();
     static float MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refcon);
     static int   Create_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
-    static int   Edit_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
+    static int   Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase, void *);
     static void  MakeMoveComplete();
     static void  MakeMove4();
     static void  Handle_End_Of_Create_Command();
@@ -45,6 +45,7 @@ void  Setup();
 
     static XPLMCommandRef CmdTurnLeft,CmdTurnRight,CmdJumpNext,CmdJumpBack;
     static XPLMCommandRef MoveToHS1,MoveToHS2,MoveToHS3,MoveToHS4;
+    static XPLMCommandRef CmdEditHotspot;
 
 private:
         static XPLMDataRef    pilotX,pilotY,pilotZ,pilotPsi,outside;
@@ -53,7 +54,7 @@ private:
         static XPLMCommandRef CmdRightF,CmdLeftF,CmdUpF,CmdDownF,CmdForwardF,CmdBackwardF;
 
         static XPLMCommandRef CmdX,CmdY,CmdZ,CmdTurn;
-        static XPLMCommandRef CmdCreateHotspot,ReloadAC,CmdEditHotspot,VRReset;
+        static XPLMCommandRef CmdCreateHotspot,ReloadAC,VRReset;
         static float targetX,targetY,targetZ,targetPsi;
         static int signX,signY,signZ,signRot;
         static int phaseMove;

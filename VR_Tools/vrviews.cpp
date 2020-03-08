@@ -1,6 +1,6 @@
 #include "vrviews.h"
 #include "managemodalwindow.h"
-#include "drawlogic.h"
+
 #include "vrcommandfilter.h"
 
 VrViews       *VrViews::myself;
@@ -60,7 +60,6 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     epochClick(0)
 
 {
-
 }
 
 VrViews::~VrViews(){
@@ -145,153 +144,150 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     }
 
     point p;
-    p.myX=textOffsetX;
-    p.myY=textOffsetY;
-    myStringNumber=DrawLogic::AddModalString(alertStr,Clr_Black,p);
-    p.myX=100;
-    p.myY=posSecondLine;
-    myStringN2=DrawLogic::AddModalString("If needed, Select a hotspot :",Clr_BlackInk,p);
-    p.myX=textOffsetX;
-    p.myY=posThirdLine;
-    myStringN3=DrawLogic::AddModalString("Type a name to create a hotspot or rename an existing one :",Clr_BlackInk,p);
+    p.SetCoords(textOffsetX,textOffsetY);
+    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,p);
+    p.SetCoords(100,posSecondLine);
+    myStringN2=DrawLogic::AddString("If needed, Select a hotspot :",Clr_BlackInk,p);
+    p.SetCoords(textOffsetX,posThirdLine);
+    myStringN3=DrawLogic::AddString("Type a name to create a hotspot or rename an existing one :",Clr_BlackInk,p);
 
-    yesButton=        new ModalButton();
-    noButton=         new ModalButton();
-    cancelButton=     new ModalButton();
-    advancedButton=   new ModalButton();
+    yesButton=        new button_VR();
+    noButton=         new button_VR();
+    cancelButton=     new button_VR();
+    advancedButton=   new button_VR();
 
-    relogButton=      new ModalButton();
-    vupButton  =      new ModalButton();
-    vdownButton=      new ModalButton();
-    vforwButton=      new ModalButton();
-    vaftButton =      new ModalButton();
-    vleftButton=      new ModalButton();
-    vrightButton=     new ModalButton();
-    vaftButton =      new ModalButton();
-    upButton=         new ModalButton();
-    downButton=       new ModalButton();
+    relogButton=      new button_VR();
+    vupButton  =      new button_VR();
+    vdownButton=      new button_VR();
+    vforwButton=      new button_VR();
+    vaftButton =      new button_VR();
+    vleftButton=      new button_VR();
+    vrightButton=     new button_VR();
+    vaftButton =      new button_VR();
+    upButton=         new button_VR();
+    downButton=       new button_VR();
 
-    renameButton=     new ModalButton();
-    createButton=     new ModalButton();
-    deleteButton=     new ModalButton();
-    repositionButton= new ModalButton();
+    renameButton=     new button_VR();
+    createButton=     new button_VR();
+    deleteButton=     new button_VR();
+    repositionButton= new button_VR();
 
     yesButton->SetDimensions(buttonwidth,buttonHeight);
-    yesButton->SetOffsets(pos,posButtons);
+    yesButton->SetOrigin(pos,posButtons);
     yesButton->setText(yesStr);
     yesButton->setVisibility(yesStr!=""?true:false);
     yesButton->SetToStateColor();
     pos+=buttonwidth+20;
 
     noButton->SetDimensions(buttonwidth,buttonHeight);
-    noButton->SetOffsets(pos,posButtons);
+    noButton->SetOrigin(pos,posButtons);
     noButton->setText(noStr);
     noButton->setVisibility(noStr!=""?true:false);
     noButton->SetToStateColor();
     pos+=buttonwidth+20;
 
     cancelButton->SetDimensions(buttonwidth,buttonHeight);
-    cancelButton->SetOffsets(pos,posButtons);
+    cancelButton->SetOrigin(pos,posButtons);
     cancelButton->setText(cancelStr);
     cancelButton->SetToStateColor();
     cancelButton->setVisibility(cancelStr!=""?true:false);
     pos+=buttonwidth+20;
 
     advancedButton->SetDimensions(buttonwidth,buttonHeight);
-    advancedButton->SetOffsets(pos,posButtons);
+    advancedButton->SetOrigin(pos,posButtons);
     advancedButton->setText("Advanced");
     advancedButton->SetToStateColor();
     advancedButton->setVisibility(true);
 
     relogButton->SetDimensions(40,40);
-    relogButton->SetOffsets(365,25);
+    relogButton->SetOrigin(365,25);
     relogButton->setText("Relog");
     relogButton->setColor(Clr_Green);
     relogButton->setVisibility(true);
 
     vforwButton->SetDimensions(20,20);
-    vforwButton->SetOffsets(375,70);
+    vforwButton->SetOrigin(375,70);
     vforwButton->setText("\xcb\x84");
     vforwButton->SetToStateColor();
     vforwButton->setVisibility(true);
 
     vleftButton->SetDimensions(20,20);
-    vleftButton->SetOffsets(359,91);
+    vleftButton->SetOrigin(359,91);
     vleftButton->setText("\xcb\x82");
     vleftButton->SetToStateColor();
     vleftButton->setVisibility(true);
 
     vrightButton->SetDimensions(20,20);
-    vrightButton->SetOffsets(391,91);
+    vrightButton->SetOrigin(391,91);
     vrightButton->setText("\xcb\x83");
     vrightButton->SetToStateColor();
     vrightButton->setVisibility(true);
 
     vaftButton->SetDimensions(20,20);
-    vaftButton->SetOffsets(375,112);
+    vaftButton->SetOrigin(375,112);
     vaftButton->setText("\xcb\x85");
     vaftButton->SetToStateColor();
     vaftButton->setVisibility(true);
 
     vupButton->SetDimensions(20,20);
-    vupButton->SetOffsets(330,91);
+    vupButton->SetOrigin(330,91);
     vupButton->setText("\xe2\x86\xa5");
     vupButton->SetToStateColor();
     vupButton->setVisibility(true);
 
     vdownButton->SetDimensions(20,20);
-    vdownButton->SetOffsets(419,91);
+    vdownButton->SetOrigin(419,91);
     vdownButton->setText("\xe2\x86\xa7");
     vdownButton->SetToStateColor();
     vdownButton->setVisibility(true);
 
     pos=20;
     upButton->SetDimensions(20,buttonHeight);
-    upButton->SetOffsets(50,posListBox+40);
+    upButton->SetOrigin(50,posListBox+40);
     upButton->setText("\xe2\x86\x91");
     upButton->SetToStateColor();
     upButton->setVisibility(true);
 
     downButton->SetDimensions(20,buttonHeight);
-    downButton->SetOffsets(50,posListBox+65);
+    downButton->SetOrigin(50,posListBox+65);
     downButton->setText("\xe2\x86\x93");
     downButton->SetToStateColor();
     downButton->setVisibility(true);
 
     createButton->SetDimensions(cmdBWidth,buttonHeight);    
-    createButton->SetOffsets(pos,posCommandButtons);
+    createButton->SetOrigin(pos,posCommandButtons);
     createButton->setText("Create");
     createButton->SetToStateColor();
     createButton->setVisibility(true);
     pos=pos+cmdBWidth+2;
 
     renameButton->SetDimensions(cmdBWidth,buttonHeight);
-    renameButton->SetOffsets(pos,posCommandButtons);
+    renameButton->SetOrigin(pos,posCommandButtons);
     renameButton->setText("Rename");
     renameButton->SetToStateColor();
     renameButton->setVisibility(true);
     pos=pos+cmdBWidth+2;
 
     repositionButton->SetDimensions(cmdBWidth,buttonHeight);
-    repositionButton->SetOffsets(pos,posCommandButtons);
+    repositionButton->SetOrigin(pos,posCommandButtons);
     repositionButton->setText("Update");
     repositionButton->SetToStateColor();
     repositionButton->setVisibility(true);
     pos=pos+cmdBWidth+cmdBWidth+2;
 
     deleteButton->SetDimensions(cmdBWidth,buttonHeight);
-    deleteButton->SetOffsets(pos,posCommandButtons);
+    deleteButton->SetOrigin(pos,posCommandButtons);
     deleteButton->setText("Delete");
     deleteButton->SetToStateColor();
     deleteButton->setVisibility(true);
 
-    textRect= new rectangles(true,true);
+    textRect= new rectangles(true);
     textRect->SetDimensions(width-20,20);
-    textRect->SetOffsets(10,posEditLine);
+    textRect->SetOrigin(10,posEditLine);
     textRect->setColor(Clr_White);
 
     editLine.SetDimensions(width-20,15);
-    editLine.SetOffsets(12,posEditLine+10);
+    editLine.SetOrigin(12,posEditLine+10);
     editLine.setText(in_String);
     ManageModalWindow::ResizeModalWindow(width,height);
     cursor.SetCursorAt(0,0);
@@ -328,60 +324,22 @@ int VrViews::GetActionLaunched(){
 }
 
 void VrViews::RecalculateDialog (){
-                      myself->Recalculate(left,top);
-           myself->yesButton->recalculate(left,top);
-            myself->noButton->recalculate(left,top);
-        myself->cancelButton->recalculate(left,top);
-      myself->advancedButton->recalculate(left,top);
-         myself->relogButton->recalculate(left,top);
-        myself->renameButton->recalculate(left,top);
-        myself->createButton->recalculate(left,top);
-        myself->deleteButton->recalculate(left,top);
-    myself->repositionButton->recalculate(left,top);
-            myself->upButton->recalculate(left,top);
-          myself->downButton->recalculate(left,top);
-                myself->keyb->Recalculate(left,top);
-           myself->vupButton->recalculate(left,top);
-         myself->vdownButton->recalculate(left,top);
-          myself->vaftButton->recalculate(left,top);
-         myself->vforwButton->recalculate(left,top);
-         myself->vleftButton->recalculate(left,top);
-        myself->vrightButton->recalculate(left,top);
-            myself->textRect->recalculate(left,top);
-             myself->editLine.recalculate(left,top);
-           ManageModalWindow::Recalculate(left,top);
 
-    point p;
-    p.myX=left+myself->textOffsetX;
-    p.myY=top-myself->textOffsetY;
-    DrawLogic::RelocateModalString(myself->myStringNumber,p);
-    p.myY=p.myY-12;
-    p.myX=left+100;
-    DrawLogic::RelocateModalString(myself->myStringN2,p);
-    p.myY=p.myY-203;
-    p.myX=left+myself->textOffsetX;
-    DrawLogic::RelocateModalString(myself->myStringN3,p);
-    right=left+myself->width;
-    bottom=top-myself->height;
-
-    myself->cursor.Recalculate(myself->editLine.GetX(),myself->editLine.GetY());
 }
 
 void VrViews::DrawMyself(XPLMWindowID in_window_id, void * unused){
 
     if (myself->keyb==nullptr) myself->WriteDebug("vrviews draw : got a call while keyb was deleted");
-    int lft(left),tp(top),right,bottom;
+    int lft(left),btom(bottom);
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||tp!=top) RecalculateDialog();
-
-    DrawLogic::DrawModalElements();
-    if (myself->cursor.HasSelection()){
+    if (lft!=left||btom!=bottom) ManageModalWindow::Recalculate(left,bottom);
+    /*if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);
-        myself->cursor.DrawRectangle(l,myself->editLine.GetTop(),r,myself->editLine.GetBottom());}
+        myself->cursor.DrawRectangle(l,myself->editLine.GetTop(),r,myself->editLine.GetBottom());}*/
 
-    DrawLogic::DrawModalStrings();
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetY());
+    DrawLogic::DrawContent();
+    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetBottom());
 }
 
 int VrViews::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
@@ -543,7 +501,7 @@ void VrViews::MouseToUp(){
                     +" Y="+stringOps::ConvertFloatToString(myself->targetY)
                     +" Z="+stringOps::ConvertFloatToString(myself->targetZ)
                     +" PSI="+stringOps::ConvertFloatToString(0);
-            DrawLogic::ChangeModalString(myself->myStringNumber,toPass);
+            DrawLogic::ChangeString(myself->myStringNumber,toPass);
             myself->actionLaunched=false;
             VRCommandFilter::commandBlock=myself->filterblock;
             myself->action=0;
@@ -570,7 +528,7 @@ void VrViews::LaunchAction(int in_action){
                 +" Y="+stringOps::ConvertFloatToString(targetY)
                 +" Z="+stringOps::ConvertFloatToString(targetZ)
                 +" PSI="+stringOps::ConvertFloatToString(0);
-        DrawLogic::ChangeModalString(myStringNumber,toPass);
+        DrawLogic::ChangeString(myStringNumber,toPass);
         actionLaunched=false;
 
     }break;
@@ -826,7 +784,7 @@ void VrViews::InsertLetter(string fromKeyb){
 }
 
 void VrViews::MessageLine3(const string &in_line){
-    DrawLogic::ChangeModalString(myStringN3,in_line);
+    DrawLogic::ChangeString(myStringN3,in_line);
 }
 
 void VrViews::EndAlert(){

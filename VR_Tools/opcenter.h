@@ -20,6 +20,7 @@
 #include "drawlogic.h"
 #include "temporarywindow.h"
 #include "hotspots.h"
+#include "globals.h"
 
 using std::string;
 
@@ -36,10 +37,10 @@ public:
 
     /*Forward declarations */
  static   void  WriteDebug(string in_string);
- static   void  drawText(XPLMWindowID in_window_id, void * in_refcon);
- static   void  drawFileWindow(XPLMWindowID in_window_id, void * in_refcon);
- static   int   handle_mouse_for_TextW (XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void * in_refcon);
- static   int   handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void * in_refcon);
+ static   void  drawText(XPLMWindowID, void *);
+ static   void  drawFileWindow(XPLMWindowID in_window_id, void *);
+ static   int   handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *);
+ static   int   handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void *);
  static   void  handle_physical_keyboard(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus);
 
  static  int	dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon);
@@ -47,7 +48,7 @@ public:
  static   int	dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon);
  static   void  dummy_key_handler(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus);
 
- static   void  menuHandler(void* inMenuRef, void* inItemRef);
+ static   void  menuHandler(void*, void* inItemRef);
 
  static   int   MyTextReaderCommandHandler  (XPLMCommandRef     inCommand,
                                              XPLMCommandPhase   inPhase,
@@ -80,6 +81,7 @@ static bool g_in_vr;
        IniSettings ini;
        DrawLogic drw;
        temporaryWindow tw;
+       globals colordefs;
 
 };
 

@@ -20,12 +20,13 @@ public:
     std::string buttonText;
     std::vector<point> symbol;
 
-virtual void recalculate();
 virtual void setVisibility(bool vis);
+virtual void SetOrigin(int in_x, int in_y);
     void AddText();
+    void LocateText();
     void SetTextOffsets(int oX,int oY);
-    int  GetTextOffsetX();
-    int  GetTextOffsetY();
+    int  GetTextX();
+    int  GetTextY();
     void addPoint(int,int);
     void setText(const std::string &);
     void setTextFixedSize(const std::string &in_String);
@@ -38,8 +39,9 @@ virtual void setVisibility(bool vis);
     void setSelect(bool selState);
     void SetToWarningColor();
     void SetToStateColor();
-    void DeleteButton();
     void SetOffsetY(int in_oY);
+    void ReDrawButton();
+
 
 protected:
     bool isModalB;

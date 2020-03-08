@@ -16,7 +16,7 @@
 #include "XPLMMenus.h"
 #include "VR_Tools_global.h"
 #include <localclipboard.h>
-#include "modalbutton.h"
+#include "button_vr.h"
 #include <rectangles.h>
 #include <point.h>
 #include "cursor.h"
@@ -35,7 +35,7 @@ using std::vector;
 
 struct Action{
     string ActionName;
-    ModalButton button;
+    button_VR button;
     ulong number;
 };
 class advanced
@@ -46,7 +46,6 @@ public:
 
     void MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck);
     void MakeModalButton(string name, string actionName, ulong myNumber, int width, int height, int offsetX, int offsetY);
-    static void RecalculateDialog ();
     static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
     static int MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused);
     void SelectLine(TextLine *in_line,int x,float *in_param);
@@ -77,7 +76,7 @@ private:
     float *activeParameter;
     float bBoxOffset,bBoxLatShift,bBoxAxShift,bBoxheight,bBoxWidth;
     float rot,tilt,pitch;
-    static int left,top;
+    static int left,bottom;
     TextLine sittingL,offsetL,rightShiftL,aftShiftL,heightL,widthL,rotL,tiltL,pitchL;
     TextLine *activeLine;
     string sittingT,offsetT,rightShiftT,aftShiftT,heightT,widthT,rotT,tiltT,pitchT;

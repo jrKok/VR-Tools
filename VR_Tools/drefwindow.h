@@ -45,14 +45,14 @@ public:
     static void	 drawDRef(XPLMWindowID in_window_id, void * in_refcon);
     static void  drawWReport(XPLMWindowID in_window_id, void * in_refcon);
     static int   MyDRefCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
-    static float UpdateValue(float elpSc,float elpTime,int countr,void* refcon);
+    static float UpdateValue(float, float, int, void*);
 
 
     //dummies because not needed for operation but needed for declaration
-    static int	 dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon);
-    static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon);
-    static int	 dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon);
-    static void  dummy_key_handler(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus);
+    static int	 dummy_mouse_handler(XPLMWindowID, int, int, int, void *);
+    static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID, int, int, void *);
+    static int	 dummy_wheel_handler(XPLMWindowID, int, int, int, int, void *);
+    static void  dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
 
 
 

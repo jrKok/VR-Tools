@@ -22,7 +22,6 @@ public:
     char GetChar2();
     bool IsSpecialKey();
     bool IsUTFKey();
-    void reposition (int dX,int dY);
     Key* GetMyPointer();
 private:
     char ch1,ch2;

@@ -12,7 +12,7 @@ ScrollBars::ScrollBars(bool modal):
     page(0),
     numberfirstLine(0),limitLastLine(0),
     totalheight(0),
-    topCore(0),lowCore(0),freeCore(0),
+    topCore(0),lowCore(0),
     heightOfCore(0),
     heightOfLift(0),
     posOfLift(0),
@@ -27,11 +27,12 @@ ScrollBars::ScrollBars(bool modal):
     isVisible(false),
     drag(false),
     repeatCmd(false),
-    general(true,modal),
-    core(true,modal),
+    general(0,0,0,0,Clr_White,false),
+    core(0,0,0,0,Clr_White,false),
+    lift(0,0,0,0,Clr_White,false),
     commandUp(modal),
-    commandDown(modal),
-    lift(modal)
+    commandDown(modal)
+
 {}
 
 void ScrollBars::WriteDebug(std::string message){
@@ -41,67 +42,58 @@ void ScrollBars::WriteDebug(std::string message){
 
 void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,int offX, int offY){
     //define fixed elements
-   if (totLines>0){
-    commandUp.resetMe();
-    commandDown.resetMe();
-    totalheight=height;
-    totalLines=totLines;
-    page=linesInPage;
-    limitLastLine=totalLines-page;
-    heightOfCore=totalheight-30;
-    general.SetDimensions(15,height);
-    general.SetOffsets(offX,offY);
-    topCore=offY+15;
+   if (totLines>0&&totalLines>=page){
 
-    commandUp.SetOffsets(offX,offY);
-    commandUp.SetDimensions(15,15);
-    commandUp.setText("");
-    commandUp.addPoint(offX+7,offY+2);
-    commandUp.addPoint(offX+13,offY+13);
-    commandUp.addPoint(offX+2,offY+13);
-    commandUp.setButtonColor(Clr_LightGray);
+       this->isVisible=true;
+       commandUp.resetMe();
+       commandDown.resetMe();
+       totalheight=height;
+       totalLines=totLines;
+       page=linesInPage;
+       limitLastLine=totalLines-page;
+       heightOfCore=totalheight-30;
 
-    commandDown.SetOffsets(offX,offY+totalheight-15);
-    commandDown.SetDimensions(15,15);
-    commandDown.setText("");
-    commandDown.setButtonColor(Clr_LightGray);
-    commandDown.addPoint(offX+2,commandDown.GetOffsetY()+2);
-    commandDown.addPoint(offX+13,commandDown.GetOffsetY()+2);
-    commandDown.addPoint(offX+7,commandDown.GetOffsetY()+13);
+       general.SetDimensions(15,height);
+       general.SetOrigin(offX,offY);
+       core.SetDimensions(15,heightOfCore);
+       core.SetOrigin(offX,offY+15);
 
-    core.SetDimensions(15,heightOfCore);
-    core.SetOffsets(offX,topCore);
-    lift.SetOffsets(offX,offY);
+       commandUp.SetOrigin(offX, offY+totalheight-15);
+       commandUp.SetDimensions(15,15);
+       commandUp.setText("\xE2\x96\xB2");//UP pointing e296b2 try also e28fb6
+       commandUp.setButtonColor(Clr_LightGray);
+       commandUp.setTextColor(Clr_BlackInk);
 
-    if (totalLines<=page) {
-        lift.SetDimensions(15,heightOfCore);
-        heightOfLift=heightOfCore;
-        this->isVisible=false;
-    }else{
-    this->isVisible=true;
-    lowCore=topCore+heightOfCore-15;
-    freeCore=lowCore-topCore;
-    if (lowCore<(limitLastLine)){
-        lift.SetDimensions(15,15);
-        heightOfLift=15;
-        freeCore=lowCore-topCore;
-        linesPPx=(float)(limitLastLine)/(float)freeCore;
-    }
-    else{
-        lowCore=topCore+limitLastLine;
-        lift.SetDimensions(15,heightOfCore-limitLastLine);
-        freeCore=lowCore-topCore;
-        heightOfLift=heightOfCore-limitLastLine;
-        linesPPx=1;
-    }}
-    SetPosFirstLine(firstLine);
+       commandDown.SetOrigin(offX,offY);
+       commandDown.SetDimensions(15,15);
+       commandDown.setText("\xE2\x96\xBC");//e296bc trys also e28fb7
+       commandDown.setButtonColor(Clr_LightGray);
+       commandDown.setTextColor(Clr_BlackInk);
+
+       lowCore=offY+15;
+       topCore=lowCore+heightOfCore-15;
+
+       if (topCore<limitLastLine){//if there are more lines then vertical pixels in core then proportionnalise the core
+          heightOfLift=15;
+          linesPPx=static_cast<float>(limitLastLine)/static_cast<float>(topCore);
+        }
+        else{
+          topCore=lowCore+limitLastLine;
+          lift.SetDimensions(15,heightOfCore-limitLastLine);
+          heightOfLift=heightOfCore-limitLastLine;
+          linesPPx=1;
+        }
+
+        lift.SetOrigin(offX,15);
+        SetPosFirstLine(firstLine);
+        core.setColor(Clr_Gray);
+        lift.setColor(Clr_White);
+        SetVisibility(isVisible);
    }
-   else{
+   else{//no lines are to be displayed, no initialisation occured
        this->isVisible=false;
+
    }
-    core.setColor(Clr_Gray);
-    lift.setButtonColor(Clr_White);
-    SetVisibility(isVisible);
 }
 
 bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
@@ -121,7 +113,7 @@ bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
         if (core.isHere(x,y)){
             if (lift.isHere(x,y)){
                 retVal=y;
-                BeginDrag(x,y);
+                BeginDrag(y);
                 return true;
             }
             else {
@@ -147,32 +139,35 @@ bool ScrollBars::IsVisible(){
     return isVisible;
 }
 
-void ScrollBars::BeginDrag(int x,int y){
+void ScrollBars::BeginDrag(int y){
     dragPosY=y;
-    y0=lift.GetOffsetY();
+    y0=lift.GetBottom();
     drag=true;
 }
 
 int  ScrollBars::DragY(int y){
     if (drag) {
-        int diff=dragPosY-y; //get variation of position
+        int diff=y-dragPosY; //get variation of position
         int dy=y0+diff; //convert into variation of offset
         //limit variation of offset into bounds
-        if (dy<=topCore) {
+        if (dy>=topCore) {
             numberfirstLine=0;
-            lift.SetOffsetY(topCore);
-            lift.recalculate();
+            lift.SetOrigin(lift.GetLeft(),topCore);
+            core.UpdateMyTexture();
+            lift.UpdateMyTexture();
             return numberfirstLine;
             }
-        if (dy>=lowCore) {
+        if (dy<=lowCore) {
             numberfirstLine=limitLastLine;
-            lift.SetOffsetY(lowCore);
-            lift.recalculate();
+            lift.SetOrigin(lift.GetLeft(),lowCore);
+            core.UpdateMyTexture();
+            lift.UpdateMyTexture();
             return numberfirstLine;}
         //if in bounds convert pixels to line number
-        numberfirstLine=(dy-topCore)*static_cast<int>(linesPPx);
-        lift.SetOffsetY(dy);
-        lift.recalculate();
+        numberfirstLine=(topCore-dy)*static_cast<int>(linesPPx);
+        lift.SetOrigin(lift.GetLeft(),dy);
+        core.UpdateMyTexture();
+        lift.UpdateMyTexture();
         return numberfirstLine;
         }
     return -1;//nothing happened
@@ -234,48 +229,36 @@ bool ScrollBars::OngoingRepeat(){
 
 void ScrollBars::SetPosFirstLine(int firstLine){
     //Name FirstLine means first Line displayed, should not be greater than totalLines-page
-    //Lift top flucuates between core.top and (core.low)
+    //Lift bottom flucuates between core.top and (core.low)
     //This function calculates position of lift WRT firstLine
     //with special positions of firstLine=0 and firstLine between possible position of last line and total number of lines
 
     if (firstLine<=0) {
         numberfirstLine=0;
-        lift.SetOffsetY(topCore);
-        lift.recalculate();
+        lift.SetOrigin(lift.GetLeft(),topCore);
+        core.UpdateMyTexture();
+        lift.UpdateMyTexture();
     }else{
     if (firstLine>=limitLastLine){
         numberfirstLine=limitLastLine;
-        lift.SetOffsetY(lowCore);
-        lift.recalculate();}
+        lift.SetOrigin(lift.GetLeft(),lowCore);
+        core.UpdateMyTexture();
+        lift.UpdateMyTexture();}
     else{
         if (linesPPx==1.0f){
             numberfirstLine=firstLine;
-            lift.SetOffsetY(topCore+numberfirstLine);
-
-            lift.recalculate();
+            lift.SetOrigin(lift.GetLeft(),topCore-numberfirstLine);
+            core.UpdateMyTexture();
+            lift.UpdateMyTexture();
         }else{
             numberfirstLine=firstLine;
-            lift.SetOffsetY(topCore+(numberfirstLine*freeCore/limitLastLine));
-            lift.recalculate();
+            lift.SetOrigin(lift.GetLeft(),topCore-numberfirstLine*(topCore-lowCore)/limitLastLine);
         }
     }}
 }
 
 int ScrollBars::GetPosFirstLine(){
     return numberfirstLine;
-}
-
-void ScrollBars::Recalculate(int left, int top){
-    general.SetOrigin(left,top);
-    core.SetOrigin(left,top);
-    lift.SetOrigin(left,top);
-    commandUp.SetOrigin(left,top);
-    commandDown.SetOrigin(left,top);
-    general.recalculate();
-    core.recalculate();
-    lift.recalculate();
-    commandUp.recalculate();
-    commandDown.recalculate();
 }
 
 void ScrollBars::SetVisibility(bool iV){

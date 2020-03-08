@@ -83,7 +83,6 @@ void DRefWindow::WriteDebug(string in_String){
 }
 
 void DRefWindow::Setup(){
-
     g_vr_dref        = XPLMFindDataRef("sim/graphics/VR/enabled");
     g_FPS            = XPLMFindDataRef("sim/time/framerate_period");
     if (g_FPS==nullptr){
@@ -147,9 +146,8 @@ CommandWeatherReport = XPLMCreateCommand("VR_Tools/Custom/Show_Data/ShowWeather"
     XPLMRegisterCommandHandler(CommandWeatherReport,MyDRefCommandHandler,1,nb);
 
     myself=this;
-
-    rectangles rect(true,true);
-    DrawLogic::AddModalRect(rect,Clr_Black);
+    //rectangles rect(true);
+    //DrawLogic::AddRectangle(rect,Clr_Black);
 }
 
 void DRefWindow::Unload(){
@@ -168,7 +166,7 @@ void DRefWindow::ToggleShowMode(){
     isShowModeOnPress=!isShowModeOnPress;
 }
 
-void DRefWindow::drawDRef(XPLMWindowID in_window_id, void * in_refcon) // draw FPS Window's content
+void DRefWindow::drawDRef(XPLMWindowID, void *) // draw FPS Window's content
 {
     XPLMSetGraphicsState( 0,0,0,0,1,1,0);
     int l, t, r, b;
@@ -189,7 +187,7 @@ void DRefWindow::drawDRef(XPLMWindowID in_window_id, void * in_refcon) // draw F
 
 }
 
-void DRefWindow::drawWReport(XPLMWindowID in_window_id, void *in_refcon){
+void DRefWindow::drawWReport(XPLMWindowID, void *){
     XPLMSetGraphicsState( 0,0,0,0,1,1,0);
     int l, t, r, b;
     XPLMGetWindowGeometry(idDrefWindow, &l, &t, &r, &b);
@@ -406,7 +404,7 @@ void DRefWindow::GetSmallWeatherReport(){
     float qnhINhPa=qnh*33.8639f;
     s_qnh="qnh = "+stringOps::ConvertFloatToString(qnhINhPa,0)+" hPa "+stringOps::ConvertFloatToString(qnh,2) + (" inHg");
     //T° float
-    float temp=XPLMGetDataf(w_temp),dwp=XPLMGetDataf(w_dewP);
+    float temp=XPLMGetDataf(w_temp);
     s_temps="Ground temp = "+stringOps::ConvertFloatToString(temp,0)+ " °C";
     //wind Dir float
     //Wind speed float
@@ -490,7 +488,7 @@ void DRefWindow::GetATISWeatherReport(){
 
 //Callbacks
 
-float DRefWindow::UpdateValue(float elpSc,float elpTime,int countr,void* refcon){
+float DRefWindow::UpdateValue(float,float,int,void*){
     switch (whatToShow){
        case 0 : myself->GetFPS();break;
        case 1 : myself->GetIAS();break;
@@ -504,7 +502,7 @@ float DRefWindow::UpdateValue(float elpSc,float elpTime,int countr,void* refcon)
     return period;
 }
 
-int					DRefWindow::dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon) { return 0; }
-XPLMCursorStatus	DRefWindow::dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon) { return xplm_CursorDefault; }
-int					DRefWindow::dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon) { return 0; }
-void                DRefWindow::dummy_key_handler(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus){}
+int					DRefWindow::dummy_mouse_handler(XPLMWindowID, int, int, int, void * ) { return 0; }
+XPLMCursorStatus	DRefWindow::dummy_cursor_status_handler(XPLMWindowID, int, int, void *) { return xplm_CursorDefault; }
+int					DRefWindow::dummy_wheel_handler(XPLMWindowID, int, int, int, int, void * ) { return 0; }
+void                DRefWindow::dummy_key_handler(XPLMWindowID ,char,XPLMKeyFlags,char,void* ,int){}

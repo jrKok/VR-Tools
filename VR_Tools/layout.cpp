@@ -1,20 +1,19 @@
 #include <layout.h>
-#include "drawlogic.h"
 #include "temporarywindow.h"
 #include "linedialog.h"
 
 int Layout::cycle=0;
 
-Layout::Layout(int windowNb) :
-  myWindowNumber(windowNb),
-  gTop(0),gLeft(0),gRight(0),gBottom(0),
+Layout::Layout(DrawLogic *newPad) :
+   myDrawPad(newPad),
+   gTop(0),gLeft(0),gRight(0),gBottom(0),
   wTop(0),wBottom(0),wLeft(0),wRight(0),wWidth(0),wHeight(0),minWidth(0),maxWidth(0),minHeight(0),maxHeight(0),
   charHeight(0),charWidth(0),textPointX(0),textPointY(0),//Used for initial setup and resize instructions
   t(0),b(0),l(0),r(0),//input from draw instruction mostly
   textHeight(0),textWidth(0),colWidth(35),idxSelected(-1),nButtons(0),
   reloadPeriod(1.0f),
-  tFileReader(new TextReader()),
   generalR(true),
+  tFileReader(new TextReader()),
   tButtons(),
   myWindow(nullptr),
   fNav(),fCom(),fAdf(),lFPS(),
@@ -25,7 +24,7 @@ Layout::Layout(int windowNb) :
   useBackGround(true),
   flash(false),flashWhenChange(false),
   clickresult(-1),vrWidth(0),vrHeight(0),
-  upperMargin(20),
+  upperMargin(40),
   lowerMargin(54),
   dayPart(3),
   currentFPS(0)
@@ -43,8 +42,8 @@ Layout::~Layout(){
 
 //Helpers
 
-void Layout::WriteDebug(std::string message){
-    std::string in_String="VR Tools : " +message+"\n";
+void Layout::WriteDebug(string message){
+    string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
 }
 
@@ -52,9 +51,9 @@ void Layout::InitCycleDebug(int nbs){
     cycle=nbs;
 }
 
-void Layout::WriteDebugInCycles(std::string message){
+void Layout::WriteDebugInCycles(string message){
     if (cycle>0){
-        std::string in_String="VR Tools : " +message+"\n";
+        string in_String="VR Tools : " +message+"\n";
         XPLMDebugString((char*)in_String.c_str());
         cycle--;
     }
@@ -66,8 +65,8 @@ bool Layout::OpenWindowAtStart(){
 //Initialisers
 
 void Layout::Begin(){
-    if (DrawLogic::GetActiveWindowNumber()!=myWindowNumber)
-       DrawLogic::ShowMyWindow(myWindowNumber);
+    myDrawPad->ToUpperLevel();
+
     nav1on       = XPLMFindDataRef("sim/cockpit2/radios/actuators/nav1_power");
     nav2on       = XPLMFindDataRef("sim/cockpit2/radios/actuators/nav2_power");
     com1on       = XPLMFindDataRef("sim/cockpit2/radios/actuators/com1_power");
@@ -83,37 +82,42 @@ void Layout::Begin(){
     adf1freq     = XPLMFindDataRef("sim/cockpit2/radios/actuators/adf1_standby_frequency_hz");
     adf2freq     = XPLMFindDataRef("sim/cockpit2/radios/actuators/adf2_standby_frequency_hz");
     dref_SunPitch= XPLMFindDataRef("sim/graphics/scenery/sun_pitch_degrees");//float to estimate pos of sun
+    g_FPS        = XPLMFindDataRef("sim/operation/misc/frame_rate_period");
+
     screenShot   = XPLMFindCommand("sim/operation/screenshot");
     XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&charHeight,nullptr);
     minWidth=280+colWidth;//can vary if there are no buttons
     maxWidth=1510+colWidth;
 
     openAtStart=IniSettings::GetOptStart();
-    textWidth=IniSettings::GetWidth();
-    textHeight=IniSettings::GetHeight();
-    autoReload=IniSettings::GetOptReload();
-    autoReloadOnSize=!IniSettings::GetOptReloadProc();
-    useBackGround=!IniSettings::GetOptBckG();
-    reloadPeriod=IniSettings::GetReloadPeriod();
-    goToLastPage=IniSettings::GetOptLastPg();
-    flashWhenChange=IniSettings::GetOptFlash();
-    keepLastFile=IniSettings::GetOptLastFile();
-    canUTF=!IniSettings::GetOptUTF();
-    tFileReader->SetNeedsUTF(IniSettings::GetOptUTF());
-    noResize=IniSettings::GetOptFixed();
-    keepSize=IniSettings::GetOptKeepSize();
-    fitSizeToFile=IniSettings::GetOptFit();
-    enableDelete=IniSettings::GetOptDelete();
-    enableFreqs=IniSettings::GetOptFreqs();
-    splitLinePolicy=IniSettings::GetOptTrim();
-    showFPS=IniSettings::GetOptFPS();
-    g_FPS = XPLMFindDataRef("sim/operation/misc/frame_rate_period");
+
+    textWidth=         IniSettings::GetWidth();
+    textHeight=        IniSettings::GetHeight();
+    autoReload=        IniSettings::GetOptReload();
+    autoReloadOnSize= !IniSettings::GetOptReloadProc();
+    useBackGround=    !IniSettings::GetOptBckG();
+    reloadPeriod=      IniSettings::GetReloadPeriod();
+    goToLastPage=      IniSettings::GetOptLastPg();
+    flashWhenChange=   IniSettings::GetOptFlash();
+    keepLastFile=      IniSettings::GetOptLastFile();
+    canUTF=           !IniSettings::GetOptUTF();
+    noResize=          IniSettings::GetOptFixed();
+    keepSize=          IniSettings::GetOptKeepSize();
+    fitSizeToFile=     IniSettings::GetOptFit();
+    enableDelete=      IniSettings::GetOptDelete();
+    enableFreqs=       IniSettings::GetOptFreqs();
+    splitLinePolicy=   IniSettings::GetOptTrim();
+    showFPS=           IniSettings::GetOptFPS();
+    tFileReader->SetNeedsUTF(canUTF);
     IniSettings::OrientFilePointer();
+    wHeight=lowerMargin+textHeight+upperMargin;
+    wWidth=textWidth+colWidth+10;
+
 }
 
 bool Layout::initiate(){
-    if (DrawLogic::GetActiveWindowNumber()!=myWindowNumber)
-       DrawLogic::ShowMyWindow(myWindowNumber);
+    myDrawPad->ToUpperLevel();
+    generalR.SetOrigin(0,0);
     if (noResize) {
         generalR.setVisibility(true);
         generalR.setColor(Clr_DarkGray);
@@ -122,10 +126,9 @@ bool Layout::initiate(){
         generalR.setVisibility(false);
     }
     tFileReader->PointToFile();
-    upperMargin=20;
-    lowerMargin=54;
-    if (showFPS) upperMargin+=charHeight+2;
     resize();
+    if (showFPS) upperMargin=40 + charHeight+2;
+    else upperMargin=40;
     wLeft=gLeft+150;
     wRight=wLeft+wWidth;
     wTop=gTop-150;//moreover this will force a new recalculation at next draw call
@@ -133,6 +136,8 @@ bool Layout::initiate(){
     defineButtons();
     nButtons=static_cast<int>(tButtons.size());
     if (goToLastPage) tFileReader->GoToLastPage();
+    myDrawPad->SetNewSize(wWidth,wHeight);
+    myDrawPad->GenerateCurrentTexture();
     return true;
 
 }
@@ -145,7 +150,7 @@ void Layout::resize(){//calculate offsets; areas of rectangles}
     dayPart=3;
     tFileReader->SetSplitPolicy(splitLinePolicy);
     if (textHeight<150) textHeight=150;
-    tFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);
+    tFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
     tFileReader->ReadFileToBuff();
     if (fitSizeToFile){
         int hgt=(charHeight+2)*tFileReader->GetNumberOfLines();
@@ -157,16 +162,17 @@ void Layout::resize(){//calculate offsets; areas of rectangles}
         if (textHeight!=hgt||textWidth!=wdth){
             textHeight=hgt;
             textWidth=wdth;
-            tFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);
+            tFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
             tFileReader->ReadFileToBuff();
             fitSizeToFile=false;}
         return;
     }
-    generalR.SetDimensions(textWidth+colWidth+10,textHeight+upperMargin+lowerMargin);
-    wWidth=generalR.GetWidth();
-    wHeight=generalR.GetHeight();
+    wWidth=textWidth+colWidth+10;
+    wHeight=textHeight+upperMargin+lowerMargin;
+    generalR.SetDimensions(wWidth,wHeight);
     vrWidth=wWidth;
     vrHeight=wHeight;
+    myDrawPad->SetNewSize(wWidth,wHeight);
     if (XPLMWindowIsInVR(myWindow)==1){
        if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);}
     else {
@@ -175,8 +181,6 @@ void Layout::resize(){//calculate offsets; areas of rectangles}
           XPLMSetWindowGeometry(myWindow,l,t,l+vrWidth,t-vrHeight);
        }
     }
-    generalR.SetOffsets(0,0);
-
     minHeight=tFileReader->GetOffSetY()+180;
     maxHeight=tFileReader->GetOffSetY()+935;
     if (noResize){
@@ -185,38 +189,6 @@ void Layout::resize(){//calculate offsets; areas of rectangles}
     }
     else generalR.setVisibility(false);
     if (!useBackGround) tFileReader->SetBackGround(false);
-}
-
-
-
-void Layout::RelocateButtons(int middle){
-    tButtons[B_Toggle_Line].SetOffsetY(middle-13);
-    tButtons[B_Toggle_Line].setText("\xE2\x8C\xAB");
-    tButtons[B_Show_All].SetOffsetY(middle+25);
-    tButtons[B_Show_All].setText("\xE2\x86\xBA");
-    tButtons[B_Undo].SetOffsetY(middle+5);
-    tButtons[B_Undo].setText("\xE2\x87\x9B");
-    tButtons[B_NAV1].SetOffsetY(generalR.GetHeight()-lowerMargin+2);
-    tButtons[B_NAV1].setText("Nav1");
-    tButtons[B_NAV2].SetOffsetY(tButtons[B_NAV1].GetOffsetY());
-    tButtons[B_NAV2].setText("Nav2");
-    tButtons[B_COM1].SetOffsetY(tButtons[B_NAV1].GetOffsetY()+18);
-    tButtons[B_COM1].setText("com1");
-    tButtons[B_COM2].SetOffsetY(tButtons[B_COM1].GetOffsetY());
-    tButtons[B_COM2].setText("com2");
-    tButtons[B_ADF1].SetOffsetY(tButtons[B_COM1].GetOffsetY()+18);
-    tButtons[B_ADF1].setText("Adf1");
-    tButtons[B_ADF2].SetOffsetY(tButtons[B_ADF1].GetOffsetY());
-    tButtons[B_ADF2].setText("Adf2");
-    tButtons[B_UTF8].SetOffsetY(generalR.GetHeight()-31);
-    string utfText=tButtons[B_UTF8].buttonText;
-    tButtons[B_UTF8].setText(utfText);
-
-    fNav.SetOffsets(fNav.GetOffsetX(),tButtons[B_NAV1].GetTextOffsetY());
-    fCom.SetOffsets(fCom.GetOffsetX(),tButtons[B_COM1].GetTextOffsetY());
-    fAdf.SetOffsets(fAdf.GetOffsetX(),tButtons[B_ADF1].GetTextOffsetY());
-    if (keepSize) KeepCurrentSize();
-    CheckButtonsVisibility();
 }
 
 //members, functions for running the class
@@ -232,20 +204,20 @@ void Layout::FitToFile(){
     textWidth=wdth;
     tFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);
     tFileReader->ReadFileToBuff();
-    generalR.SetDimensions(textWidth+colWidth+10,textHeight+tFileReader->GetOffSetY()+lowerMargin);//offsetY upper margin and 54lower margin
-    wWidth=generalR.GetWidth();
-    wHeight=generalR.GetHeight();
+
+    wWidth=textWidth+colWidth+10;
+    wHeight=textHeight+tFileReader->GetOffSetY()+lowerMargin;
+    generalR.SetDimensions(wWidth,wHeight);//offsetY upper margin and 54lower margin
     if (keepSize) KeepCurrentSize();
 }
 
 bool Layout::newSize(int wth,int hgt){//called by recalculate
-    int oldW=vrWidth,oldH=vrHeight;
-    vrWidth=wth;vrHeight=hgt;
-    if ((oldW!=vrWidth)|(oldH!=vrHeight)){
+
+    if (wth!=vrWidth||hgt!=vrHeight){
         //canUTF=true;
-        int deltaW(0),deltaH(0);
-        deltaW=vrWidth-oldW;
-        deltaH=vrHeight-oldH;
+        int oldW(vrWidth),oldH(vrHeight);
+        vrWidth=wth;vrHeight=hgt;
+        int deltaW(vrWidth-oldW),deltaH(vrHeight-oldH);
         textWidth+=deltaW;
         textHeight+=deltaH;
         if (textWidth<260)  textWidth=260;
@@ -254,8 +226,10 @@ bool Layout::newSize(int wth,int hgt){//called by recalculate
         if (textHeight>900) textHeight=900;
         resize();
 
-        int middle=tFileReader->GetOffSetY()+(tFileReader->GetHeight()/2);
+        int middle=tFileReader->GetBottom()+(tFileReader->GetHeight()/2);
         RelocateButtons(middle);
+        myDrawPad->SetNewSize(wWidth,wHeight);
+        myDrawPad->GenerateCurrentTexture();
         return true;
 
  }
@@ -267,9 +241,8 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
     if (!noResize){
        int wdt=r-l,hg=t-b;
        if (isWindowInVR()){
-           XPLMGetWindowGeometryVR(myWindow,&wdt,&hg);
-           newGeometry=newSize(wdt,hg);}
-        else newGeometry=newSize(wdt,hg);
+           XPLMGetWindowGeometryVR(myWindow,&wdt,&hg);}
+        newGeometry=newSize(wdt,hg);
     }
     else{
         if (isWindowInVR()) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);
@@ -297,30 +270,22 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
            tFileReader->SetBackGround(false);}
         wTop=t;
         wLeft=l;
-        generalR.recalculate(l,t);
-        tFileReader->Recalculate(l,t);
-        fNav.recalculate(l,t);
-        fCom.recalculate(l,t);
-        fAdf.recalculate(l,t);
-        lFPS.recalculate(l,t);
-
-        for (auto &btns:tButtons){
-            btns.SetOrigin(l,t);
-            btns.recalculate();
-        }
+        tFileReader->Recalculate(l,b);
+        myDrawPad->SetScreenOrigin(l,b);
 }
 }
 void Layout::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
     float curT=XPLMGetElapsedTime();
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
+    myDrawPad->SetScreenOrigin(l,b);
     recalculate(curT);
 
     if (showFPS){
         if ((curT-fpsTag)>0.5f) {
             fpsTag=curT;
             currentFPS=1/(XPLMGetDataf(g_FPS));
-            std::string fps=std::to_string(currentFPS);
+            string fps=std::to_string(currentFPS);
             fps=fps.substr(0,5);
             lFPS.setText("FPS : "+fps);
         }
@@ -338,20 +303,22 @@ void Layout::DrawTextW(XPLMWindowID g_textWindow){
             case 0:{
                 tFileReader->SetBckColor(Clr_PaperWhite);
                 tFileReader->SetInkColor(Clr_BlackInk);
+                tFileReader->PrintMyText();
                 break;}
             case 1:{
                 tFileReader->SetBckColor(Clr_PaperDusk);
                 tFileReader->SetInkColor(Clr_BlackInk);
+                tFileReader->PrintMyText();
                 break;}
             case 2:{
                 tFileReader->SetBckColor(Clr_Black);//night paper
                 tFileReader->SetInkColor(Clr_Amber);
+                tFileReader->PrintMyText();
                 break;}
             }
         }
     }
-    DrawLogic::DrawElements();
-    DrawLogic::DrawStrings();
+    DrawLogic::DrawContent();
 }
 
 void Layout::DoFlash(){
@@ -386,28 +353,30 @@ void Layout::ToggleFPS(){
     if (showFPS)upperMargin+=charHeight+2;
     else upperMargin-=(charHeight+2);
     resize();
+    myDrawPad->SetNewSize(wWidth,wHeight);
+    myDrawPad->GenerateCurrentTexture();
 }
 
 void Layout::CheckButtonsVisibility(){
-    tButtons[B_Save].setVisibility(false);
-    tButtons[B_Edit_Line].setVisibility(true);
-    tButtons[B_More_Lines].setVisibility(false);
-    tButtons[B_Less_Lines].setVisibility(false);
+    tButtons[B_Save]->setVisibility(false);
+    tButtons[B_Edit_Line]->setVisibility(true);
+    tButtons[B_More_Lines]->setVisibility(false);
+    tButtons[B_Less_Lines]->setVisibility(false);
 
-    tButtons[B_Load_File].setVisibility(true);
-    tButtons[B_Reload].setVisibility(!autoReload);
-    tButtons[B_Auto].setVisibility(true);
-    tButtons[B_Undo].setVisibility(tFileReader->CanUndo()&(!autoReload)&enableDelete);
-    tButtons[B_UTF8].setVisibility(!(tFileReader->HasSelection())&(!autoReload)&canUTF);
-    tButtons[B_Toggle_Line].setVisibility(tFileReader->HasSelection()&(!autoReload)&(enableDelete));
-    tButtons[B_Show_All].setVisibility(tFileReader->HasHiddenLine()&(!autoReload)&(enableDelete));
+    tButtons[B_Load_File]->setVisibility(true);
+    tButtons[B_Reload]->setVisibility(!autoReload);
+    tButtons[B_Auto]->setVisibility(true);
+    tButtons[B_Undo]->setVisibility(tFileReader->CanUndo()&(!autoReload)&enableDelete);
+    tButtons[B_UTF8]->setVisibility(!(tFileReader->HasSelection())&(!autoReload)&canUTF);
+    tButtons[B_Toggle_Line]->setVisibility(tFileReader->HasSelection()&(!autoReload)&(enableDelete));
+    tButtons[B_Show_All]->setVisibility(tFileReader->HasHiddenLine()&(!autoReload)&(enableDelete));
 
-    tButtons[B_NAV1].setVisibility(tFileReader->HasNav()&XPLMGetDatai(nav1on)&enableFreqs);
-    tButtons[B_NAV2].setVisibility(tFileReader->HasNav()&XPLMGetDatai(nav2on)&enableFreqs);
-    tButtons[B_COM1].setVisibility(tFileReader->HasCom()&XPLMGetDatai(com1on)&enableFreqs);
-    tButtons[B_COM2].setVisibility(tFileReader->HasCom()&XPLMGetDatai(com2on)&enableFreqs);
-    tButtons[B_ADF1].setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs);
-    tButtons[B_ADF2].setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs);
+    tButtons[B_NAV1]->setVisibility(tFileReader->HasNav()&XPLMGetDatai(nav1on)&enableFreqs);
+    tButtons[B_NAV2]->setVisibility(tFileReader->HasNav()&XPLMGetDatai(nav2on)&enableFreqs);
+    tButtons[B_COM1]->setVisibility(tFileReader->HasCom()&XPLMGetDatai(com1on)&enableFreqs);
+    tButtons[B_COM2]->setVisibility(tFileReader->HasCom()&XPLMGetDatai(com2on)&enableFreqs);
+    tButtons[B_ADF1]->setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs);
+    tButtons[B_ADF2]->setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs);
 
     fNav.SetVisibility(tFileReader->HasNav());
     fCom.SetVisibility(tFileReader->HasCom());
@@ -418,28 +387,29 @@ void Layout::CheckButtonsVisibility(){
 
 int Layout::rightRectangle(int idx){
     ulong uidx=static_cast<ulong>(idx);
-    return (tButtons[uidx].GetRight());
+    return (tButtons[uidx]->GetRight());
 }
 int Layout::leftRectangle(int idx){
     ulong uidx=static_cast<ulong>(idx);
-    return (tButtons[uidx].GetLeft());
+    return (tButtons[uidx]->GetLeft());
 }
 int Layout::topRectangle(int idx){
     ulong uidx=static_cast<ulong>(idx);
-    return (tButtons[uidx].GetTop());
+    return (tButtons[uidx]->GetTop());
 }
 int Layout::bottomRectangle(int idx){
     ulong uidx=static_cast<ulong>(idx);
-    return (tButtons[uidx].GetBottom());
+    return (tButtons[uidx]->GetBottom());
 }
 
 
 //process a mouse or controller click
 
 void Layout::findClick(int mX, int mY){
+    int cX(mX-l),cY(mY-b);
 
     if (continueClick||buttonClick){
-        if (clickresult>-1) tButtons[static_cast<ulong>(clickresult)].Release();
+        if (clickresult>-1) tButtons[static_cast<ulong>(clickresult)]->Release();
         if (continueClick) tFileReader->ProceedEndClick();
         autoReload=saveAuto;
         continueClick=false;
@@ -451,7 +421,7 @@ void Layout::findClick(int mX, int mY){
     saveAuto=autoReload;
     autoReload=false;
 
-    if (tFileReader->ProceedClick(mX,mY)){//Click in the text or scrB ?
+    if (tFileReader->ProceedClick(cX,cY)){//Click in the text or scrB ?
         CheckButtonsVisibility();
         continueClick=true;
 
@@ -459,10 +429,10 @@ void Layout::findClick(int mX, int mY){
       }
     ulong uNB=static_cast<ulong>(nButtons);
     for (ulong I(0);I<uNB;I++){       //Click on a button ?
-      if (tButtons[I].isHere(mX,mY)){
+      if (tButtons[I]->isHere(cX,cY)){
            buttonClick=true;
            clickresult=static_cast<int>(I);
-           tButtons[I].Press();
+           tButtons[I]->Press();
            return;
            }
     }
@@ -471,12 +441,13 @@ void Layout::findClick(int mX, int mY){
 }
 
 void Layout::HandleMouseKeepDown(int mX,int mY){
-    dayPart=3;
-    if (continueClick) tFileReader->ProceedClickCont(mX,mY);
+        int cX(mX-l),cY(mY-b);
+    //dayPart=3;
+    if (continueClick) tFileReader->ProceedClickCont(cX,cY);
 }
 
-int Layout::HandleMouseUp(int mX,int mY){
-    dayPart=3;
+int Layout::HandleMouseUp(int,int){
+    //dayPart=3;
     autoReload=saveAuto;
     epoch=XPLMGetElapsedTime();
     int retVal=-1;
@@ -492,7 +463,7 @@ int Layout::HandleMouseUp(int mX,int mY){
         CheckButtonsVisibility();}
 
     if (buttonClick){
-        tButtons[static_cast<ulong>(clickresult)].Release();
+        tButtons[static_cast<ulong>(clickresult)]->Release();
         continueClick=false;
         buttonClick=false;
         if (clickresult==B_Load_File){
@@ -530,11 +501,11 @@ void Layout::LaunchCommand(int refCommand){
              autoReload=!autoReload;
              if (autoReload) {
                  //tButtons[B_Auto].setText("manual Reload");
-                 tButtons[B_Auto].setSelect(true);
+                 tButtons[B_Auto]->setSelect(true);
                  epoch=XPLMGetElapsedTime();
              }else{
                  //tButtons[B_Auto].setText("auto Reload");
-                 tButtons[B_Auto].setSelect(false);
+                 tButtons[B_Auto]->setSelect(false);
              }
          break;}
 
@@ -621,6 +592,7 @@ void Layout::ClosegWindow(){
     textPointX=0;textPointY=0;
     t=0;b=0;l=0;r=0;
     colWidth=30;idxSelected=-1;nButtons=0;
+    myDrawPad->FlushContent();
     //I keep charHeight,textHeight and textWidth,
 }
 
@@ -630,11 +602,11 @@ void Layout::KeepFile(){
     IniSettings::WriteIniFile();
 }
 
-std::string Layout::GetFileName(){
+string Layout::GetFileName(){
     return FilePointer::GetCurrentFileName();
 }
 
-std::string Layout::GetDirName(){
+string Layout::GetDirName(){
     return FilePointer::GetCurrentDirName();
 }
 
@@ -658,95 +630,110 @@ void Layout::KeepCurrentSize(){
     IniSettings::SetWidth(textWidth);
     IniSettings::SetHeight(textHeight);
 }
-void Layout::defineButtons(){
-    int middle=upperMargin+(textHeight/2);
 
-    ClearUpButtons();
+void Layout::RelocateButtons(int middle){
+    tButtons[B_Load_File]->  SetOrigin(-1,generalR.GetHeight()-20);
+    tButtons[B_Reload]->     SetOrigin(-1,tButtons[B_Load_File]->GetBottom());
+    tButtons[B_Auto]->       SetOrigin(-1,tButtons[B_Load_File]->GetBottom());
+    tButtons[B_Edit_Line]->  SetOrigin(-1,tButtons[B_Load_File]->GetBottom());
+    tButtons[B_Toggle_Line]->SetOrigin(-1,middle+13);
+    tButtons[B_Show_All]->   SetOrigin(-1,middle-25);
+    tButtons[B_Undo]->       SetOrigin(-1,middle-5);
+    tButtons[B_NAV1]->       SetOrigin(colWidth+46,lowerMargin-2);
+    tButtons[B_NAV2]->       SetOrigin(tButtons[B_NAV1]->GetLeft()+38,tButtons[B_NAV1]->GetBottom());
+    tButtons[B_COM1]->       SetOrigin(tButtons[B_NAV1]->GetLeft(),tButtons[B_NAV1]->GetBottom()-18);
+    tButtons[B_COM2]->       SetOrigin(tButtons[B_NAV2]->GetLeft(),tButtons[B_COM1]->GetBottom());
+    tButtons[B_ADF1]->       SetOrigin(tButtons[B_NAV1]->GetLeft(),tButtons[B_COM1]->GetBottom()-18);
+    tButtons[B_ADF2]->       SetOrigin(tButtons[B_NAV2]->GetLeft(),tButtons[B_ADF1]->GetBottom());
+    tButtons[B_UTF8]->       SetOrigin(-1,-1);
+
+    fNav.SetOrigin(fNav.GetLeft(),tButtons[B_NAV1]->GetBottom()+2);
+    fCom.SetOrigin(fCom.GetLeft(),tButtons[B_COM1]->GetBottom()+2);
+    fAdf.SetOrigin(fAdf.GetLeft(),tButtons[B_ADF1]->GetBottom()+2);
+    if (keepSize) KeepCurrentSize();
+    CheckButtonsVisibility();
+}
+void Layout::defineButtons(){
+    int middle=lowerMargin+(textHeight/2);
+
 //create 16 buttons
   /*  B_Load_File=0*/
-    MakeButton(true,"Load",90,16,5,upperMargin-18);
+    MakeButton(true,"Load",90,16,5,generalR.GetHeight()-20);
 
          //B_Page_Up=1;
-    MakeButton(true,"ReLoad",90,16,100,tButtons[B_Load_File].GetOffsetY());
+    MakeButton(true,"ReLoad",90,16,100,tButtons[B_Load_File]->GetBottom());
 
          //B_Line_Up=2;
-    MakeButton(true,"Auto ReLoad",90,16,195,tButtons[B_Load_File].GetOffsetY());
+    MakeButton(true,"Auto ReLoad",90,16,195,tButtons[B_Load_File]->GetBottom());
 
          //B_Toggle_Line=3;
-    MakeButton(true,"\xE2\x8C\xAB",20,15,5,middle-13);
+    MakeButton(true,"\xE2\x8C\xAB",20,15,5,middle+13);
 
          //B_UTF8=4;
-    MakeButton(true,"UTF8",30,25,1,generalR.GetHeight()-31);
+    MakeButton(true,"UTF8",30,25,1,31);
 
         // B_Undo=5;
-    MakeButton(true,"\xE2\x87\x9B",20,15,5,middle+5);
+    MakeButton(true,"\xE2\x87\x9B",20,15,5,middle-5);
 
          //B_Edit_Line=6;
-    MakeButton(true,"Edit",20,15,290,tButtons[B_Load_File].GetOffsetY());
+    MakeButton(true,"Edit",20,16,290,tButtons[B_Load_File]->GetBottom());
 
         // B_Save=7;
-    MakeButton(false,"Save",20,15,colWidth+47,generalR.GetHeight()-31);
+    MakeButton(false,"Save",20,16,colWidth+47,31);
 
          //B_More_Lines=8;
-    MakeButton(true,"+Lines",20,15,colWidth+142,generalR.GetHeight()-31);
+    MakeButton(true,"+Lines",20,15,colWidth+142,31);
 
         // B_Less_Lines=9;
-    MakeButton(true,"-Lines",20,15,colWidth+190,generalR.GetHeight()-31);
+    MakeButton(true,"-Lines",20,15,colWidth+190,31);
 
          //B_NAV1 = 10;
-    MakeButton(true,"Nav1",35,15,colWidth+46,generalR.GetHeight()-lowerMargin+2);
+    MakeButton(true,"Nav1",35,15,colWidth+46,lowerMargin-2);
 
         // B_NAV2 = 11;
-    MakeButton(true,"Nav2",35,15,tButtons[B_NAV1].GetOffsetX()+38,tButtons[B_NAV1].GetOffsetY());
+    MakeButton(true,"Nav2",35,15,tButtons[B_NAV1]->GetLeft()+38,tButtons[B_NAV1]->GetBottom());
 
          //B_COM1 = 12;
-    MakeButton(true,"com1",35,15,colWidth+46,tButtons[B_NAV1].GetOffsetY()+18);
+    MakeButton(true,"com1",35,15,colWidth+46,tButtons[B_NAV1]->GetBottom()+18);
 
         // B_COM2 = 13;
-    MakeButton(true,"com2",35,15,tButtons[B_COM1].GetOffsetX()+38,tButtons[B_COM1].GetOffsetY());
+    MakeButton(true,"com2",35,15,tButtons[B_COM1]->GetLeft()+38,tButtons[B_COM1]->GetBottom());
 
         // B_ADF1 = 14;
-    MakeButton(true,"Adf1",35,15,colWidth+46,tButtons[B_COM1].GetOffsetY()+18);
+    MakeButton(true,"Adf1",35,15,colWidth+46,tButtons[B_COM1]->GetBottom()+18);
 
         // B_ADF2 = 15
-    MakeButton(true,"Adf2",35,15,tButtons[B_ADF1].GetOffsetX()+38,tButtons[B_ADF1].GetOffsetY());
+    MakeButton(true,"Adf2",35,15,tButtons[B_ADF1]->GetLeft()+38,tButtons[B_ADF1]->GetBottom());
 
     //B_Show_All=16
-    MakeButton(true,"\xE2\x86\xBA",tButtons[B_Toggle_Line].GetWidth(),17,5,middle+25);
+    MakeButton(true,"\xE2\x86\xBA",tButtons[B_Toggle_Line]->GetWidth(),17,5,middle-25);
 
-    fNav.SetOffsets(colWidth,tButtons[B_NAV1].GetTextOffsetY());    
+    fNav.SetOrigin(colWidth,tButtons[B_NAV1]->GetTextY());
     fNav.SetDimensions(45,charHeight);
     fNav.SetTextColor(Clr_Amber);
 
-    fCom.SetOffsets(colWidth,tButtons[B_COM1].GetTextOffsetY());  
+    fCom.SetOrigin(colWidth,tButtons[B_COM1]->GetTextY());
     fCom.SetDimensions(45,charHeight);
     fCom.SetTextColor(Clr_Amber);
 
-    fAdf.SetOffsets(colWidth,tButtons[B_ADF1].GetTextOffsetY());
+    fAdf.SetOrigin(colWidth,tButtons[B_ADF1]->GetTextY());
     fAdf.SetDimensions(45,charHeight);
     fAdf.SetTextColor(Clr_Amber);
 
 
     fpsTag=XPLMGetElapsedTime();
-    lFPS.SetOffsets(14,tButtons[B_Load_File].GetOffsetY()-2);
+    lFPS.SetOrigin(14,tButtons[B_Load_File]->GetBottom()-2);
     lFPS.SetTextColor(Clr_Amber);
 
 }
 
 void Layout::MakeButton(bool visible,string in_Label,int width,int height,int oX, int oY){
-    button_VR newB;
-    newB.SetOffsets(oX,oY);
-    newB.SetDimensions(width,height);
-    newB.setText(in_Label);
-    newB.SetToStateColor();
-    newB.setVisibility(visible);
+    button_VR * newB(new button_VR(false));
+    newB->SetDimensions(width,height);
+    newB->SetOrigin(oX,oY);
+    newB->setText(in_Label);
+    newB->SetToStateColor();
+    newB->setVisibility(visible);
     tButtons.push_back(newB);
-}
-
-void Layout::ClearUpButtons(){
-    for (auto bt:tButtons){
-        bt.DeleteButton();
-    }
-    tButtons.clear();
 }
 

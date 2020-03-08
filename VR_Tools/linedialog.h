@@ -1,7 +1,7 @@
 #ifndef LINEDIALOG_H
 #define LINEDIALOG_H
 
-#include "modalbutton.h"
+#include "button_vr.h"
 #include "VR_Tools_global.h"
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
@@ -53,7 +53,7 @@ public:
 private:
 
     std::function<void()> callBack;
-    ModalButton *yesButton,*noButton,*cancelButton;
+    button_VR *yesButton,*noButton,*cancelButton;
     rectangles *textRect;
     int width, height,answer,myStringNumber,textOffsetX,textOffsetY;
     string userLine;

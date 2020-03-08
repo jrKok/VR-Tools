@@ -1,3 +1,8 @@
+/*Class to manage dynamically hotspots :
+ * move to a hotspot, log head position, initiate edition of hotspot
+ * or advanced edition
+ */
+
 #include "hotspots.h"
 #include "drawlogic.h"
 #include "vrcommandfilter.h"
@@ -184,7 +189,7 @@ int Hotspots::MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase in
         if (VRCReader::HasHotspots()&&XPLMGetDatai(g_vr_dref)){
             int whatToDo=*(static_cast<int*>(inRefcon));
             if (whatToDo==0){
-                if (VRCReader::GetHotspotCount()>=1&&phaseMove==0&&!DrawLogic::IsModalWindowActive())
+                if (VRCReader::GetHotspotCount()>=1&&phaseMove==0&&!DrawLogic::IsModalWindow())
                 {  if (inCommand==CmdJumpNext)
                         VRCReader::NextHotspot();
                     else {
@@ -371,9 +376,9 @@ float Hotspots::MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refco
      return -1;
 }
 
-int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon){
+int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase, void * ){
     //if (inPhase==xplm_CommandBegin&&XPLMGetDatai(g_vr_dref)){
-    if (!DrawLogic::IsModalWindowActive()&&phaseMove==0){
+    if (!DrawLogic::IsModalWindow()&&phaseMove==0){
             if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
             myself->LogPilotHead(targetX,targetY,targetZ);
             if (myself->vrconfigEditor!=nullptr)
@@ -486,7 +491,7 @@ void Hotspots::Handle_Advanced(){
 }
 
 int Hotspots::Create_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void* inRefcon){
-    if (inPhase==xplm_CommandBegin&&!DrawLogic::IsModalWindowActive()&&phaseMove==0&&XPLMGetDatai(g_vr_dref)){
+    if (inPhase==xplm_CommandBegin&&!DrawLogic::IsModalWindow()&&phaseMove==0&&XPLMGetDatai(g_vr_dref)){
         if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
         if (dlg==nullptr){dlg=new LineDialog();}
             myself->LogPilotHead(targetX,targetY,targetZ);
