@@ -58,7 +58,7 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
     bottom=0;
     endAlert=false;
     callBack=cBck;
-    int wWidth=380,col1=140,lH=22,textBoxWidth=60,textBoxHeight=15,bH=15;;
+    int wWidth=380,col1=140,lH=22,textBoxWidth=60,textBoxHeight=15,bH=15;
     currentHsp=htsp;
     ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,wWidth,450);
 
@@ -102,19 +102,19 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
          hsBoxP.SetCoords(col1-100,rectBox.GetBottom()+lH);
   hsAdditionalP.SetCoords(col1-100,rectParam.GetBottom()+lH);
 
-     sittingN=DrawLogic::AddString(sittingT,Clr_BlackInk,sittingP);
-      offsetN=DrawLogic::AddString(offsetT,Clr_BlackInk,offsetP);
-  rightShiftN=DrawLogic::AddString(rightShiftT,Clr_BlackInk,rightShiftP);
-    aftShiftN=DrawLogic::AddString(aftShiftT,Clr_BlackInk,aftShiftP);
-       widthN=DrawLogic::AddString(widthT,Clr_BlackInk,widthP);
-      heightN=DrawLogic::AddString(heightT,Clr_BlackInk,heightP);
-         rotN=DrawLogic::AddString(rotT,Clr_BlackInk,rotP);
-       pitchN=DrawLogic::AddString(pitchT,Clr_BlackInk,pitchP);
-        tiltN=DrawLogic::AddString(tiltT,Clr_BlackInk,tiltP);
+     sittingN=DrawLogic::AddString(sittingT,Clr_BlackInk,Clr_LightGray,sittingP);
+      offsetN=DrawLogic::AddString(offsetT,Clr_BlackInk,Clr_LightGray,offsetP);
+  rightShiftN=DrawLogic::AddString(rightShiftT,Clr_BlackInk,Clr_LightGray,rightShiftP);
+    aftShiftN=DrawLogic::AddString(aftShiftT,Clr_BlackInk,Clr_LightGray,aftShiftP);
+       widthN=DrawLogic::AddString(widthT,Clr_BlackInk,Clr_LightGray,widthP);
+      heightN=DrawLogic::AddString(heightT,Clr_BlackInk,Clr_LightGray,heightP);
+         rotN=DrawLogic::AddString(rotT,Clr_BlackInk,Clr_LightGray,rotP);
+       pitchN=DrawLogic::AddString(pitchT,Clr_BlackInk,Clr_LightGray,pitchP);
+        tiltN=DrawLogic::AddString(tiltT,Clr_BlackInk,Clr_LightGray,tiltP);
 
-      hsNameN=DrawLogic::AddString(nm,Clr_PushedBlue,hsNameP);
-       hsBoxN=DrawLogic::AddString("Position of Binding Box relative to Hotspot :",Clr_PushedBlue,hsBoxP);
-hsAdditionalN=DrawLogic::AddString("hotspot orientation : ",Clr_PushedBlue,hsAdditionalP);
+      hsNameN=DrawLogic::AddString(nm,Clr_PushedBlue,Clr_LightGray,hsNameP);
+       hsBoxN=DrawLogic::AddString("Position of Binding Box relative to Hotspot :",Clr_PushedBlue,Clr_LightGray,hsBoxP);
+hsAdditionalN=DrawLogic::AddString("hotspot orientation : ",Clr_PushedBlue,Clr_LightGray,hsAdditionalP);
 
      int corr=10;
      sittingB.SetDimensions(textBoxWidth+7,textBoxHeight);sittingB.SetOrigin(col1-10,sittingP.GetY()-corr);
@@ -219,7 +219,7 @@ void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
 
     int lft(left),top(0),right(0),btm(bottom);
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||btm!=bottom) DrawLogic::SetScreenOrigin(left,bottom);
+    DrawLogic::SetScreenOrigin(left,bottom,right,top);
     DrawLogic::DrawContent();
     if (myself->cursor.HasSelection()){
         int l,r;

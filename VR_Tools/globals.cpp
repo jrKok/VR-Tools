@@ -9,7 +9,7 @@ globals::globals()
 
 void  globals::DefineColors(){
 
-    DefineColor(Clr_LightBlue,0.300f,0.500f,0.875f);
+    DefineColor(Clr_LightBlue,0.270f,0.510f,0.885f);
     DefineColor(Clr_SelectBlue,0.550f,0.750f,0.900f);
     DefineColor(Clr_PushedBlue,0.250f,0.400f,0.600f);
     DefineColor(Clr_Cyan,0.0f, 1.0f, 1.0f);

@@ -145,11 +145,11 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
 
     point p;
     p.SetCoords(textOffsetX,textOffsetY);
-    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,p);
+    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,Clr_LighterGray,p);
     p.SetCoords(100,posSecondLine);
-    myStringN2=DrawLogic::AddString("If needed, Select a hotspot :",Clr_BlackInk,p);
+    myStringN2=DrawLogic::AddString("If needed, Select a hotspot :",Clr_BlackInk,Clr_LighterGray,p);
     p.SetCoords(textOffsetX,posThirdLine);
-    myStringN3=DrawLogic::AddString("Type a name to create a hotspot or rename an existing one :",Clr_BlackInk,p);
+    myStringN3=DrawLogic::AddString("Type a name to create a hotspot or rename an existing one :",Clr_BlackInk,Clr_LighterGray,p);
 
     yesButton=        new button_VR();
     noButton=         new button_VR();
@@ -332,7 +332,7 @@ void VrViews::DrawMyself(XPLMWindowID in_window_id, void * unused){
     if (myself->keyb==nullptr) myself->WriteDebug("vrviews draw : got a call while keyb was deleted");
     int lft(left),btom(bottom);
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||btom!=bottom) ManageModalWindow::Recalculate(left,bottom);
+    if (lft!=left||btom!=bottom) ManageModalWindow::SetScreenCoords(left,bottom,right,top);
     /*if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);

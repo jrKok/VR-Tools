@@ -24,8 +24,7 @@ public:
     int  GetPosFirstLine();
     void EndDrag();
     void Setup(int height, int totLines, int firstLine, int linesInPage, int offX, int offY);
-    void SetPosFirstLine(int firstLine);
-    void SetVisibility(bool iV);
+    void SetPosFirstLine(int firstLine);    
     void LineUpNLines(int nL);
     void LineDownNLines (int nL);
     void UpPage();
@@ -36,6 +35,8 @@ public:
     void EndRepeat();
     bool OngoingRepeat();
 
+    char GetColorCodeFromSymbol();
+
     enum{
         B_Line_Up=1,
         B_Line_Down=2,
@@ -43,6 +44,8 @@ public:
         B_Page_Down=4
         };
 private:
+    void SetVisibility(bool iV);
+
     int totalLines,page,numberfirstLine,limitLastLine;
     int totalheight,topCore,lowCore,heightOfCore,heightOfLift,posOfLift;
     int offsetX, offsetY,y0,dragPosY, cmdToRepeat;

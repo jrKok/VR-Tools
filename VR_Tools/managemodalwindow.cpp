@@ -23,6 +23,7 @@ XPLMWindowID  ManageModalWindow::CreateModalWindow( void drawCB(XPLMWindowID,voi
     myDrawPad=new DrawLogic();
     myDrawPad->Initiate();
     myDrawPad->SetNewSize(width,height);
+    myDrawPad->SetBackGroundColor(Clr_BckgrdW);
     DrawLogic::EnableModalWindow();
     myWidth=width;
     myHeight=height;
@@ -129,9 +130,9 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
     myRect->SetDimensions(width,height);
 }
 
-void ManageModalWindow::Recalculate(int x, int y){
+void ManageModalWindow::SetScreenCoords(int left, int bottom, int right, int top){
 
-    DrawLogic::SetScreenOrigin(x,y);
+    DrawLogic::SetScreenOrigin(left,bottom,right, top);
 }
 
 int					ManageModalWindow::dummy_mouse_handler(XPLMWindowID , int, int, int, void *) { return 0; }

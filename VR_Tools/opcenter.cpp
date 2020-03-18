@@ -41,7 +41,7 @@ OpCenter::OpCenter():
 }
 
 OpCenter::~OpCenter(){
-    DrawLogic::EndFreeType();
+    fontmanager.EndFreeType();
     delete (wLayout);
     delete (wELayout);
     if (dispDir!=nullptr) delete dispDir;
@@ -70,6 +70,8 @@ int OpCenter::SetupCenter(){
     CmdPrevLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Previous_Line","Previous Line");
     CmdDelLine    = XPLMCreateCommand("VR_Tools/Custom/Text/Delete_Line","Hide Line");
     CmdReload     = XPLMCreateCommand("VR_Tools/Custom/Text/Reload","Reload");
+
+    fontmanager.Initialise();
 
     //Register numbered text commands
     void * nb=new(int*);
@@ -425,7 +427,8 @@ void  OpCenter::MakeTextWindow(){
     if (g_textWindow==nullptr){
          const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
          g_in_vr = vr_is_enabled;
-         XPLMGetScreenBoundsGlobal(&(*ptrLayout).gLeft, &(*ptrLayout).gTop, &(*ptrLayout).gRight, &(*ptrLayout).gBottom);
+         int left,bottom,top,right;
+         XPLMGetScreenBoundsGlobal(&left, &top, &right,&bottom);
          if ((*ptrLayout).initiate()){
              XPLMCreateWindow_t params;
              params.structSize = sizeof(params);
@@ -464,13 +467,12 @@ void  OpCenter::MakeTextWindow(){
 
 void  OpCenter::MakeFileWindow(){
     if (g_FileWindow==nullptr){
-        WriteDebug("begin file window");
-       const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
-       g_in_vr = vr_is_enabled;
+       const int vr_enabled = XPLMGetDatai(g_vr_dref);
+       g_in_vr = vr_enabled;
        int l,t,b,r;
        XPLMGetScreenBoundsGlobal(&l, &t, &r, &b);
        dispDir->SetupDirWindow(l,t);
-       XPLMCreateWindow_t params;
+        XPLMCreateWindow_t params;
         params.structSize = sizeof(params);
         params.visible = 1;
         params.drawWindowFunc = drawFileWindow;
@@ -482,10 +484,10 @@ void  OpCenter::MakeFileWindow(){
         params.refcon = nullptr;
         params.layer = xplm_WindowLayerFloatingWindows;
         params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
-        params.left = dispDir->GetLeft();
-        params.bottom = dispDir->GetBottom();
-        params.right = dispDir->GetRight();
-        params.top = dispDir->GetTop();
+        params.left = dispDir->GetLeft()+l+100;
+        params.bottom = dispDir->GetBottom()+b+50;
+        params.right = dispDir->GetRight()+l+100;
+        params.top = dispDir->GetTop()+b+50;
 
        g_FileWindow = XPLMCreateWindowEx(&params);
        XPLMSetWindowPositioningMode(g_FileWindow, g_in_vr?xplm_WindowVR:xplm_WindowPositionFree, -1);

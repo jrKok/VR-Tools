@@ -56,68 +56,91 @@ bool LayoutWithEdit::initiate(){
     ReActivateWindow();
     keyb.SetVisibility(showKeyb);
     canUTF=false;
-    resize();
-    wLeft=gLeft+150;
-    wRight=wLeft+wWidth;
-    wTop=gTop-100;//moreover this will force a new recalculation at next draw call
-    wBottom=wTop-wHeight;
-    defineButtons();
-    nButtons=static_cast<int>(tButtons.size());
-    keyb.Relocate(colWidth,generalR.GetHeight()-lowerMargin+58);
-    ReLabelButtons();
-    recalculate();
-    tButtons[B_UTF8]->setSelect(false);
-    myDrawPad->SetNewSize(wWidth,wHeight);
-    myDrawPad->GenerateCurrentTexture();
+    if (!nButtons){
+        if (resize())
+        {
+            wLeft=150;
+            wRight=wLeft+wWidth;
+            wBottom=200;
+            wTop=wBottom+wHeight;
+            defineButtons();
+            tButtons[B_NAV1]->setVisibility(false);
+            tButtons[B_NAV2]->setVisibility(false);
+            tButtons[B_COM1]->setVisibility(false);
+            tButtons[B_COM2]->setVisibility(false);
+            tButtons[B_ADF1]->setVisibility(false);
+            tButtons[B_ADF2]->setVisibility(false);
 
-    return true;
+            fCom.SetVisibility(false);
+            fNav.SetVisibility(false);
+            fAdf.SetVisibility(false);
+            lFPS.SetVisibility(false);
+            nButtons=static_cast<int>(tButtons.size());
+            //keyb.Relocate(colWidth,generalR.GetHeight()-lowerMargin+58);
+            ReLabelButtons();
+            //recalculate();
+            tButtons[B_UTF8]->setSelect(false);
+            myDrawPad->SetNewSize(wWidth,wHeight);
+            myDrawPad->GenerateCurrentTexture();
+
+            return true;
+        }else return false;
+    }else return resize();
 }
 
-void LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
+bool LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
     dayPart=3;
     tEdFileReader->SetSplitPolicy(BestSplitAtSpace);
     if (textHeight<150) textHeight=150;
     tEdFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
-    tEdFileReader->ReadFileToBuff();
-    if (noResize){
-        generalR.setVisibility(true);
-        generalR.setColor(Clr_DarkGray);
-    }
-    else generalR.setVisibility(false);
+    if (tEdFileReader->ReadFileToBuff())
+    {
+        if (noResize){
+            generalR.setVisibility(true);
+            generalR.setColor(Clr_DarkGray);
+            DrawLogic::SetBackGroundColor(Clr_DarkGray);
+        }
+        else {
+            generalR.setVisibility(false);
+            DrawLogic::SetBackGroundColor(Clr_BckgrdW);
+        }
 
-    if (fitSizeToFile){
-        int hgt=(charHeight+2)*tEdFileReader->GetNumberOfLines();
-        int wdth=tEdFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
-        if (wdth<260) wdth=260;
-        if (wdth>1500) wdth=1500;
-        if (hgt<150) hgt=150;
-        if (hgt>900) hgt=900;
-        if ((wdth<keyb.MyWidth())&&showKeyb) wdth=keyb.MyWidth();
-        if (textHeight!=hgt||textWidth!=wdth){
-            textHeight=hgt;
-            textWidth=wdth;
-            tEdFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
-            tEdFileReader->ReadFileToBuff();
-            fitSizeToFile=false;}
-        return;
-    }
-    generalR.SetDimensions(textWidth+colWidth+10,textHeight+upperMargin+lowerMargin);//offsetY upper margin and lower margin
-    wWidth=generalR.GetWidth();
-    wHeight=generalR.GetHeight();
-    vrWidth=wWidth;
-    vrHeight=wHeight;
-    if (XPLMWindowIsInVR(myWindow)){
-       if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);}
-    else {
-       if (myWindow!=nullptr) {
-          XPLMGetWindowGeometry(myWindow,&l,&t,&r,&b);
-          //vrWidth=r-l;vrHeight=t-b;
-          XPLMSetWindowGeometry(myWindow,l,t,l+vrWidth,t-vrHeight);
-       }
-    }
-    generalR.SetOrigin(0,0);
-    minHeight=tEdFileReader->GetOffSetY()+180;
-    maxHeight=tEdFileReader->GetOffSetY()+935;
+        if (fitSizeToFile){
+            int hgt=(charHeight+2)*tEdFileReader->GetNumberOfLines();
+            int wdth=tEdFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
+            if (wdth<260) wdth=260;
+            if (wdth>1500) wdth=1500;
+            if (hgt<150) hgt=150;
+            if (hgt>900) hgt=900;
+            if ((wdth<keyb.MyWidth())&&showKeyb) wdth=keyb.MyWidth();
+            if (textHeight!=hgt||textWidth!=wdth){
+                textHeight=hgt;
+                textWidth=wdth;
+                tEdFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
+                tEdFileReader->ReadFileToBuff();
+                fitSizeToFile=false;}
+            return true;
+        }
+        generalR.SetDimensions(textWidth+colWidth+10,textHeight+upperMargin+lowerMargin);//offsetY upper margin and lower margin
+        wWidth=generalR.GetWidth();
+        wHeight=generalR.GetHeight();
+        vrWidth=wWidth;
+        vrHeight=wHeight;
+        myDrawPad->SetNewSize(wWidth,wHeight);
+        if (XPLMWindowIsInVR(myWindow)){
+            if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);}
+        else {
+            if (myWindow!=nullptr) {
+                XPLMGetWindowGeometry(myWindow,&l,&t,&r,&b);
+                //vrWidth=r-l;vrHeight=t-b;
+                XPLMSetWindowGeometry(myWindow,l,t,l+vrWidth,t-vrHeight);
+            }
+        }
+        generalR.SetOrigin(0,0);
+        minHeight=tEdFileReader->GetOffSetY()+180;
+        maxHeight=tEdFileReader->GetOffSetY()+935;
+        return true;
+    }else return false;
 }
 
 bool LayoutWithEdit::newSize(int wth, int hgt){//called by recalculate
@@ -140,7 +163,7 @@ bool LayoutWithEdit::newSize(int wth, int hgt){//called by recalculate
      int middle=tEdFileReader->GetOffSetY()+(tEdFileReader->GetHeight()/2);
      RelocateButtons(middle);
      keyb.Relocate(colWidth,generalR.GetHeight()-lowerMargin+58);
-     myDrawPad->SetNewSize(wWidth,wHeight);
+
      myDrawPad->GenerateCurrentTexture();
      return true;
  }
@@ -161,6 +184,8 @@ void LayoutWithEdit::FitToFile(){
     generalR.SetDimensions(textWidth+colWidth+10,textHeight+tEdFileReader->GetOffSetY()+lowerMargin);//offsetY upper margin and 54lower margin
     wWidth=generalR.GetWidth();
     wHeight=generalR.GetHeight();
+    myDrawPad->SetNewSize(wWidth,wHeight);
+    myDrawPad->GenerateCurrentTexture();
     if (keepSize) KeepCurrentSize();
 }
 
@@ -181,23 +206,13 @@ void LayoutWithEdit::recalculate(){ //gets called at every draw callback so this
            newGeometry=newSize(wdt,hg);}
         else newGeometry=newSize(wdt,hg);
     }
-
-    if ((t!=wTop)|(l!=wLeft)|newGeometry){
-        dayPart=3;
-        wTop=t;
-        wLeft=l;
-        generalR.SetOrigin(l,t);
-        tEdFileReader->Recalculate(l,t);
-        for (auto &bts:tButtons){
-            bts->SetOrigin(l,t);
-        }
-}
 }
 
 void LayoutWithEdit::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
     recalculate();
+    myDrawPad->SetScreenOrigin(l,b,r,t);
 
     if (showFPS){
         lFPS.setText(textToShow);
@@ -236,8 +251,8 @@ void LayoutWithEdit::DrawNoResize(XPLMWindowID g_textWindow){
     DrawTextW(g_textWindow);//always resize
 }
 
-void LayoutWithEdit::findClick(int mX, int mY){
-
+void LayoutWithEdit::findClick(int cX, int cY){
+    int mX(cX-l),mY(cY-b);
     if (continueClick||buttonClick){
         if (clickresult>-1) tButtons[static_cast<ulong>(clickresult)]->Release();
         if (continueClick) tEdFileReader->ProceedEndClick();
@@ -324,7 +339,8 @@ void LayoutWithEdit::EndKeyPress(){
     CheckButtonsVisibility();
 }
 
-void LayoutWithEdit::HandleMouseKeepDown(int mX,int mY){
+void LayoutWithEdit::HandleMouseKeepDown(int cX,int cY){
+    int mX(cX-l),mY(cY-b);
     dayPart=3;
     if (continueClick) tEdFileReader->ProceedClickCont(mX,mY);
 }
@@ -382,7 +398,7 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
             break; }
 
          case B_Reload:{//Save and quit Command
-           tEdFileReader->Save();editMode=false;;
+           tEdFileReader->Save();editMode=false;
              //canUTF=true;
            break;}
 
@@ -498,20 +514,6 @@ void LayoutWithEdit::CheckButtonsVisibility(){
     tButtons[B_UTF8]->setVisibility(true);
     tButtons[B_Toggle_Line]->setVisibility(tEdFileReader->HasSelection()&(!hasToSave)&(enableDelete));
     tButtons[B_Show_All]->setVisibility(tEdFileReader->HasHiddenLine()&(!hasToSave)&(enableDelete));
-
-    tButtons[B_NAV1]->setVisibility(tEdFileReader->HasNav()&XPLMGetDatai(nav1on)&enableFreqs);
-    tButtons[B_NAV2]->setVisibility(tEdFileReader->HasNav()&XPLMGetDatai(nav2on)&enableFreqs);
-    tButtons[B_COM1]->setVisibility(tEdFileReader->HasCom()&XPLMGetDatai(com1on)&enableFreqs);
-    tButtons[B_COM2]->setVisibility(tEdFileReader->HasCom()&XPLMGetDatai(com2on)&enableFreqs);
-    tButtons[B_ADF1]->setVisibility(tEdFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs);
-    tButtons[B_ADF2]->setVisibility(tEdFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs);
-
-    fCom.SetVisibility(tEdFileReader->HasCom());
-    fNav.SetVisibility(tEdFileReader->HasNav());
-    fAdf.SetVisibility(tEdFileReader->HasADF());
-    lFPS.SetVisibility(false);
-
-
 }
 
 std::string LayoutWithEdit::GetFileName(){
@@ -556,8 +558,6 @@ void LayoutWithEdit::ClosegWindow(){
         myWindow=nullptr;
         tEdFileReader->closeReader();
         tButtons.clear();
-        gTop=0;gBottom=0;gLeft=0;gRight=0;
-        wTop=0;wBottom=0;wLeft=0;wRight=0;
         wWidth=0;wHeight=0;
         charWidth=0;
         textPointX=0;textPointY=0;

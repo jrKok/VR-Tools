@@ -218,11 +218,11 @@ void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
     kL5.clear();
     allKeyboard.SetOrigin(offX,offY);
 
-    rL1.SetOrigin(offX,offY);
-    rL2.SetOrigin(offX,offY+keyHeight+2);
-    rL3.SetOrigin(offX,rL2.GetBottom()+keyHeight+2);
-    rL4.SetOrigin(offX,rL3.GetBottom()+keyHeight+2);
-    rL5.SetOrigin(offX,rL4.GetBottom()+keyHeight+2);
+    rL1.SetOrigin(offX,offY+(5*(keyHeight+2)));
+    rL2.SetOrigin(offX,rL1.GetBottom()-keyHeight-2);
+    rL3.SetOrigin(offX,rL2.GetBottom()-keyHeight-2);
+    rL4.SetOrigin(offX,rL3.GetBottom()-keyHeight-2);
+    rL5.SetOrigin(offX,rL4.GetBottom()-keyHeight-2);
     //read the file containing definitions of keys, one text line per keyboard line
     string fileName("");
     if (numpad){
@@ -260,7 +260,7 @@ void Keyboard::SetOrigin (int x, int y){
 }
 
 void Keyboard::Relocate (int newX, int newY){
-    int deltaX(newX-offX),deltaY(offY==0?(newY):newY-offY);
+   /* int deltaX(newX-offX),deltaY(offY==0?(newY):newY-offY);
     offX=newX;offY=newY;
     allKeyboard.SetOrigin(newX,newY);
     rL1.SetOrigin(offX,offY);
@@ -272,7 +272,7 @@ void Keyboard::Relocate (int newX, int newY){
     for (std::shared_ptr<Key> k: kL2)  k->Shift(deltaX,deltaY);
     for (std::shared_ptr<Key> k: kL3)  k->Shift(deltaX,deltaY);
     for (std::shared_ptr<Key> k: kL4)  k->Shift(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL5)  k->Shift(deltaX,deltaY);
+    for (std::shared_ptr<Key> k: kL5)  k->Shift(deltaX,deltaY);*/
 
 }
 

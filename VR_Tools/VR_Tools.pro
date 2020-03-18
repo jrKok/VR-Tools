@@ -72,6 +72,7 @@ LIBS +=-lmsvcrt -lmsvcmrt
 TARGET = VR_Tools.xpl
 
 SOURCES += \
+    fontman.cpp \
     stringops.cpp \
     textreader.cpp \
     textline.cpp \
@@ -108,6 +109,7 @@ SOURCES += \
     globals.cpp
 
 HEADERS += \
+    fontman.h \
     stringops.h \
     textreader.h \
     textline.h \

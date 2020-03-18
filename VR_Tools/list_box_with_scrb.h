@@ -73,6 +73,7 @@ public:
     int  GetHeight();
     int  GetOffSetX();
     int  GetOffSetY();
+    int  GetTextOnlysBottom();
     int  GetTop();
     int  GetLeft();
     int  GetRight();
@@ -96,8 +97,10 @@ public:
     void SetBackGround(bool opt);
     void PrintMyText();
     virtual void ShowAll()=0;
+    char GetScrollBarsColorCode();
 
 protected:
+    char inkColor;
     int in_bottom,in_left;
     int grlOffsetX,grlOffsetY;
     int charHeight,maxStringWidth;

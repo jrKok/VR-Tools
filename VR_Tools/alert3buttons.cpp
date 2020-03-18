@@ -53,7 +53,7 @@ void Alert3Buttons::MakeAlert(const string &yesStr, const string &noStr, const s
     p.SetCoords(textOffsetX,textOffsetY);
 
     myXPWindow=ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,width,height);
-    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,p);
+    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,Clr_LightGray,p);
 
     yesButton=new button_VR();
     noButton=new button_VR();
@@ -90,7 +90,7 @@ int  Alert3Buttons::GetAnswer(){
 void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void *){
     int lft(left),top,right,bottm(bottom);
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||bottm!=bottom) DrawLogic::SetScreenOrigin(left,bottom);
+    DrawLogic::SetScreenOrigin(left,bottm,right, top);
     DrawLogic::DrawContent();
 }
 

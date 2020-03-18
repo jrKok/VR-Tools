@@ -6,6 +6,7 @@ class point
 {
 public:
     point();
+    point(int x, int y);
 
     void SetCoords(int x, int y);
     void SetOffsets(int oX,int oY);

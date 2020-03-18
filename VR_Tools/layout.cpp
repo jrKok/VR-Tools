@@ -6,8 +6,9 @@ int Layout::cycle=0;
 
 Layout::Layout(DrawLogic *newPad) :
    myDrawPad(newPad),
-   gTop(0),gLeft(0),gRight(0),gBottom(0),
-  wTop(0),wBottom(0),wLeft(0),wRight(0),wWidth(0),wHeight(0),minWidth(0),maxWidth(0),minHeight(0),maxHeight(0),
+   //gTop(0),gLeft(0),gRight(0),gBottom(0),
+  wTop(0),wBottom(0),wLeft(0),wRight(0),
+  wWidth(0),wHeight(0),minWidth(0),maxWidth(0),minHeight(0),maxHeight(0),
   charHeight(0),charWidth(0),textPointX(0),textPointY(0),//Used for initial setup and resize instructions
   t(0),b(0),l(0),r(0),//input from draw instruction mostly
   textHeight(0),textWidth(0),colWidth(35),idxSelected(-1),nButtons(0),
@@ -38,6 +39,12 @@ Layout::Layout(DrawLogic *newPad) :
 
 Layout::~Layout(){
     delete tFileReader;
+    for (auto &bt:tButtons){
+        delete bt;
+        bt=nullptr;
+    }
+    tButtons.clear();
+
 }
 
 //Helpers
@@ -121,24 +128,30 @@ bool Layout::initiate(){
     if (noResize) {
         generalR.setVisibility(true);
         generalR.setColor(Clr_DarkGray);
+        DrawLogic::SetBackGroundColor(Clr_DarkGray);
     }
     else{
         generalR.setVisibility(false);
+        DrawLogic::SetBackGroundColor(Clr_BckgrdW);
     }
-    tFileReader->PointToFile();
-    resize();
-    if (showFPS) upperMargin=40 + charHeight+2;
-    else upperMargin=40;
-    wLeft=gLeft+150;
-    wRight=wLeft+wWidth;
-    wTop=gTop-150;//moreover this will force a new recalculation at next draw call
-    wBottom=wTop-wHeight;
-    defineButtons();
-    nButtons=static_cast<int>(tButtons.size());
-    if (goToLastPage) tFileReader->GoToLastPage();
-    myDrawPad->SetNewSize(wWidth,wHeight);
-    myDrawPad->GenerateCurrentTexture();
-    return true;
+    if (!nButtons){
+        tFileReader->PointToFile();
+        if (resize()){
+            if (showFPS) upperMargin=40 + charHeight+2;
+            else upperMargin=40;
+            wLeft=150;
+            wRight=wLeft+wWidth;
+            wBottom=200;
+            wTop=wBottom+wHeight;
+            defineButtons();
+            nButtons=static_cast<int>(tButtons.size());
+            if (goToLastPage) tFileReader->GoToLastPage();
+            myDrawPad->SetNewSize(wWidth,wHeight);
+            myDrawPad->GenerateCurrentTexture();
+            return true;
+        }else return false;
+    }
+    else return resize();
 
 }
 
@@ -146,49 +159,54 @@ void Layout::HandleDialog(){
 
 }
 
-void Layout::resize(){//calculate offsets; areas of rectangles}
+bool Layout::resize(){//calculate offsets; areas of rectangles}
     dayPart=3;
     tFileReader->SetSplitPolicy(splitLinePolicy);
     if (textHeight<150) textHeight=150;
     tFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
-    tFileReader->ReadFileToBuff();
-    if (fitSizeToFile){
-        int hgt=(charHeight+2)*tFileReader->GetNumberOfLines();
-        int wdth=tFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
-        if (wdth<260) wdth=260;
-        if (wdth>1500) wdth=1500;
-        if (hgt<150) hgt=150;
-        if (hgt>900) hgt=900;
-        if (textHeight!=hgt||textWidth!=wdth){
-            textHeight=hgt;
-            textWidth=wdth;
-            tFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
-            tFileReader->ReadFileToBuff();
-            fitSizeToFile=false;}
-        return;
+    if (tFileReader->ReadFileToBuff())
+    {
+        if (fitSizeToFile){
+            int hgt=(charHeight+2)*tFileReader->GetNumberOfLines();
+            int wdth=tFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
+            if (wdth<260) wdth=260;
+            if (wdth>1500) wdth=1500;
+            if (hgt<150) hgt=150;
+            if (hgt>900) hgt=900;
+            if (textHeight!=hgt||textWidth!=wdth){
+                textHeight=hgt;
+                textWidth=wdth;
+                tFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
+                tFileReader->ReadFileToBuff();
+                fitSizeToFile=false;}
+            return true;
+        }
+        wWidth=textWidth+colWidth+10;
+        wHeight=textHeight+upperMargin+lowerMargin;
+        generalR.SetDimensions(wWidth,wHeight);
+        vrWidth=wWidth;
+        vrHeight=wHeight;
+        myDrawPad->SetNewSize(wWidth,wHeight);
+        if (XPLMWindowIsInVR(myWindow)==1){
+            if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);}
+        else {
+            if (myWindow!=nullptr) {
+                XPLMGetWindowGeometry(myWindow,&l,&t,&r,&b);
+                XPLMSetWindowGeometry(myWindow,l,t,l+vrWidth,t-vrHeight);
+            }
+        }
+        minHeight=tFileReader->GetOffSetY()+180;
+        maxHeight=tFileReader->GetOffSetY()+935;
+        if (noResize){
+            generalR.setVisibility(true);
+            generalR.setColor(Clr_DarkGray);
+        }
+        else generalR.setVisibility(false);
+        if (!useBackGround) tFileReader->SetBackGround(false);
+        return true;
+    }else{
+        return false;
     }
-    wWidth=textWidth+colWidth+10;
-    wHeight=textHeight+upperMargin+lowerMargin;
-    generalR.SetDimensions(wWidth,wHeight);
-    vrWidth=wWidth;
-    vrHeight=wHeight;
-    myDrawPad->SetNewSize(wWidth,wHeight);
-    if (XPLMWindowIsInVR(myWindow)==1){
-       if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,vrWidth,vrHeight);}
-    else {
-       if (myWindow!=nullptr) {
-          XPLMGetWindowGeometry(myWindow,&l,&t,&r,&b);
-          XPLMSetWindowGeometry(myWindow,l,t,l+vrWidth,t-vrHeight);
-       }
-    }
-    minHeight=tFileReader->GetOffSetY()+180;
-    maxHeight=tFileReader->GetOffSetY()+935;
-    if (noResize){
-        generalR.setVisibility(true);
-        generalR.setColor(Clr_DarkGray);
-    }
-    else generalR.setVisibility(false);
-    if (!useBackGround) tFileReader->SetBackGround(false);
 }
 
 //members, functions for running the class
@@ -228,7 +246,6 @@ bool Layout::newSize(int wth,int hgt){//called by recalculate
 
         int middle=tFileReader->GetBottom()+(tFileReader->GetHeight()/2);
         RelocateButtons(middle);
-        myDrawPad->SetNewSize(wWidth,wHeight);
         myDrawPad->GenerateCurrentTexture();
         return true;
 
@@ -268,18 +285,14 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
         if (!useBackGround){
            tFileReader->SetInkColor(Clr_White);
            tFileReader->SetBackGround(false);}
-        wTop=t;
-        wLeft=l;
-        tFileReader->Recalculate(l,b);
-        myDrawPad->SetScreenOrigin(l,b);
 }
 }
 void Layout::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
     float curT=XPLMGetElapsedTime();
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
-    myDrawPad->SetScreenOrigin(l,b);
     recalculate(curT);
+    myDrawPad->SetScreenOrigin(l,b,r,t);
 
     if (showFPS){
         if ((curT-fpsTag)>0.5f) {
@@ -288,6 +301,7 @@ void Layout::DrawTextW(XPLMWindowID g_textWindow){
             string fps=std::to_string(currentFPS);
             fps=fps.substr(0,5);
             lFPS.setText("FPS : "+fps);
+            lFPS.PrintString();
         }
     }
 
@@ -378,10 +392,22 @@ void Layout::CheckButtonsVisibility(){
     tButtons[B_ADF1]->setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs);
     tButtons[B_ADF2]->setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs);
 
-    fNav.SetVisibility(tFileReader->HasNav());
-    fCom.SetVisibility(tFileReader->HasCom());
-    fAdf.SetVisibility(tFileReader->HasADF());
-    lFPS.SetVisibility(showFPS);
+    if (tFileReader->HasNav() ){
+        fNav.SetVisibility(true);
+        fNav.PrintString();
+    }
+    if (tFileReader->HasCom()){
+        fCom.SetVisibility(true);
+        fCom.PrintString();
+    }
+    if(tFileReader->HasADF()){
+        fAdf.SetVisibility(true);
+        fAdf.PrintString();
+    }
+    if (showFPS){
+        lFPS.SetVisibility(showFPS);
+        lFPS.PrintString();
+    }
 
 }
 
@@ -520,6 +546,7 @@ void Layout::LaunchCommand(int refCommand){
          break;}
 
          case B_Show_All:{
+        WriteDebug("layout commandprocess color code for step 1 scrollBar"+std::to_string(tFileReader->GetScrollBarsColorCode()));
              tFileReader->ShowAll();
              tFileReader->SetupforText();
          break;}
@@ -579,12 +606,14 @@ void Layout::LaunchCommand(int refCommand){
          break;  }
 }
     CheckButtonsVisibility();
+            WriteDebug("layout commandprocess color code for afterBV scrollBar"+std::to_string(tFileReader->GetScrollBarsColorCode()));
 }
 
 void Layout::ClosegWindow(){
     myWindow=nullptr;
     tFileReader->closeReader();
     tButtons.clear();
+    nButtons=0;
 
     wTop=0;wBottom=0;wLeft=0;wRight=0;
     wWidth=0;wHeight=0;
@@ -639,7 +668,7 @@ void Layout::RelocateButtons(int middle){
     tButtons[B_Toggle_Line]->SetOrigin(-1,middle+13);
     tButtons[B_Show_All]->   SetOrigin(-1,middle-25);
     tButtons[B_Undo]->       SetOrigin(-1,middle-5);
-    tButtons[B_NAV1]->       SetOrigin(colWidth+46,lowerMargin-2);
+    tButtons[B_NAV1]->       SetOrigin(colWidth+46,lowerMargin-17);
     tButtons[B_NAV2]->       SetOrigin(tButtons[B_NAV1]->GetLeft()+38,tButtons[B_NAV1]->GetBottom());
     tButtons[B_COM1]->       SetOrigin(tButtons[B_NAV1]->GetLeft(),tButtons[B_NAV1]->GetBottom()-18);
     tButtons[B_COM2]->       SetOrigin(tButtons[B_NAV2]->GetLeft(),tButtons[B_COM1]->GetBottom());
@@ -688,19 +717,19 @@ void Layout::defineButtons(){
     MakeButton(true,"-Lines",20,15,colWidth+190,31);
 
          //B_NAV1 = 10;
-    MakeButton(true,"Nav1",35,15,colWidth+46,lowerMargin-2);
+    MakeButton(true,"Nav1",35,15,colWidth+46,lowerMargin-17);
 
         // B_NAV2 = 11;
     MakeButton(true,"Nav2",35,15,tButtons[B_NAV1]->GetLeft()+38,tButtons[B_NAV1]->GetBottom());
 
          //B_COM1 = 12;
-    MakeButton(true,"com1",35,15,colWidth+46,tButtons[B_NAV1]->GetBottom()+18);
+    MakeButton(true,"com1",35,15,colWidth+46,tButtons[B_NAV1]->GetBottom()-18);
 
         // B_COM2 = 13;
     MakeButton(true,"com2",35,15,tButtons[B_COM1]->GetLeft()+38,tButtons[B_COM1]->GetBottom());
 
         // B_ADF1 = 14;
-    MakeButton(true,"Adf1",35,15,colWidth+46,tButtons[B_COM1]->GetBottom()+18);
+    MakeButton(true,"Adf1",35,15,colWidth+46,tButtons[B_COM1]->GetBottom()-18);
 
         // B_ADF2 = 15
     MakeButton(true,"Adf2",35,15,tButtons[B_ADF1]->GetLeft()+38,tButtons[B_ADF1]->GetBottom());
@@ -710,19 +739,23 @@ void Layout::defineButtons(){
 
     fNav.SetOrigin(colWidth,tButtons[B_NAV1]->GetTextY());
     fNav.SetDimensions(45,charHeight);
+    fNav.SetBackGroundColor(Clr_DarkGray);
     fNav.SetTextColor(Clr_Amber);
 
     fCom.SetOrigin(colWidth,tButtons[B_COM1]->GetTextY());
     fCom.SetDimensions(45,charHeight);
+    fCom.SetBackGroundColor(Clr_DarkGray);
     fCom.SetTextColor(Clr_Amber);
 
     fAdf.SetOrigin(colWidth,tButtons[B_ADF1]->GetTextY());
     fAdf.SetDimensions(45,charHeight);
+    fAdf.SetBackGroundColor(Clr_DarkGray);
     fAdf.SetTextColor(Clr_Amber);
 
 
     fpsTag=XPLMGetElapsedTime();
     lFPS.SetOrigin(14,tButtons[B_Load_File]->GetBottom()-2);
+    lFPS.SetBackGroundColor(Clr_DarkGray);
     lFPS.SetTextColor(Clr_Amber);
 
 }

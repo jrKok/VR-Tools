@@ -21,6 +21,7 @@
 #include "temporarywindow.h"
 #include "hotspots.h"
 #include "globals.h"
+#include "fontman.h"
 
 using std::string;
 
@@ -82,6 +83,7 @@ static bool g_in_vr;
        DrawLogic drw;
        temporaryWindow tw;
        globals colordefs;
+       fontMan fontmanager;
 
 };
 

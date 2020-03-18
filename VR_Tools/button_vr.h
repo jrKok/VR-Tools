@@ -42,6 +42,7 @@ virtual void SetOrigin(int in_x, int in_y);
     void SetOffsetY(int in_oY);
     void ReDrawButton();
 
+    char GetStringColorCode();
 
 protected:
     bool isModalB;

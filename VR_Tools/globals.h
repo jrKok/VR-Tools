@@ -1,5 +1,11 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+#include FT_TYPES_H
+#include FT_OUTLINE_H
+#include FT_RENDER_H
 #include <rectangles.h>
 #include <map>
 #include <string>
@@ -16,6 +22,7 @@ using std::fabs;
 using std::map;
 using std::string;
 using std::vector;
+using vString=std::vector<string>;
 using triangle=std::array<int,6>;
 
 
@@ -29,11 +36,12 @@ struct textureColor
 
 struct charrecord
 {
-    char* bitmap;
-    unsigned char offset;
-    int width;
-    int height;
-    int advance;
+    unsigned char bitmap[144];
+    FT_ULong charcode;
+    long yOffset;
+    unsigned int width;
+    unsigned int height;
+    unsigned int advance;
 };
 
 struct color
@@ -70,6 +78,7 @@ struct StringToDraw
     float  s_Color[3];
     bool   s_visible;
     bool   is_deleted;
+    char   s_BckGrdColor;
 };
 
 

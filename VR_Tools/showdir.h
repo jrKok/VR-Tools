@@ -21,7 +21,7 @@ public:
 
 
     ShowDir(DrawLogic *newPad);
-
+    ~ShowDir();
 
     void WriteDebug(string message);
     void MakeButton();
@@ -46,23 +46,24 @@ public:
     int  GetLeft();
     int  GetWidth();
     int  GetHeight();
+    void GetWindowId(XPLMWindowID inw);
 
 
 private:
     DrawLogic  *myDrawPad;
-    rectangles general,leftR,rightR,slider;
+    rectangles general,sliderBox;
     enum { button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4};
     enum {windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6};
 
     int in_top,in_left,newT,newL,nR,nB,myWindowNumber;
-    int buttonPressed, SectionPressed,charHeight,hghDisp;//section pr
+    int buttonPressed, SectionPressed,charHeight,hghDisp,wWidth,wHeight;//section pr
     bool waitForMouseUp;
     dirNameReader dirN;
     FileNamePicker fileN;
     string fileSelected, filePathSelected;
-
-    std::vector<TextLine> displayLines;//DirTitle,FileTitle,CurrentDirectory,Directory selected,FileSelected
-    std::vector<button_VR> buttons;
+    XPLMWindowID myWindow;
+    std::vector<TextLine*> displayLines;//DirTitle,FileTitle,CurrentDirectory,Directory selected,FileSelected
+    std::vector<button_VR*> buttons;
 };
 
 #endif // SHOWDIR_H

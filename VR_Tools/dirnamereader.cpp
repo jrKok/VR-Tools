@@ -68,8 +68,8 @@ void dirNameReader::ShowAll(){
             AddLine(fName);
         }
         }
-    SetupforText();
     SetInkColor(Clr_BlackInk);
+    SetupforText();
     ColorFirstLines();
 }
 
@@ -123,8 +123,10 @@ void dirNameReader::ColorFirstLines(){
         int idx(indxFirstOnPg);
         ulong bIdx(0);
         while (idx<nbSpecialLines&&idx<=indxLastOnPg){
-            if (!box[bIdx].GetSelected())
+            if (!box[bIdx].GetSelected()){
                 box[bIdx].SetTextColor(Clr_Green);
+                box[bIdx].PrintString();
+            }
             bIdx++;
             idx++;
         }

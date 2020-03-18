@@ -74,7 +74,7 @@ void LineDialog::MakeDialog(const string &yesStr, const string &noStr, const str
     }
     point p;
     p.SetCoords(textOffsetX,textOffsetY);
-    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,p);
+    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,Clr_LighterGray,p);
 
     yesButton=new button_VR();
     noButton=new button_VR();
@@ -124,7 +124,7 @@ string LineDialog::GetUserLine(){
 void LineDialog::DrawMyself(XPLMWindowID in_window_id, void * unused){
     int lft(left),tp(top),right,bottom;
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||tp!=top) DrawLogic::SetScreenOrigin(left,top);
+    if (lft!=left||tp!=top) DrawLogic::SetScreenOrigin(left,bottom,right,top);
     DrawLogic::DrawContent();
     if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetTextY());
     if (myself->cursor.HasSelection()){

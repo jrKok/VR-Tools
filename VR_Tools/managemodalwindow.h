@@ -25,7 +25,7 @@ public:
     static XPLMWindowID CreateMousedModalWindow(int mouseH(XPLMWindowID, int, int, int, void*), void drawCB(XPLMWindowID,void*), char myColor, int width, int height);
     static void         ResizeModalWindow(int width, int height);
     static void         DestroyModalWindow();
-    static void         Recalculate(int x, int y);
+    static void         SetScreenCoords(int left, int bottom,int right, int top);
     static void         PrintmyRectvisstatus();
     static XPLMWindowID GetCurrentWindowId();
     static void         MakeTopWindow();

@@ -27,8 +27,8 @@ ScrollBars::ScrollBars(bool modal):
     isVisible(false),
     drag(false),
     repeatCmd(false),
-    general(0,0,0,0,Clr_White,false),
-    core(0,0,0,0,Clr_White,false),
+    general(false),
+    core(0,0,0,0,Clr_Black,false),
     lift(0,0,0,0,Clr_White,false),
     commandUp(modal),
     commandDown(modal)
@@ -41,15 +41,14 @@ void ScrollBars::WriteDebug(std::string message){
 }
 
 void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,int offX, int offY){
-    //define fixed elements
-   if (totLines>0&&totalLines>=page){
 
-       this->isVisible=true;
+   totalheight=height;
+   totalLines=totLines;
+   page=linesInPage;
+
+   if ((totLines>0)&&(totalLines>=page)){
        commandUp.resetMe();
        commandDown.resetMe();
-       totalheight=height;
-       totalLines=totLines;
-       page=linesInPage;
        limitLastLine=totalLines-page;
        heightOfCore=totalheight-30;
 
@@ -66,7 +65,7 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
 
        commandDown.SetOrigin(offX,offY);
        commandDown.SetDimensions(15,15);
-       commandDown.setText("\xE2\x96\xBC");//e296bc trys also e28fb7
+       commandDown.setText("\xE2\x96\xBC");//e296bc try also e28fb7
        commandDown.setButtonColor(Clr_LightGray);
        commandDown.setTextColor(Clr_BlackInk);
 
@@ -88,10 +87,10 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
         SetPosFirstLine(firstLine);
         core.setColor(Clr_Gray);
         lift.setColor(Clr_White);
-        SetVisibility(isVisible);
+        SetVisibility(true);
    }
-   else{//no lines are to be displayed, no initialisation occured
-       this->isVisible=false;
+   else{//no extra lines are to be displayed, no initialisation occured
+       SetVisibility(false);
 
    }
 }
@@ -262,12 +261,14 @@ int ScrollBars::GetPosFirstLine(){
 }
 
 void ScrollBars::SetVisibility(bool iV){
-    general.setVisibility(iV);
-    lift.setVisibility(iV);
-    core.setVisibility(iV);
-    commandDown.setVisibility(iV);
-    commandUp.setVisibility(iV);
-    isVisible=iV;
+    if (isVisible!=iV){
+        general.setVisibility(iV);
+        lift.setVisibility(iV);
+        core.setVisibility(iV);
+        commandDown.setVisibility(iV);
+        commandUp.setVisibility(iV);
+        isVisible=iV;
+    }
 
 }
 
@@ -289,3 +290,6 @@ void ScrollBars::DownPage(){
     LineDownNLines(page);
 }
 
+char ScrollBars::GetColorCodeFromSymbol(){
+    return commandUp.GetStringColorCode();
+}

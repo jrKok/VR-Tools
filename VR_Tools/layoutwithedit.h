@@ -28,7 +28,7 @@ public:
 
     //reimplemented member functions
     bool initiate();
-    void resize();
+    bool resize();
     bool newSize(int wth,int hgt);
     void FitToFile();
     void recalculate();

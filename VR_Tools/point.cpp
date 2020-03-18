@@ -11,6 +11,16 @@ point::point():
 
 }
 
+point::point(int in_x, int in_y):
+    offsetX(0),
+    offsetY(0),
+    screenX(0),
+    screenY(0)
+{
+    x=in_x;
+    y=in_y;
+}
+
 void point::SetCoords(int in_x, int in_y){
     x=in_x;y=in_y;
 }

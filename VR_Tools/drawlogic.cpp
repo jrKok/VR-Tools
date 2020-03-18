@@ -1,9 +1,8 @@
 #include "drawlogic.h"
+#include "fontman.h"
+
 DrawLogic *DrawLogic::myself(nullptr);
-bool DrawLogic::FreeTypeStarted(false);
-bool DrawLogic::FreeTypeError(false);
-FT_Library DrawLogic::library(nullptr);
-FT_Face    DrawLogic::face(nullptr);
+
 
 
 //Implementation
@@ -11,7 +10,7 @@ DrawLogic::DrawLogic():
     rects(new  map<int,rectangles*>),
     strings(new vector<StringToDraw>),
     textureZone(),
-
+     backGroundColor(Clr_BckgrdW),
      textNum(0),
      currentRectNumber(0),
      currentTriangleNumber(0),
@@ -25,8 +24,6 @@ DrawLogic::DrawLogic():
      numberOfDeletedStrings(0),
      hasDeletedStrings(false),
      isModal(false),
-
-
     windowWidth(0),
     windowHeight(0),
     currentXWPos(0),
@@ -34,7 +31,6 @@ DrawLogic::DrawLogic():
     ident("DrawPad")
 {
     myself=this;
-    StartFreeType();
 
 }
 
@@ -48,40 +44,29 @@ DrawLogic::~DrawLogic(){
 
 }
 
-void DrawLogic::StartFreeType(){
-    if (!FreeTypeStarted){
-        FreeTypeStarted=true;
-        int er=FT_Init_FreeType( &library );
-        char sysPath[512];
-        XPLMGetSystemPath(sysPath);
-        string sysDir=sysPath;//conversion from char[]
-        string fontname=sysDir+"Resources\\fonts\\DejaVuSans.ttf";
-        if (er) {WriteDebug("In DrawLogic StartFreeType Init Free Type gave error "+std::to_string(er));FreeTypeError=true;}
-        er= FT_New_Face( library,
-                         fontname.c_str(),
-                         0,
-                         &face );
-        if (er) {WriteDebug("In DrawLogic StartFreeType New Face returned error "+std::to_string(er));FreeTypeError=true;}
-        //er= FT_Set_Char_Size(face,0,10*64,96,96);
-        er= FT_Set_Pixel_Sizes(face,11,11);
-    }
+void DrawLogic::SetBackGroundColor(char in_Color){
+    myself->backGroundColor=in_Color;
 }
 
-void DrawLogic::EndFreeType(){
-    if (library!=nullptr){
-            FT_Done_Face(face);
-            FT_Done_Library(library);
-            face=nullptr;
-            library=nullptr;
-}
-}
 void DrawLogic::WriteDebug(string message){
     string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
 }
 
 void DrawLogic::Initiate(){
-myself=this;
+    myself=this;
+ulong sze(MaxWWidth*MaxWHeight);
+long adress(reinterpret_cast<long>(&textureZone[0])),newAdress(0);
+for (ulong atg(1);atg<sze;atg++){
+    newAdress=reinterpret_cast<long>(&textureZone[atg]);
+  if (newAdress-adress==4){
+      adress=newAdress;
+  }
+  else{
+      WriteDebug("DrawLogic : textureZone is not contiguous at iteration "+std::to_string(atg));
+      break;
+  }
+}
 }
 
 void DrawLogic::ToUpperLevel(){
@@ -89,28 +74,20 @@ void DrawLogic::ToUpperLevel(){
 }
 
 void DrawLogic::SetNewSize(int in_Width, int in_Height){
-    /*if (textNum){
-        GLuint tN= static_cast<GLuint>(textNum);
-        glBindTexture(tN,0);
-        glDeleteTextures(1,&tN);
-    }*/
     windowWidth=in_Width;
     windowHeight=in_Height;
-    screenR=screenL+windowWidth;
-    screenT=screenB+windowHeight;
-    XPLMGenerateTextureNumbers(&textNum, 1);
-    XPLMBindTexture2d(textNum, 0);
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,in_Width,in_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE,&textureZone);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    if ((windowWidth*windowHeight)>(MaxWWidth*MaxWHeight)) WriteDebug("DrawLogic Set New Size : Texture size exceeds maximum allowance");
+    else
+    {
+        screenR=screenL+windowWidth;
+        screenT=screenB+windowHeight;
+        XPLMGenerateTextureNumbers(&textNum, 1);
+        XPLMBindTexture2d(textNum, 0);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,in_Width,in_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE,&textureZone);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
     //GenerateCurrentTexture();
-}
-
-void  DrawLogic::SetScreenPosition(int in_Top,int in_Left){
-    screenT=in_Top;
-    screenL=in_Left;
-    screenB=screenT-myself->windowHeight;
-    screenR=screenL+myself->windowWidth;
 }
 
 void DrawLogic::DiagnosisOfRects(){
@@ -138,27 +115,34 @@ void DrawLogic::FillAll(char in_Color){
 }
 
 void DrawLogic::DrawRectOnTexture(const rectangles &in_rect){
-    textureColor rc;
-    rc.red  =globals::colors[in_rect.GetColor()].red;
-    rc.green=globals::colors[in_rect.GetColor()].green;
-    rc.blue =globals::colors[in_rect.GetColor()].blue;
-    rc.alpha=globals::colors[in_rect.GetColor()].alpha;
-    int maxX=min(windowWidth,in_rect.GetRight());
-    int maxY=min(in_rect.GetTop()*windowWidth,windowHeight*windowWidth);
-    for (int line(in_rect.GetBottom()*windowWidth);line<=maxY;line+=windowWidth){
-        int limX=line+maxX;
-        for (int pos(line+in_rect.GetLeft());pos<=limX;pos++){
-            textureZone[pos]=rc;
+    if (windowWidth&&windowHeight)
+    {
+        int r(in_rect.GetRight()),l(in_rect.GetLeft());
+        int t(in_rect.GetTop()),b(in_rect.GetBottom());
+        if (r<0|t<0) return;
+        if (l<0) l=0;
+        if (b<0) b=0;
+        if (t>windowHeight) t=windowHeight;
+        if (r>windowWidth) r=windowWidth;
+        textureColor rc;
+        rc.red  =globals::colors[in_rect.GetColor()].red;
+        rc.green=globals::colors[in_rect.GetColor()].green;
+        rc.blue =globals::colors[in_rect.GetColor()].blue;
+        rc.alpha=globals::colors[in_rect.GetColor()].alpha;
+        for (int line(b), idx(b*windowWidth);line<=t;line++,idx+=windowWidth){
+            for (int pos(idx+l),wd(l);wd<=r;pos++,wd++){
+                textureZone[pos]=rc;
+            }
         }
     }
 }
 
 void DrawLogic::WipeRectangle(const rectangles &in_rect){
     textureColor bckgrdcolor;
-    bckgrdcolor.red  =globals::colors[Clr_BckgrdW].red;
-    bckgrdcolor.green=globals::colors[Clr_BckgrdW].green;
-    bckgrdcolor.blue =globals::colors[Clr_BckgrdW].blue;
-    bckgrdcolor.alpha=globals::colors[Clr_BckgrdW].alpha;
+    bckgrdcolor.red  =globals::colors[backGroundColor].red;
+    bckgrdcolor.green=globals::colors[backGroundColor].green;
+    bckgrdcolor.blue =globals::colors[backGroundColor].blue;
+    bckgrdcolor.alpha=255;
     int maxX=min(windowWidth,in_rect.GetRight());
     int maxY=min(in_rect.GetTop()*windowWidth,windowHeight*windowWidth);
     for (int line(in_rect.GetBottom()*windowWidth);line<=maxY;line+=windowWidth){
@@ -178,110 +162,85 @@ void DrawLogic::GenerateCurrentTexture(){
         {   rectangles todr=*rct.second;
             if (rct.second->IsVisible()) DrawRectOnTexture(*rct.second);
         }
-        //experimental Character draw
 
-        if (!FreeTypeError){
+
+        if (!fontMan::FreeTypeError){
             for (auto st:*strings){
                 if ((!st.is_deleted)&st.s_visible) {
-                    WriteDebug(st.s_String);
-                    DrawStringOnTexture(st.s_String,st.s_Color_ident,st.s_location);
+                    DrawStringOnTexture(st.s_String,st.s_Color_ident,st.s_BckGrdColor,st.s_location);
                 }
             }
         }
     }
 }
 
-void DrawLogic::DrawStringOnTexture(string in_String, char in_Color, point start_point){
+void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol, point start_point){
+    if (start_point.GetX()>0&&start_point.GetY()>0){
+        ulong debut=static_cast<ulong>(start_point.GetY()*windowWidth);
+        ulong xP=static_cast<ulong>(start_point.GetX());
 
- ulong debut=static_cast<ulong>(start_point.GetY()*windowWidth);
- ulong xP=static_cast<ulong>(start_point.GetX());
+        double bg[3],fg[3];
+        bg[0]=globals::colors[bckCol].red/255.0;
+        bg[1]=globals::colors[bckCol].green/255.0;
+        bg[2]=globals::colors[bckCol].blue/255.0;
 
- double bg[3],fg[3];
- FT_GlyphSlot glyph(face->glyph);
- bg[0]=textureZone[debut+xP].red/255.0;
- bg[1]=textureZone[debut+xP].green/255.0;
- bg[2]=textureZone[debut+xP].blue/255.0;
+        fg[0]=globals::colors[in_Color].red/255.0;
+        fg[1]=globals::colors[in_Color].green/255.0;
+        fg[2]=globals::colors[in_Color].blue/255.0;
 
- fg[0]=globals::colors[in_Color].red/255.0;
- fg[1]=globals::colors[in_Color].green/255.0;
- fg[2]=globals::colors[in_Color].blue/255.0;
+        unsigned char inc(0);
+        char cSize(1),it(0);
+        charrecord cBitmap;
+        int charInt(0),height(0),width(0),advance(0),offset(0);
+        if (in_String.length()==0) return;
+        for (ulong tg(0);tg<in_String.length();tg++){
 
- unsigned char left(0),inc(0);
- int err(0);
- FT_ULong toPrint(0);
- char cSize(1);
- unsigned char construct[3];
- unsigned char it(0);
+            inc=static_cast<unsigned char>(in_String[tg]);
+            if (inc>0x7F&&cSize==1){
+                if (inc<=0xDF) {
+                    cSize=2;it=0;charInt=inc*0x100;}
+                else
+                {cSize=3;it=1;charInt=inc*0x10000;}
+                continue;
+            } else{
+                if (cSize>1){
+                    if (it){
+                        charInt+=inc*0x100;
+                        it--;
+                        continue;
+                    } else{
+                        charInt+=inc;
+                        cSize=1;
+                    }
 
- for (ulong tg(0);tg<in_String.length();tg++){
+                } else{
+                    charInt=inc;
+                }
+            }
 
-     inc=static_cast<unsigned char>(in_String[tg]);
-     if (inc>0x7F&&cSize==1){
-         if (inc<=0xDF) {cSize=2;it=1;}
-         else {cSize=3;it=2;}
-         construct[it]=inc;
-         it--;
-         continue;
-     } else{
-         if (cSize>1){
-             if (it){
-                 construct[it]=inc;
-                 it--;
-                 continue;
-             } else{
-                 if (cSize==2){
-                     //toPrint=((construct[1]&0x1F)*100+(inc<<2))>>2;
-                     toPrint=construct[1]&0x1F;
-                     toPrint=toPrint<<8;
-                     inc=inc<<2;
-                     WriteDebug("inc should be 168"+std::to_string(inc));
-                     toPrint=toPrint+inc;
-                     toPrint=toPrint>>2;
-                     WriteDebug ("toPrint is" +std::to_string(toPrint));
-                     WriteDebug("construct1 was "+std::to_string(construct[1]));
-                 }
-                 if (cSize==3){
-                     toPrint=(construct[2]&0x0F);
-                     toPrint=toPrint<<8;
-                     unsigned char inter=(construct[1]<<2);
-                     toPrint=toPrint+inter;
-                     toPrint=toPrint<<4;
-                     inc=inc&0x3F;
-                     toPrint=toPrint+inc;
-                 }
-                 cSize=1;
-             }
+            //go try to print
+            if (charInt==0x20){
+                xP+=4;continue;
+            }
+            cBitmap=fontMan::GetCharFromMap(charInt,width,height,offset,advance);
+            if (height&&((xP+advance)<=windowWidth)&&(start_point.GetY()+offset+height)<=windowHeight){
+                ulong lecteur=0;
+                debut=static_cast<ulong>((start_point.GetY()+offset)*windowWidth);
+                for (ulong line=debut,ln=0;ln<height;ln++,line-=static_cast<ulong>(windowWidth)){
+                    for (ulong px=line+xP,it(0);it<width;it++,px++ ) {
+                        double rap(cBitmap.bitmap[lecteur]/255.0);
+                        textureZone[px].alpha=255;
+                        textureZone[px].red  =static_cast<unsigned char>(255*(fg[0]*rap+bg[0]*(1-rap)));
+                        textureZone[px].green=static_cast<unsigned char>(255*(fg[1]*rap+bg[1]*(1-rap)));
+                        textureZone[px].blue =static_cast<unsigned char>(255*(fg[2]*rap+bg[2]*(1-rap)));
 
-         } else{
-             toPrint=inc;
-         }
-     }
-
-         //go try to print
-         if (toPrint==0x20){
-             xP+=4;continue;
-         }
-         err=FT_Load_Char(face,toPrint,FT_LOAD_RENDER);
-         if (!err){
-             ulong lecteur=0;
-             debut=static_cast<ulong>((start_point.GetY()+(glyph->metrics.horiBearingY>>6)-1)*windowWidth);
-             for (ulong line=debut,ln=0;ln<glyph->bitmap.rows;ln++,line-=static_cast<ulong>(windowWidth)){
-                 for (ulong px=line+xP,it(0);it<glyph->bitmap.width;it++,px++ ) {
-                         double rap(glyph->bitmap.buffer[lecteur]/255.0);
-                         textureZone[px].alpha=255;
-                         textureZone[px].red  =static_cast<unsigned char>(255*(fg[0]*rap+bg[0]*(1-rap)));
-                         textureZone[px].green=static_cast<unsigned char>(255*(fg[1]*rap+bg[1]*(1-rap)));
-                         textureZone[px].blue =static_cast<unsigned char>(255*(fg[2]*rap+bg[2]*(1-rap)));
-
-                       /*textureZone[px].red  =static_cast<unsigned char>(255*pow((1-rap)*pow(bg[0],2.4)+rap*pow(fg[0],2.4),1/2.4));
-                         textureZone[px].green=static_cast<unsigned char>(255*pow((1-rap)*pow(bg[1],2.4)+rap*pow(fg[1],2.4),1/2.4));
-                         textureZone[px].blue =static_cast<unsigned char>(255*pow((1-rap)*pow(bg[2],2.4)+rap*pow(fg[2],2.4),1/2.4));*/
-                         lecteur++;
-                     }
-             }
-             xP+=static_cast<ulong>((glyph->metrics.horiAdvance>>6));
-         }
- }
+                        lecteur++;
+                    }
+                }
+                xP+=static_cast<ulong>((advance));
+            }
+        }
+    }
 }
 
 void DrawLogic::UpdateTexture(){
@@ -324,7 +283,14 @@ void DrawLogic::ChangeColorString(const int in_Element,const char &to_Color){
    }
 }
 
-int DrawLogic::AddString(const string &in_String, const char in_Color,point where){
+void  DrawLogic::ChangeBckGrdColorString (const int in_Element,const char &to_Color){
+    ulong here=IndexOfString(in_Element);
+    if (here<(*(myself->strings)).size()){
+        (*(myself->strings))[here].s_BckGrdColor=to_Color;
+    }
+}
+
+int DrawLogic::AddString(const string &in_String, const char in_Color, const char bckgrdcol, point where){
     //char * fromString=myself->ToC(in_String);
     StringToDraw thisString;
     int retVal=myself->currentStringNumber; ulong siz=myself->strings->size();
@@ -341,6 +307,7 @@ int DrawLogic::AddString(const string &in_String, const char in_Color,point wher
                 (*(myself->strings))[Idx].s_visible=true;
                 (*(myself->strings))[Idx].s_location=where;
                 (*(myself->strings))[Idx].is_deleted=false;
+                (*(myself->strings))[Idx].s_BckGrdColor=bckgrdcol;
                 myself->numberOfDeletedStrings--;
                 myself->hasDeletedStrings=myself->numberOfDeletedStrings!=0;
                 return retVal;
@@ -445,7 +412,10 @@ ulong DrawLogic::IndexOfString(const int &in_Element){
 
 void DrawLogic::PrintString(const int in_Element){
     ulong here=IndexOfString(in_Element);
-    myself->DrawStringOnTexture((*(myself->strings))[here].s_String,(*(myself->strings))[here].s_Color_ident,(*(myself->strings))[here].s_location);
+    myself->DrawStringOnTexture((*(myself->strings))[here].s_String,
+                                (*(myself->strings))[here].s_Color_ident,
+                                (*(myself->strings))[here].s_BckGrdColor,
+                                (*(myself->strings))[here].s_location);
 }
 
 void DrawLogic::DrawContent(){
@@ -534,13 +504,15 @@ bool DrawLogic::IsModalWindow(){
     return myself->isModal;
 }
 
-void DrawLogic::SetScreenOrigin(int in_left, int in_bottom){
+void DrawLogic::SetScreenOrigin(int in_left, int in_bottom, int in_right, int in_top){
     //update own coords
     if (myself->screenL==in_left&&in_bottom==myself->screenB) return;
     myself->screenB=in_bottom;
     myself->screenL=in_left;
-    myself->screenR=in_left+myself->windowWidth;
-    myself->screenT=in_bottom+myself->windowHeight;
+    myself->screenR=in_right;
+    myself->screenT=in_top;
+    if (in_right-in_left!=myself->windowWidth) WriteDebug("inconsistency in WindowWidth "+std::to_string(in_right-in_left)+" "+std::to_string(myself->windowWidth));
+    if (in_top-in_bottom!=myself->windowHeight) WriteDebug("inconsistency in WindowHeight"+std::to_string(in_top-in_bottom)+" "+std::to_string(myself->windowHeight));
     //compute screen coords for strings
 
     for (auto &strg: (*myself->strings)){

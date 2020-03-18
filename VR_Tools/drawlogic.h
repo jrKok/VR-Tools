@@ -24,12 +24,7 @@
  * encoding of the gl_texture.
  */
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-#include FT_TYPES_H
-#include FT_OUTLINE_H
-#include FT_RENDER_H
+
 
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
@@ -61,25 +56,23 @@ public:
     ~DrawLogic();
     static void  WriteDebug(string message);
     void  Initiate();
-    void  StartFreeType();
-    static void  EndFreeType();
     void  ToUpperLevel();
     void  SetNewSize(int in_Width, int in_Height);
-    void  SetScreenPosition(int in_Top, int in_Left);
     void  FillAll(char in_Color);
     void  DrawRectOnTexture(const rectangles &in_rect);
     void  WipeRectangle(const rectangles &in_rect);
     void  GenerateCurrentTexture();
-    void  DrawStringOnTexture(string in_String,char in_Color,point start_point);
+    void  DrawStringOnTexture(string in_String,char in_Color,char bckCol, point start_point);
     void  RelocateStrings();
     static int   AddRectangle(rectangles *in_Rect);
     static void  UpdateRectangle(int tag_Rect);
     static void  ReleaseRectangle(int tag_Rect);
     static void  HideRectangle(int tag_Rect);
     static void  UpdateTexture();
-    static int   AddString(const string &in_String, const char in_Color,point where);
+    static int   AddString(const string &in_String, const char in_Color,const char bckgrdcol, point where);
     static void  ChangeString(const int in_Element, const string &to_String);
     static void  ChangeColorString(const int in_Element,const char &to_Color);
+    static void  ChangeBckGrdColorString (const int in_Element,const char &to_Color);
     static void  DeleteString(const int in_Element);
     static void  RelocateString(const int in_Element, point &to_where);
     static void  SetVisibilityString(const int in_Element,const bool &is_Visible);
@@ -90,9 +83,9 @@ public:
     static bool  IsModalWindow();
     static void  DrawContent();
     static void  FlushContent();
-    static void  SetScreenOrigin(int in_left,int in_bottom);
-    static bool  FreeTypeStarted;
-    static bool  FreeTypeError;
+    static void  SetScreenOrigin(int in_left,int in_bottom,int in_right,int in_top);
+    static void  SetBackGroundColor(char in_Color);
+
     void  DiagnosisOfRects();
     void  EraseStrings();
     static ulong IndexOfString(const int &in_Element);
@@ -105,13 +98,10 @@ public:
     static void  ShowAllStrings();
 
 private:
-    static FT_Library library;
-    static FT_Face    face;
     map<int,rectangles*> *rects;
-    map<ulong,charrecord*> *chars;
     vector<StringToDraw> *strings;
-    std::array<textureColor,MaxWWidth*MaxWHeight*4> textureZone;
-
+    std::array<textureColor,MaxWWidth*MaxWHeight> textureZone;
+    char backGroundColor;
     int textNum;
     int currentRectNumber;
     int currentTriangleNumber;

@@ -34,7 +34,7 @@ public:
      static void WriteDebugInCycles(string message);
             void Begin();
     virtual bool initiate();
-    virtual void resize();
+    virtual bool resize();
             void resizeVRWindow();
     virtual bool newSize(int wth,int hgt);
             void RelocateButtons(int middle);
@@ -66,10 +66,11 @@ public:
     static  void HandleDialog();
 
        DrawLogic *myDrawPad;
-       int       gTop,gLeft,gRight,gBottom;
+       //int       gTop,gLeft,gRight,gBottom;
 
        static int cycle;
-              int wTop,wBottom,wLeft,wRight,wWidth,wHeight,minWidth,maxWidth,minHeight,maxHeight;
+              int wTop,wBottom,wLeft,wRight;
+              int wWidth,wHeight,minWidth,maxWidth,minHeight,maxHeight;
 
 protected:
 

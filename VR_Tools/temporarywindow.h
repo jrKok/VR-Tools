@@ -25,7 +25,6 @@ public:
     static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
     static void ShowAlert(string in_String,float time_to_show);
     static void StopAlert();
-    static void recalculate();
 private:
     static XPLMWindowID myXPWindow;
     static int myWindowNumber,myStringNumber;
