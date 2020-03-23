@@ -13,7 +13,7 @@ Layout::Layout(DrawLogic *newPad) :
   t(0),b(0),l(0),r(0),//input from draw instruction mostly
   textHeight(0),textWidth(0),colWidth(35),idxSelected(-1),nButtons(0),
   reloadPeriod(1.0f),
-  generalR(true),
+  generalR("layout's general",true),
   tFileReader(new TextReader()),
   tButtons(),
   myWindow(nullptr),
@@ -124,34 +124,39 @@ void Layout::Begin(){
 
 bool Layout::initiate(){
     myDrawPad->ToUpperLevel();
-    generalR.SetOrigin(0,0);
-    if (noResize) {
-        generalR.setVisibility(true);
-        generalR.setColor(Clr_DarkGray);
-        DrawLogic::SetBackGroundColor(Clr_DarkGray);
-    }
-    else{
-        generalR.setVisibility(false);
-        DrawLogic::SetBackGroundColor(Clr_BckgrdW);
-    }
     if (!nButtons){
+        generalR.SetOrigin(0,0);
+        if (noResize) {
+            generalR.setVisibility(true);
+            generalR.setColor(Clr_DarkGray);
+            DrawLogic::SetBackGroundColor(Clr_DarkGray);
+        }
+        else{
+            generalR.setVisibility(false);
+            generalR.setColor(Clr_DarkGray);
+            DrawLogic::SetBackGroundColor(Clr_BckgrdW);
+        }
         tFileReader->PointToFile();
         if (resize()){
             if (showFPS) upperMargin=40 + charHeight+2;
             else upperMargin=40;
             wLeft=150;
             wRight=wLeft+wWidth;
-            wBottom=200;
+            wBottom=50;
             wTop=wBottom+wHeight;
             defineButtons();
             nButtons=static_cast<int>(tButtons.size());
             if (goToLastPage) tFileReader->GoToLastPage();
+
             myDrawPad->SetNewSize(wWidth,wHeight);
             myDrawPad->GenerateCurrentTexture();
             return true;
         }else return false;
     }
-    else return resize();
+    else{
+        tFileReader->PointToFile();
+        return resize();
+    }
 
 }
 
@@ -318,16 +323,19 @@ void Layout::DrawTextW(XPLMWindowID g_textWindow){
                 tFileReader->SetBckColor(Clr_PaperWhite);
                 tFileReader->SetInkColor(Clr_BlackInk);
                 tFileReader->PrintMyText();
+                tFileReader->DisplayPage();
                 break;}
             case 1:{
                 tFileReader->SetBckColor(Clr_PaperDusk);
                 tFileReader->SetInkColor(Clr_BlackInk);
                 tFileReader->PrintMyText();
+                tFileReader->DisplayPage();
                 break;}
             case 2:{
                 tFileReader->SetBckColor(Clr_Black);//night paper
                 tFileReader->SetInkColor(Clr_Amber);
                 tFileReader->PrintMyText();
+                tFileReader->DisplayPage();
                 break;}
             }
         }
@@ -739,29 +747,29 @@ void Layout::defineButtons(){
 
     fNav.SetOrigin(colWidth,tButtons[B_NAV1]->GetTextY());
     fNav.SetDimensions(45,charHeight);
-    fNav.SetBackGroundColor(Clr_DarkGray);
+    fNav.SetBackGroundColor(Clr_BckgrdW);
     fNav.SetTextColor(Clr_Amber);
 
     fCom.SetOrigin(colWidth,tButtons[B_COM1]->GetTextY());
     fCom.SetDimensions(45,charHeight);
-    fCom.SetBackGroundColor(Clr_DarkGray);
+    fCom.SetBackGroundColor(Clr_BckgrdW);
     fCom.SetTextColor(Clr_Amber);
 
     fAdf.SetOrigin(colWidth,tButtons[B_ADF1]->GetTextY());
     fAdf.SetDimensions(45,charHeight);
-    fAdf.SetBackGroundColor(Clr_DarkGray);
+    fAdf.SetBackGroundColor(Clr_BckgrdW);
     fAdf.SetTextColor(Clr_Amber);
 
 
     fpsTag=XPLMGetElapsedTime();
     lFPS.SetOrigin(14,tButtons[B_Load_File]->GetBottom()-2);
-    lFPS.SetBackGroundColor(Clr_DarkGray);
+    lFPS.SetBackGroundColor(Clr_BckgrdW);
     lFPS.SetTextColor(Clr_Amber);
 
 }
 
 void Layout::MakeButton(bool visible,string in_Label,int width,int height,int oX, int oY){
-    button_VR * newB(new button_VR(false));
+    button_VR * newB(new button_VR(in_Label,false));
     newB->SetDimensions(width,height);
     newB->SetOrigin(oX,oY);
     newB->setText(in_Label);

@@ -98,6 +98,7 @@ public:
     void PrintMyText();
     virtual void ShowAll()=0;
     char GetScrollBarsColorCode();
+    virtual void DisplayPage();
 
 protected:
     char inkColor;
@@ -120,7 +121,7 @@ protected:
     stringOps strops;
     string delStr1,delStr2;
 
-    virtual void DisplayPage();
+
     int  MeasureString(string str);
     void WriteDebug(string message);
 };

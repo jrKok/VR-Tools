@@ -7,16 +7,15 @@ DrawLogic *DrawLogic::myself(nullptr);
 
 //Implementation
 DrawLogic::DrawLogic():
-    rects(new  map<int,rectangles*>),
+    rects(new map<ulong,rectangles*>),
     strings(new vector<StringToDraw>),
     textureZone(),
      backGroundColor(Clr_BckgrdW),
-     textNum(0),
+     //textNum(0),
      currentRectNumber(0),
      currentTriangleNumber(0),
      currentStringNumber(0),
      lastTriangleCreated(0),
-     lastRectangleCreated(0),
      screenL(0),
      screenR(0),
      screenT(0),
@@ -28,9 +27,12 @@ DrawLogic::DrawLogic():
     windowHeight(0),
     currentXWPos(0),
     currentYWPos(0),
-    ident("DrawPad")
+    ident("DrawPad"),
+    black(),
+    cursor()
 {
     myself=this;
+    XPLMGenerateTextureNumbers(&textNum, 1);
 
 }
 
@@ -55,7 +57,19 @@ void DrawLogic::WriteDebug(string message){
 
 void DrawLogic::Initiate(){
     myself=this;
-ulong sze(MaxWWidth*MaxWHeight);
+    cursor[0]='|';
+    cursor[1]='\0';
+    black[0]=globals::colors[Clr_BlackInk].colorf[0];
+    black[1]=globals::colors[Clr_BlackInk].colorf[1];
+    black[2]=globals::colors[Clr_BlackInk].colorf[2];
+    if (windowWidth&windowHeight){
+
+        XPLMBindTexture2d(textNum, 0);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,windowWidth,windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,&textureZone);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+/*ulong sze(MaxWWidth*MaxWHeight);
 long adress(reinterpret_cast<long>(&textureZone[0])),newAdress(0);
 for (ulong atg(1);atg<sze;atg++){
     newAdress=reinterpret_cast<long>(&textureZone[atg]);
@@ -66,38 +80,35 @@ for (ulong atg(1);atg<sze;atg++){
       WriteDebug("DrawLogic : textureZone is not contiguous at iteration "+std::to_string(atg));
       break;
   }
-}
+}*/
 }
 
 void DrawLogic::ToUpperLevel(){
-    myself=this;
+    Initiate();
 }
 
 void DrawLogic::SetNewSize(int in_Width, int in_Height){
-    windowWidth=in_Width;
-    windowHeight=in_Height;
-    if ((windowWidth*windowHeight)>(MaxWWidth*MaxWHeight)) WriteDebug("DrawLogic Set New Size : Texture size exceeds maximum allowance");
-    else
-    {
-        screenR=screenL+windowWidth;
-        screenT=screenB+windowHeight;
-        XPLMGenerateTextureNumbers(&textNum, 1);
-        XPLMBindTexture2d(textNum, 0);
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,in_Width,in_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE,&textureZone);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    }
+
+    windowWidth=in_Width; if (windowWidth>MaxWWidth) windowWidth=MaxWWidth;
+    windowHeight=in_Height; if (windowHeight>MaxWHeight) windowHeight=MaxWHeight;
+    screenR=screenL+windowWidth;
+    screenT=screenB+windowHeight;
+    XPLMBindTexture2d(textNum, 0);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,in_Width,in_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE,&textureZone);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
     //GenerateCurrentTexture();
 }
 
 void DrawLogic::DiagnosisOfRects(){
     WriteDebug("diagnosis of rectangles for window"+ident);
     for (const auto &rct: (*rects)){
-        WriteDebug("coords of Rect nb : "+std::to_string((*rct.second).GetId())+" - lt bt rg top :"
-                   +std::to_string((*rct.second).GetLeft())+" "
-                   +std::to_string((*rct.second).GetBottom())+" "
-                   +std::to_string((*rct.second).GetRight())+" "
-                   +std::to_string((*rct.second).GetTop())+" ");
+        WriteDebug("coords of Rect nb : "+std::to_string((*(rct.second)).GetId())+" - lt bt rg top :"
+                   +std::to_string((*(rct.second)).GetLeft())+" "
+                   +std::to_string((*(rct.second)).GetBottom())+" "
+                   +std::to_string((*(rct.second)).GetRight())+" "
+                   +std::to_string((*(rct.second)).GetTop())+" ");
     }
 }
 
@@ -114,43 +125,37 @@ void DrawLogic::FillAll(char in_Color){
 
 }
 
-void DrawLogic::DrawRectOnTexture(const rectangles &in_rect){
+void DrawLogic::PrintRectOnTexture(int in_l, int in_b, int in_r, int in_t, char in_color){
+    myself->DrawRectOnTexture(in_l, in_b, in_r, in_t,in_color);
+}
+
+void DrawLogic::DrawRectOnTexture(int in_l, int in_b, int in_r, int in_t, char in_color){
     if (windowWidth&&windowHeight)
     {
-        int r(in_rect.GetRight()),l(in_rect.GetLeft());
-        int t(in_rect.GetTop()),b(in_rect.GetBottom());
-        if (r<0|t<0) return;
-        if (l<0) l=0;
-        if (b<0) b=0;
-        if (t>windowHeight) t=windowHeight;
-        if (r>windowWidth) r=windowWidth;
+        if (in_r<0|in_t<0) return;
+        if (in_l<0) in_l=0;
+        if (in_b<0) in_b=0;
+        if (in_t>windowHeight) in_t=windowHeight;
+        if (in_r>windowWidth) in_r=windowWidth;
         textureColor rc;
-        rc.red  =globals::colors[in_rect.GetColor()].red;
-        rc.green=globals::colors[in_rect.GetColor()].green;
-        rc.blue =globals::colors[in_rect.GetColor()].blue;
-        rc.alpha=globals::colors[in_rect.GetColor()].alpha;
-        for (int line(b), idx(b*windowWidth);line<=t;line++,idx+=windowWidth){
-            for (int pos(idx+l),wd(l);wd<=r;pos++,wd++){
+        rc.red  =globals::colors[in_color].red;
+        rc.green=globals::colors[in_color].green;
+        rc.blue =globals::colors[in_color].blue;
+        rc.alpha=globals::colors[in_color].alpha;
+        for (int line(in_b), idx(in_b*windowWidth);line<=in_t;line++,idx+=windowWidth){
+            for (ulong pos(idx+in_l),wd(in_l);wd<=in_r;pos++,wd++){
                 textureZone[pos]=rc;
             }
         }
     }
 }
 
-void DrawLogic::WipeRectangle(const rectangles &in_rect){
-    textureColor bckgrdcolor;
-    bckgrdcolor.red  =globals::colors[backGroundColor].red;
-    bckgrdcolor.green=globals::colors[backGroundColor].green;
-    bckgrdcolor.blue =globals::colors[backGroundColor].blue;
-    bckgrdcolor.alpha=255;
-    int maxX=min(windowWidth,in_rect.GetRight());
-    int maxY=min(in_rect.GetTop()*windowWidth,windowHeight*windowWidth);
-    for (int line(in_rect.GetBottom()*windowWidth);line<=maxY;line+=windowWidth){
-        int limX=line+maxX;
-        for (int pos(line+in_rect.GetLeft());pos<=limX;pos++){
-            textureZone[pos]=bckgrdcolor;
-        }
-    }
+void DrawLogic::WipeRectangle(rectangles const * const in_rect){
+    DrawRectOnTexture(in_rect->GetLeft(),
+                      in_rect->GetBottom(),
+                      in_rect->GetRight(),
+                      in_rect->GetTop(),
+                      backGroundColor);
 }
 
 void DrawLogic::GenerateCurrentTexture(){
@@ -159,8 +164,12 @@ void DrawLogic::GenerateCurrentTexture(){
     {
          FillAll(Clr_BckgrdW);
         for (const auto &rct: (*rects))
-        {   rectangles todr=*rct.second;
-            if (rct.second->IsVisible()) DrawRectOnTexture(*rct.second);
+        {
+            if ((*(rct.second)).IsVisible()) DrawRectOnTexture((*(rct.second)).GetLeft(),
+                                                    (*(rct.second)).GetBottom(),
+                                                    (*(rct.second)).GetRight(),
+                                                    (*(rct.second)).GetTop(),
+                                                    (*(rct.second)).GetColor());
         }
 
 
@@ -222,6 +231,9 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
             if (charInt==0x20){
                 xP+=4;continue;
             }
+            if (charInt==0x09){
+                xP+=12;continue;
+            }
             cBitmap=fontMan::GetCharFromMap(charInt,width,height,offset,advance);
             if (height&&((xP+advance)<=windowWidth)&&(start_point.GetY()+offset+height)<=windowHeight){
                 ulong lecteur=0;
@@ -247,28 +259,44 @@ void DrawLogic::UpdateTexture(){
     myself->GenerateCurrentTexture();
 }
 
-int DrawLogic::AddRectangle(rectangles *in_Rect){
-    myself->lastRectangleCreated++;
-    (*(myself->rects))[myself->lastRectangleCreated]=in_Rect;
-    return myself->lastRectangleCreated;
+ulong DrawLogic::AddRectangle(rectangles *in_Rect){
+    ulong retval=myself->GetNewRectangleNumber();
+    (*myself->rects)[retval]=in_Rect;
+    return retval;
 }
 
-void DrawLogic::UpdateRectangle(int tag_Rect){
+void DrawLogic::UpdateRectangle(ulong tag_Rect){
     if (myself->windowWidth&&myself->windowHeight)
     {
-        rectangles rectToUpdate=*(*(myself->rects))[tag_Rect];
-        if ((*(myself->rects))[tag_Rect]->IsVisible()) myself->DrawRectOnTexture(rectToUpdate);
+        if ((*(myself->rects))[tag_Rect]->IsVisible())
+            myself->DrawRectOnTexture((*myself->rects)[tag_Rect]->GetLeft(),
+                                      (*myself->rects)[tag_Rect]->GetBottom(),
+                                      (*myself->rects)[tag_Rect]->GetRight(),
+                                      (*myself->rects)[tag_Rect]->GetTop(),
+                                      (*myself->rects)[tag_Rect]->GetColor());
     }
 }
 
-void DrawLogic::ReleaseRectangle(int tag_Rect){
-    (*(myself->rects))[tag_Rect]=nullptr;
-    (*(myself->rects)).erase(tag_Rect);
+ulong DrawLogic::GetNewRectangleNumber(){
+    ulong nbrects=rects->size();
+    if (hasDeletedRectangles){
+        for (ulong it(0);it<nbrects;it++){
+            if (rects->find(it)==rects->end()) return it;
+        }
+    }else {
+return (*rects).size();
 }
 
-void DrawLogic::HideRectangle(int tag_Rect){
+}
+void DrawLogic::ReleaseRectangle(ulong tag_Rect){
+    (*myself->rects).erase(tag_Rect);
+    myself->hasDeletedRectangles=true;
+
+}
+
+void DrawLogic::HideRectangle(ulong tag_Rect){
     if (myself->windowWidth&&myself->windowHeight){
-        rectangles rectToUpdate=*(*(myself->rects))[tag_Rect];
+        rectangles * rectToUpdate=(*myself->rects)[tag_Rect];
         myself->WipeRectangle(rectToUpdate);
     }
 }
@@ -424,6 +452,7 @@ void DrawLogic::DrawContent(){
 }
 
 void DrawLogic::DrawElements(){
+    //GenerateCurrentTexture();
     XPLMBindTexture2d(textNum, 0);
 
     glTexSubImage2D(GL_TEXTURE_2D,
@@ -463,6 +492,15 @@ void  DrawLogic::DrawStrings(){
            XPLMDrawString(st.s_Color,st.s_screenX,st.s_screenY,st.s_String,nullptr,xplmFont_Proportional);
         }
     }*/
+}
+
+void DrawLogic::DrawCursor(){
+    XPLMDrawString(myself->black,myself->cursorX,myself->cursorY,myself->cursor,nullptr,xplmFont_Proportional);
+}
+
+void DrawLogic::SetCursorPosition(int x, int y){
+    myself->cursorX=x+myself->screenL;
+    myself->cursorY=y+myself->screenB;
 }
 
 char* DrawLogic::ToC(const string &in_String){
@@ -526,7 +564,6 @@ void DrawLogic::FlushContent(){
     myself->strings->clear();
     myself->numberOfDeletedStrings=0;
     myself->lastTriangleCreated=0;
-    myself->lastRectangleCreated=0;
     myself->hasDeletedStrings=false;
     myself->currentRectNumber=0;
     myself->currentStringNumber=0;
@@ -539,4 +576,39 @@ void DrawLogic::SetId(string in_ID){
 
 string DrawLogic::GetId(){
     return ident;
+}
+
+void DrawLogic::StringAssesment(){
+    myself->PrintStringAssessment();
+}
+
+void DrawLogic::PrintStringAssessment(){
+    WriteDebug("Strings logged for "+ident);
+    WriteDebug("number of strings logged :"+std::to_string(strings->size()));
+    for (auto st:*strings){
+        WriteDebug("String "+st.s_String+" "
+                   +" is Visible "+ std::to_string(st.s_visible)+
+                   +" is deleted "+ std::to_string(st.is_deleted)+
+                   +" left "+ std::to_string(st.s_screenX)+
+                   +" bottom "+ std::to_string(st.s_screenY));
+        }
+    WriteDebug("End of String report");
+}
+
+void DrawLogic::PrintRectanglesAssessment(){
+    WriteDebug("Rectangles logged for "+ident);
+    WriteDebug("number of rectangles logged "+std::to_string(rects->size()));
+    for (auto rect:*rects){
+        WriteDebug("rectangle : "+(*(rect.second)).GetDebugName()+
+                   " drawNb "+ std::to_string((*(rect.second)).GetId())+
+                   " left "+ std::to_string((*(rect.second)).GetLeft())+
+                   " bottom "+ std::to_string((*(rect.second)).GetBottom())+
+                   " right "+ std::to_string((*(rect.second)).GetRight())+
+                   " top "+ std::to_string((*(rect.second)).GetTop())+
+                   " height "+ std::to_string((*(rect.second)).GetHeight())+
+                   " width "+ std::to_string((*(rect.second)).GetWidth())+
+                   " color "+ std::to_string((*(rect.second)).GetColor()));
+
+    }
+    WriteDebug("End of rectangles report");
 }

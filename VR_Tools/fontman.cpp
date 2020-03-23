@@ -86,7 +86,7 @@ void fontMan::CharCodeToMap(char cSize, unsigned char in_code[]){
     charrecord newChar;
     newChar.height=0;
     newChar.charcode=charCode;
-    if (!err){
+    if (!err&&(charCode>0x20)){
         FT_GlyphSlot glyph(face->glyph);
         newChar.height=glyph->bitmap.rows;
         newChar.width=glyph->bitmap.width;
@@ -108,6 +108,11 @@ charrecord fontMan::GetCharFromMap(int in_UTF, int &out_width, int &out_height, 
     charrecord rec;
     if ((*chars).find(in_UTF)==(*chars).end())
         DrawLogic::WriteDebug("fontMan GetCharFromMap : didn't find "+std::to_string(in_UTF));
+    else {
+        out_height=0;
+        rec.height=0;
+
+    }
     rec=(*chars)[in_UTF];
     out_width=static_cast<int>(rec.width);
     out_height=static_cast<int>(rec.height);
@@ -140,6 +145,7 @@ void fontMan::LeftShift(charrecord &toworkon){
 }
 
 int fontMan::MeasureString(const string &in_String){
+
    int length(0);
    unsigned char inc(0);
    char cSize(1),it(0);
@@ -183,6 +189,61 @@ int fontMan::MeasureString(const string &in_String){
        }
    }
    return length;
+}
+
+void fontMan::GetPositions(const string &in_String,vInt &out_pos){
+    out_pos.clear();
+    int length(0);
+    out_pos.push_back(length);
+    unsigned char inc(0);
+    char cSize(1),it(0);
+    int charInt(0),height(0),width(0),advance(0),offset(0);
+    if (in_String.length()==0) return;
+
+    for (ulong tg(0);tg<in_String.length();tg++){
+
+        inc=static_cast<unsigned char>(in_String[tg]);
+        if (inc>0x7F&&cSize==1){
+            if (inc<=0xDF) {
+                cSize=2;it=0;charInt=inc*0x100;}
+            else
+            {cSize=3;it=1;charInt=inc*0x10000;}
+            continue;
+        } else{
+            if (cSize>1){
+                if (it){
+                    charInt+=inc*0x100;
+                    it--;
+                    continue;
+                } else{
+                    charInt+=inc;
+                    cSize=1;
+                }
+
+            } else{
+                charInt=inc;
+            }
+        }
+        //decode character
+        if (charInt==0x20){
+            length+=4;
+            out_pos.push_back(length);
+            continue;
+
+        }
+        if (charInt==9){
+            length+=12;
+            out_pos.push_back(length);
+            continue;
+        }
+        fontMan::GetCharFromMap(charInt,width,height,offset,advance);
+        if (height){
+            length+=advance;
+            out_pos.push_back(length);
+        }
+    }
+    return;
+
 }
 
 void fontMan::EndFreeType(){

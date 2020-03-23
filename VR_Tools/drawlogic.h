@@ -59,15 +59,17 @@ public:
     void  ToUpperLevel();
     void  SetNewSize(int in_Width, int in_Height);
     void  FillAll(char in_Color);
-    void  DrawRectOnTexture(const rectangles &in_rect);
-    void  WipeRectangle(const rectangles &in_rect);
+static void PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color);
+    void  DrawRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color);
+    void  WipeRectangle(const rectangles * const in_rect);
     void  GenerateCurrentTexture();
     void  DrawStringOnTexture(string in_String,char in_Color,char bckCol, point start_point);
     void  RelocateStrings();
-    static int   AddRectangle(rectangles *in_Rect);
-    static void  UpdateRectangle(int tag_Rect);
-    static void  ReleaseRectangle(int tag_Rect);
-    static void  HideRectangle(int tag_Rect);
+    ulong GetNewRectangleNumber();
+    static ulong   AddRectangle(rectangles *in_Rect);
+    static void  UpdateRectangle(ulong tag_Rect);
+    static void  ReleaseRectangle(ulong tag_Rect);
+    static void  HideRectangle(ulong tag_Rect);
     static void  UpdateTexture();
     static int   AddString(const string &in_String, const char in_Color,const char bckgrdcol, point where);
     static void  ChangeString(const int in_Element, const string &to_String);
@@ -85,6 +87,11 @@ public:
     static void  FlushContent();
     static void  SetScreenOrigin(int in_left,int in_bottom,int in_right,int in_top);
     static void  SetBackGroundColor(char in_Color);
+    static void  SetCursorPosition(int x, int y);
+    static void  DrawCursor();
+    static void  StringAssesment();
+    void PrintStringAssessment();
+    void PrintRectanglesAssessment();
 
     void  DiagnosisOfRects();
     void  EraseStrings();
@@ -98,7 +105,7 @@ public:
     static void  ShowAllStrings();
 
 private:
-    map<int,rectangles*> *rects;
+    map<ulong,rectangles*> *rects;
     vector<StringToDraw> *strings;
     std::array<textureColor,MaxWWidth*MaxWHeight> textureZone;
     char backGroundColor;
@@ -107,19 +114,21 @@ private:
     int currentTriangleNumber;
     int currentStringNumber;
     int lastTriangleCreated;
-    int lastRectangleCreated;
     int screenL;
     int screenR;
     int screenT;
     int screenB;
     int numberOfDeletedStrings;
-    bool hasDeletedStrings;
+    bool hasDeletedStrings,hasDeletedRectangles;
     bool isModal;
     static DrawLogic *myself;
 
     int    windowWidth,windowHeight;
     int    currentXWPos,currentYWPos;
     string ident;
+    int    cursorX,cursorY;
+    float  black[3];
+    char   cursor[2];
 
 };
 

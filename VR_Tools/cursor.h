@@ -13,7 +13,7 @@
 #include <stringops.h>
 #include <fstream>
 #include <vector>
-#include "VR_Tools_global.h"
+#include "globals.h"
 #include <XPLMDisplay.h>
 #include <XPLMUtilities.h>
 #include <XPLMProcessing.h>
@@ -26,25 +26,20 @@
 
 //class Layout;
 
-using std::string;
-using intVector=std::vector<int>;
-using strVector=std::vector<std::string>;
-
 class cursor
 
 {
 public:
     cursor(); //will make chLength
     ~cursor();
-    void Initiate(const strVector *inLines, int offsetXLine, int offsetYLine, int lnHeight, int boxlines); //makes chPos, table of absolute positions of characters WRT beginning offsetX of lines
-    void MakeLinePos(const std::string &thisline);
+    void Initiate(const vString *inLines,int offsetXLine, int offsetYLine,int lnHeight,int boxlines); //makes chPos, table of absolute positions of characters WRT beginning offsetX of lines
+    void MakeLinePos(const string &thisline);
     void MakeLinePosAgain(const ulong line,const string &thisline);
      int FindPositionInNativeLine(const string &in_string, int in_pos);
-    void Recalculate(int oX,int oY);
     void SetIndxFirstPage(int indx);
     void FindClosestXPosition(int inLine, int inX);
-    int  UTFCharToPos(unsigned char * chtest);
-    int  GetLengthOfUTFString(const std::string &inLine);
+    int  UTFCharToPos(char *chtest);
+    int  GetLengthOfUTFString(const string &inLine);
     void FindPos(int inLine,int inX); //gets a line number and a pixel number, converts to a position, sets line and charPos hasSelection=false
     void DragPos (int inLine, int inX);// informed a drag occurs, tracks lineEnd and charEnd, modifies them if necessary hasSelection=true
     void EndOfDrag();
@@ -78,7 +73,7 @@ public:
     int  EndPosToX();
     int  EndLineToY(int firstLine);
     void DrawRectangle(int left, int top, int right, int bottom);
-    void DrawCursor(int cursorY);
+    void DrawCursor();
     void BeginCursorBlink();
     string ReadLineToUTF(string inLine);
     unsigned int UTFint(unsigned char in_ANSIchar);
@@ -97,15 +92,15 @@ private:
 
     float timePoint;
     unsigned char testChar;
-    int nbOfLines,line,charPos,cursorX;
+    int nbOfLines,line,charPos,cursorX,offX,offY;
     int startCharPos,startCursorX,startLine;
     int selectionEndLine,selectionEndCharPos,selectionEndCursorX;
     int selectionStartLine,selectionStartCharPos,selectionStartCursorX,currentLine,currentPos,currentX;
-    int offX,offY,firstLineDisplayed,lineHeight,nbBoxLines;//the x and y offsets for computing PosToX and LineToY()
+    int firstLineDisplayed,lineHeight,nbBoxLines;//the x and y offsets for computing PosToX and LineToY()
     int indexFirstOnPage,indexLastOnPage;
     bool hasCursor,hasSelection,validUTF,beginUTF,cursorOn,moveSelectionEnd;
-    intVector chPos,chLength;
-    std::vector<intVector> posLines;
+    vInt chPos;
+    std::vector<vInt> posLines;
     float ink[3],lightblue[3];
     const char * cursorChar;
     stringOps ops;

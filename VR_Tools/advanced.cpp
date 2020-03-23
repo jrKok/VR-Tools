@@ -225,7 +225,7 @@ void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);
         myself->cursor.DrawRectangle(l,myself->activeLine->GetTop(),r,myself->activeLine->GetBottom());}
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->activeLine->GetTextY());
+    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();//myself.activeLine->GetTextY()
 }
 
 int advanced::MouseHandler(XPLMWindowID, int x, int y, int is_down, void *){

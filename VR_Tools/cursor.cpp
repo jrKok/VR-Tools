@@ -1,4 +1,6 @@
 #include "cursor.h"
+#include "fontman.h"
+#include "drawlogic.h"
 
 cursor::cursor():
   timePoint(0),
@@ -19,8 +21,6 @@ cursor::cursor():
   currentLine(0),
   currentPos(0),
   currentX(0),
-  offX(0),
-  offY(0),
   firstLineDisplayed(0),
   nbBoxLines(0),
   indexFirstOnPage(0),
@@ -32,7 +32,6 @@ cursor::cursor():
   cursorOn(true),
   moveSelectionEnd(true),
   chPos(),
-  chLength(),
   posLines(),
   ink{0.005f,0.000f,0.000f},
   lightblue{0.600f,0.960f,1.0f},
@@ -44,37 +43,13 @@ cursor::cursor():
 {
 //will make chLength, table containing character lengths
     cursorChar="|";
-    int nulval(0);
-    for (int tg(0);tg<=0xdfc0;tg++) chLength.push_back(nulval);
-    unsigned char* tst=new unsigned char[3];
-    tst[1]='\0';
-    float lgth(0);   
-    for (unsigned char chr(0x20);chr<=0x7E;chr++){
-        tst[0]=chr;
-        lgth=XPLMMeasureString(xplmFont_Proportional,reinterpret_cast<char*>(tst),1);
-        ulong tag=static_cast<ulong>(chr);
-        chLength[tag]=static_cast<int>(lgth);
-    }
-    string tabs="    ";
-    lgth=XPLMMeasureString(xplmFont_Proportional,(char*)(tabs.c_str()),static_cast<int>(tabs.size()));
-    chLength[9]=static_cast<int>(lgth);
-    tst[2]='\0';
-    for (unsigned char ch1(0xC2);ch1<=0xdf;ch1++){
-        tst[0]=ch1;
-        for (unsigned char ch2(0x80);ch2<=0xBF;ch2++){
-            tst[1]=ch2;
-            lgth=XPLMMeasureString(xplmFont_Proportional,reinterpret_cast<char*>(tst),1);
-            ulong tag=ch1*0x100+ch2;
-            chLength[tag]=static_cast<int>(lgth);
-        }
-    }
 }
 
 cursor::~cursor(){
 
 }
 
-void cursor::Initiate(const strVector *inLines,int offsetXLine, int offsetYLine,int lnHeight,int boxlines){
+void cursor::Initiate(const vString *inLines,int offsetXLine, int offsetYLine,int lnHeight,int boxlines){
     //makes chPos, table of absolute positions of characters WRT beginning offsetX of lines
     EraseCursor();
     posLines.clear();
@@ -91,57 +66,7 @@ void cursor::Initiate(const strVector *inLines,int offsetXLine, int offsetYLine,
 }
 
 void cursor::MakeLinePos(const string &thisline){
-    int position(0);
-    unsigned char keep(0);
-    unsigned int tag;
-    chPos.clear();
-    chPos.push_back(position);
-    for (unsigned char ansiC:thisline){//going to examine every char of the text in the line
-        if (ansiC!='\n')
-        {
-            if (ansiC<=0x7F) {//first case, simple char
-                if (!beginUTF){//but if a putative UTF first character has been read, we are invalid UTF...
-                    beginUTF=true;
-                    tag=UTFint(keep);
-                    position+=chLength[tag];
-                    chPos.push_back(position);
-                    position+=chLength[ansiC];
-                    chPos.push_back(position);
-                }
-                position=position+chLength[ansiC];//simple character
-                chPos.push_back(position);
-            }
-            else{
-                if (beginUTF){//look at first potential UTF char
-                    if (ansiC>=0xC2 && ansiC<=0xDF) {//if range Ok, keep the char for further investigation
-                        beginUTF=false;keep=ansiC;
-                    }
-                    else {//invalid since out of range
-                        tag=UTFint(ansiC);
-                        position+=chLength[tag];
-                        chPos.push_back(position);
-                    }
-                }
-                else{//a valid UTF first char has been read
-                    beginUTF=true;
-                    if (ansiC>=0x80 && ansiC<=0xBF){ // range for second char OK ?
-                        tag=keep*0x100+ansiC;
-                        position+=chLength[tag];
-                        chPos.push_back(position);
-                    }
-                    else{//again not valid range for second character
-                        beginUTF=true;
-                        tag=UTFint(keep);
-                        position+=chLength[tag];
-                        chPos.push_back(position);
-                        tag=UTFint(ansiC);//because ansiC>127 otherwise would have already been captured as a non valid second UTF char
-                        position+=chLength[tag];
-                        chPos.push_back(position);
-                    }
-                }
-            }
-        }
-    }//line finished
+    fontMan::GetPositions(thisline,chPos);
 }
 
 void cursor::MakeLinePosAgain(const ulong line,const string &thisline){
@@ -178,23 +103,25 @@ int cursor::FindPositionInNativeLine(const string &in_string,int in_pos){
     return posInString;
 }
 
-int  cursor::UTFCharToPos(unsigned char* chtest){
+int  cursor::UTFCharToPos(char* chtest){
     //returns one if the UTF character has a length(and thus increases pos in a string for the cursor)
-    ulong tag=static_cast<ulong>(chtest[0]*0x100+chtest[1]);
-    return( chLength[tag]>0);
+    int i=chtest[0]*0x100+chtest[1];
+    int width(0), advance(0), height(0),offset(0);
+    fontMan::GetCharFromMap(i,width,height,offset,advance);
+    return height;
 }
 
 int  cursor::GetLengthOfUTFString(const string &inLine){
     //Measures the numbers of positions in a line
     if (inLine=="") return 0;
 
-    unsigned char* testChar=new unsigned char[2];
+    char* testChar=new char[2];
 
     int length(0);
     bool afterFirstUtfChar(false);
     for (char ansiCsgd:inLine){
-        unsigned char ansiC=static_cast<unsigned char>(ansiCsgd);
-        if (ansiC<=0x7F){
+        char ansiC=static_cast<char>(ansiCsgd);
+        if (ansiC>=0){
             testChar[1]=ansiC;
             testChar[0]='\0';
             length+=UTFCharToPos(testChar);
@@ -214,16 +141,6 @@ int  cursor::GetLengthOfUTFString(const string &inLine){
     return length;
 }
 
-void cursor::Recalculate(int oX,int oY){
-    int oldOffX=offX;
-    offX=oX;
-    offY=oY+1;
-    if (hasCursor){cursorX=cursorX-oldOffX+oX;}
-    if (hasSelection){
-        selectionEndCursorX=selectionEndCursorX-oldOffX+oX;
-        selectionStartCursorX=selectionStartCursorX-oldOffX+oX;
-    }
-}
 
 void cursor::SetIndxFirstPage(int indx){
     indexFirstOnPage=indx;
@@ -676,7 +593,7 @@ void cursor::DrawRectangle(int left, int top, int right, int bottom){
 
 }
 
-void cursor::DrawCursor(int cursorY){
+void cursor::DrawCursor(){
 //draws a blinking cursor, textedit checks if the cursor is at the right line
     if (hasCursor&&!hasSelection){
     float now=XPLMGetElapsedTime();
@@ -690,7 +607,7 @@ void cursor::DrawCursor(int cursorY){
     }
     if (cursorOn){
         //string crsr=string(cursorChar);
-        XPLMDrawString(ink,cursorX,cursorY,(char*)cursorChar,nullptr,xplmFont_Proportional);
+        DrawLogic::DrawCursor();
     }
    }
 }
@@ -760,10 +677,10 @@ void cursor::DeleteFromLines(int in_line){
 void cursor::InsertEmptyLine(int in_line){
     if (in_line<nbOfLines)
     {
-        posLines.insert(posLines.begin()+in_line,intVector());
+        posLines.insert(posLines.begin()+in_line,vInt());
     }
     else{
-        posLines.push_back(intVector());
+        posLines.push_back(vInt());
     }
     nbOfLines++;
 }

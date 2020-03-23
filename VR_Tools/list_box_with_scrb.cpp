@@ -34,8 +34,8 @@ List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      drawBackground(true),
      isModal(modal),
      scrB(modal),
-     general(false),
-     textOnly(true),
+     general("lists general",false),
+     textOnly("lists textOnly",true),
      displayText(new std::vector<string>),
      box(),
      delStr1(""),
@@ -70,7 +70,7 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
 }
 
 void List_Box_With_ScrB::SetupforText(){
-
+    WriteDebug("list box : setup for text");
     XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&charHeight,nullptr);
     DeleteDisplayBox();
      pageHeightInL=int((heightPx-20)/(charHeight+2));

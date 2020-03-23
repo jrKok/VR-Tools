@@ -20,6 +20,24 @@ button_VR::button_VR(bool modal) : rectangles(true),
    stringLocation.SetCoords(0,0);
 }
 
+button_VR::button_VR(string label, bool modal) : rectangles(label,true),
+
+    isSelected(false),
+    isPressed(false),
+    hasSymbol(false),
+    warningMode(false),
+    buttonText(""),
+    symbol(),
+    isModalB(modal),
+    offsetTextX(0),
+    offsetTextY(0),
+    numberPoints(0),
+    symbolNumber(0),
+    stringNumber(-1)
+
+{
+   stringLocation.SetCoords(0,0);
+}
 void button_VR::AddText(){
         stringNumber=DrawLogic::AddString("",Clr_White,Clr_LightBlue,stringLocation);
 }
@@ -45,7 +63,9 @@ void button_VR::LocateText(){
     int tHeight(0);
     XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&tHeight,nullptr);
     offsetTextY=(height/2)-(tHeight/2)+bottom;
-    if (tWidth>=(width-4)) width=tWidth+4;
+    if (tWidth>=(width-4)){
+        width=tWidth+4;
+        right=left+width;}
     offsetTextX=(width/2)-(tWidth/2)+left;
     stringLocation.SetCoords(offsetTextX,offsetTextY);
     DrawLogic::RelocateString(stringNumber,stringLocation);
@@ -177,4 +197,9 @@ void button_VR::ReDrawButton(){
 }
 char button_VR::GetStringColorCode(){
     return DrawLogic::GetColorCodeString(stringNumber);
+}
+
+void button_VR::Shift(int dx, int dy){
+    rectangles::Shift(dx,dy);
+    LocateText();
 }

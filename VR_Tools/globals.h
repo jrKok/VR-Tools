@@ -23,6 +23,7 @@ using std::map;
 using std::string;
 using std::vector;
 using vString=std::vector<string>;
+using vInt=std::vector<int>;
 using triangle=std::array<int,6>;
 
 

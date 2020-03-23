@@ -13,7 +13,7 @@ public:
        void       LeftShift     (charrecord &toworkon);
 static charrecord GetCharFromMap(int in_UTF, int &out_width, int &out_height, int &out_offset, int &out_advance);
 static int        MeasureString (const string &in_string);
-static vString    GetPositions  (const string &in_string);
+static void       GetPositions  (const string &in_string,vInt &out_pos);
 
 static bool       FreeTypeStarted;
 static bool       FreeTypeError;

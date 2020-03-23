@@ -33,7 +33,7 @@ OpCenter::OpCenter():
     CmdDelLine(nullptr),
     CmdReload(nullptr),
     ini(),
-    drw(),
+    //drw(),
     tw(),
     colordefs()
 {
@@ -99,6 +99,7 @@ int OpCenter::SetupCenter(){
 }
 
 void OpCenter::LaunchOperations(){
+
     DrawLogic *ndp=new DrawLogic();
     ndp->Initiate();
     ndp->SetId("Layout");
@@ -106,6 +107,7 @@ void OpCenter::LaunchOperations(){
    ndp=new DrawLogic();
    ndp->Initiate();
    ndp->SetId("LayoutWEdit");
+
     wELayout=new LayoutWithEdit(ndp);
    ndp=new DrawLogic();
    ndp->Initiate();
@@ -120,7 +122,7 @@ void OpCenter::LaunchOperations(){
 
     if (!g_textWindow ){
         wLayout->Begin();
-        wELayout->StartEdit();
+        wELayout->StartEdit();//like Begin(), makes keyboard as well
         if ((*ptrLayout).OpenWindowAtStart()) {
             MakeTextWindow();
         }
@@ -295,10 +297,10 @@ int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseSta
                 is_In_Edit_Mode=!is_In_Edit_Mode;
                 if (is_In_Edit_Mode){
                     ptrLayout=wELayout;
-                    ptrLayout->SetWindowHandle(g_textWindow);
-                    wELayout->BeginEdit();
+                    wELayout->SetWindowHandle(g_textWindow);
                     wELayout->initiate();
                     wELayout->CheckButtonsVisibility();
+                    wELayout->BeginEdit();
                 }else{
                     ptrLayout=wLayout;
                     ptrLayout->SetWindowHandle(g_textWindow);
@@ -316,6 +318,7 @@ void OpCenter::EndEditMode(){
     ptrLayout->SetWindowHandle(g_textWindow);
     ptrLayout->initiate();
     ptrLayout->CheckButtonsVisibility();
+    is_In_Edit_Mode=false;
 }
 
 int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *){
@@ -339,12 +342,12 @@ int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStat
         case xplm_MouseUp: {
 
          int cmd=dispDir->processMouseUp(x,y);
-            if (cmd==0){//OK command has been pressed
-                pointerToMe->ReadNewFile();
+            if (cmd==0){//OK command has been pressed            
                 XPLMDestroyWindow(g_FileWindow);
                 g_FileWindow=nullptr;
                 dispDir->CloseDirWindow();
                 if (IniSettings::GetOptLastFile()) pointerToMe->wLayout->KeepFile();
+                pointerToMe->ReadNewFile();
             }
             if (cmd==1 ){//Cancel has been pressed
                 pointerToMe->MakeTextWindow();
@@ -484,16 +487,18 @@ void  OpCenter::MakeFileWindow(){
         params.refcon = nullptr;
         params.layer = xplm_WindowLayerFloatingWindows;
         params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
-        params.left = dispDir->GetLeft()+l+100;
-        params.bottom = dispDir->GetBottom()+b+50;
-        params.right = dispDir->GetRight()+l+100;
-        params.top = dispDir->GetTop()+b+50;
+        params.left = dispDir->GetLeft()+l+250;
+        params.bottom = dispDir->GetBottom()+b+150;
+        params.right = dispDir->GetRight()+l+250;
+        params.top = dispDir->GetTop()+b+150;
 
        g_FileWindow = XPLMCreateWindowEx(&params);
        XPLMSetWindowPositioningMode(g_FileWindow, g_in_vr?xplm_WindowVR:xplm_WindowPositionFree, -1);
        XPLMSetWindowTitle(g_FileWindow,"Choose Directory and File");
        XPLMSetWindowResizingLimits(g_FileWindow, dispDir->GetWidth(), dispDir->GetHeight(),dispDir->GetWidth()+150, dispDir->GetHeight()+150); // Limit resizing our window
        XPLMDestroyWindow(g_textWindow);
+       dispDir->SetWindowId(g_FileWindow);
+       dispDir->ActivateWindow();
             //****(*ptrLayout).ClosegWindow();
        g_textWindow=nullptr;
 

@@ -58,7 +58,7 @@ void LineDialog::MakeDialog(const string &yesStr, const string &noStr, const str
     keyb->MakeKeyboard(5,120);
     height= keyb->MyHeight()+120;
     width = keyb->MyWidth()+10;
-    cursor.Initiate(&forCursor,10,30,20,1);    
+    cursor.Initiate(&forCursor,10,30,20,1);
     if (yesStr!="") nbButtons++;
     if (noStr!="") nbButtons++;
     if (cancelStr!="") nbButtons++;
@@ -126,7 +126,7 @@ void LineDialog::DrawMyself(XPLMWindowID in_window_id, void * unused){
     XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
     if (lft!=left||tp!=top) DrawLogic::SetScreenOrigin(left,bottom,right,top);
     DrawLogic::DrawContent();
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor(myself->editLine.GetTextY());
+    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();
     if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);
@@ -160,6 +160,7 @@ int LineDialog::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_dow
         }
         if (myself->textRect->isHere(x,y)){
             myself->cursor.FindPos(0,x);
+            DrawLogic::SetCursorPosition(myself->cursor.PosToX(),myself->textRect->GetBottom());
         }
         break;
     }

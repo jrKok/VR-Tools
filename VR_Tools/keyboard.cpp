@@ -218,11 +218,11 @@ void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
     kL5.clear();
     allKeyboard.SetOrigin(offX,offY);
 
-    rL1.SetOrigin(offX,offY+(5*(keyHeight+2)));
-    rL2.SetOrigin(offX,rL1.GetBottom()-keyHeight-2);
-    rL3.SetOrigin(offX,rL2.GetBottom()-keyHeight-2);
-    rL4.SetOrigin(offX,rL3.GetBottom()-keyHeight-2);
-    rL5.SetOrigin(offX,rL4.GetBottom()-keyHeight-2);
+    rL5.SetOrigin(offX,offY);
+    rL4.SetOrigin(offX,rL5.GetBottom()+keyHeight+2);
+    rL3.SetOrigin(offX,rL4.GetBottom()+keyHeight+2);
+    rL2.SetOrigin(offX,rL3.GetBottom()+keyHeight+2);
+    rL1.SetOrigin(offX,rL2.GetBottom()+keyHeight+2);
     //read the file containing definitions of keys, one text line per keyboard line
     string fileName("");
     if (numpad){
@@ -251,7 +251,7 @@ void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
         getline(textFile,inputL);
         rL5.SetDimensions(MakeLine(rL5.GetBottom(),inputL,5,kL5),rL1.GetHeight());
         if (rL5.GetWidth()>maxWidth) maxWidth=rL5.GetWidth();
-        allKeyboard.SetDimensions(maxWidth,rL1.GetHeight()*5);
+        allKeyboard.SetDimensions(maxWidth,rL1.GetTop()-rL5.GetBottom());
            }
 }
 
@@ -260,10 +260,10 @@ void Keyboard::SetOrigin (int x, int y){
 }
 
 void Keyboard::Relocate (int newX, int newY){
-   /* int deltaX(newX-offX),deltaY(offY==0?(newY):newY-offY);
+    int deltaX(newX-offX),deltaY(offY==0?(newY):newY-offY);
     offX=newX;offY=newY;
     allKeyboard.SetOrigin(newX,newY);
-    rL1.SetOrigin(offX,offY);
+    rL1.SetOrigin(rL1.GetLeft()+deltaX,rL1.GetBottom()+deltaY);
     rL2.SetOrigin(rL2.GetLeft()+deltaX,rL2.GetBottom()+deltaY);
     rL3.SetOrigin(rL3.GetLeft()+deltaX,rL3.GetBottom()+deltaY);
     rL4.SetOrigin(rL4.GetLeft()+deltaX,rL4.GetBottom()+deltaY);
@@ -272,8 +272,7 @@ void Keyboard::Relocate (int newX, int newY){
     for (std::shared_ptr<Key> k: kL2)  k->Shift(deltaX,deltaY);
     for (std::shared_ptr<Key> k: kL3)  k->Shift(deltaX,deltaY);
     for (std::shared_ptr<Key> k: kL4)  k->Shift(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL5)  k->Shift(deltaX,deltaY);*/
-
+    for (std::shared_ptr<Key> k: kL5)  k->Shift(deltaX,deltaY);
 }
 
 bool  Keyboard::ReadLine(int cx, int cy, lineOfKeys in_line, bool &special, std::string &keyName, std::string &keyVal){
