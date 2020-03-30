@@ -7,6 +7,12 @@
 #include "stringops.h"
 
 
+/*This class locates and reads the active plane's VR config file,
+ *
+ * or generates one if it doesn't exist
+ * it also makes a sort of iterator in the list of hotspots
+ */
+
 using std::string;
 using std::vector;
 typedef   std::vector<string> Lines;

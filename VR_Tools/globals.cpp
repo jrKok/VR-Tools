@@ -30,6 +30,7 @@ void  globals::DefineColors(){
     DefineColor(Clr_BackgroundS,0.720f,0.720f,0.690f);
     DefineColor(Clr_BckgrdW,0.150f,0.180f,0.250f);
     DefineColor(Clr_InkSelect,0.9f,0.05f,0.4f);
+    DefineColor(Clr_TextSelectBlue,0.600f,0.960f,1.0f);
 }
 
 void  globals::DefineColor(char in_Tab,float in_R, float in_G, float in_B){

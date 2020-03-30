@@ -22,7 +22,7 @@ LineDialog::LineDialog():
   textOffsetY(0),
   userLine(""),
   keyb(nullptr),
-  editLine(true),
+  editLine(nullptr),
   cursor(),
   forCursor()
 
@@ -36,6 +36,7 @@ LineDialog::~LineDialog(){
     if (    cancelButton!=nullptr) delete cancelButton;
     if (        textRect!=nullptr) delete textRect;
     if (            keyb!=nullptr) delete keyb;
+    if (        editLine!=nullptr) delete editLine;
 }
 
 void LineDialog::MakeDialog(const string &yesStr, const string &noStr, const string &cancelStr, const string alertStr, const std::string &in_String, std::function<void()>cBck, int in_width){
@@ -79,6 +80,7 @@ void LineDialog::MakeDialog(const string &yesStr, const string &noStr, const str
     yesButton=new button_VR();
     noButton=new button_VR();
     cancelButton=new button_VR();
+    editLine    =new TextLine();
 
     yesButton->SetDimensions(buttonwidth,buttonHeight);
     yesButton->SetOrigin(pos,80);
@@ -105,7 +107,7 @@ void LineDialog::MakeDialog(const string &yesStr, const string &noStr, const str
     textRect->SetOrigin(10,30);
     textRect->setColor(Clr_White);
 
-    editLine.SetOrigin(12,40);
+    editLine->SetOrigin(12,40);
     ManageModalWindow::ResizeModalWindow(width,height);
     keyb->SetVisibility(true);
     cursor.SetCursorAt(0,0);
@@ -122,15 +124,13 @@ string LineDialog::GetUserLine(){
 }
 
 void LineDialog::DrawMyself(XPLMWindowID in_window_id, void * unused){
-    int lft(left),tp(top),right,bottom;
-    XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    if (lft!=left||tp!=top) DrawLogic::SetScreenOrigin(left,bottom,right,top);
+    ManageModalWindow::ConstrainGeometry();
     DrawLogic::DrawContent();
     if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();
     if (myself->cursor.HasSelection()){
         int l,r;
         myself->cursor.IsIndexInSelection(0,l,r);
-        myself->cursor.DrawRectangle(l,myself->editLine.GetTop(),r,myself->editLine.GetBottom());}
+        myself->cursor.DrawRectangle(l,myself->editLine->GetTop(),r,myself->editLine->GetBottom());}
     //drawCursor
     //drawSelectionrect
 }
@@ -273,7 +273,7 @@ void LineDialog::EraseFromLine(int begin, int end){
     ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,begin));
     ulong eP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,end));
     userLine.erase(sP,eP-sP);
-    editLine.setText(userLine);
+    editLine->setText(userLine);
     cursor.EraseCursor();
     cursor.MakeLinePosAgain(0,userLine);
     cursor.SetCursorAt(0,begin);
@@ -297,7 +297,7 @@ void LineDialog::InsertLetter(string fromKeyb){
             string oldLine=userLine;
             userLine.insert(sP,fromKeyb);
             if (IsLineNotTooWide()){
-                editLine.setText(userLine);
+                editLine->setText(userLine);
                 int insL=cursor.GetLengthOfUTFString(fromKeyb);
                 cP+=insL;
                 cursor.AddPositionsToLine(insL);

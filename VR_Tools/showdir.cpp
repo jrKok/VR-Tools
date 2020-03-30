@@ -30,6 +30,9 @@ ShowDir::~ShowDir(){
         delete ln;
         ln=nullptr;
     }
+    delete myDrawPad;
+    myDrawPad=nullptr;
+
 }
 
 //Helper functions
@@ -117,7 +120,7 @@ void ShowDir::SetupDirWindow(int left, int top){
         buttons[button_txt]->setVisibility(false);
 
         sliderBox.SetOrigin(buttons[button_All]->GetLeft()-1,buttons[button_All]->GetBottom()-1);
-        sliderBox.SetDimensions(62,22);
+        sliderBox.SetDimensions(65,22);
         sliderBox.setColor(Clr_White);
         sliderBox.setVisibility(true);
 
@@ -154,7 +157,7 @@ void ShowDir::SetupDirWindow(int left, int top){
         displayLines[FilePicker]->SetDimensions(fileN.GetWidth(),charHeight+4);
         displayLines[FilePicker]->SetTextColor(Clr_BlackInk);
         displayLines[FilePicker]->SetOrigin(fileN.GetLeft(),5);
-        displayLines[FilePicker]->SetTextXY(1,2);
+        displayLines[FilePicker]->SetTextXY(2,2);
         displayLines[FilePicker]->SetBackGroundColor(Clr_PaperWhite);
 
         displayLines[DirReader]->setText("");
@@ -164,28 +167,48 @@ void ShowDir::SetupDirWindow(int left, int top){
         displayLines[DirReader]->SetTextXY(1,2);
         displayLines[DirReader]->SetBackGroundColor(Clr_PaperWhite);
 
-        myDrawPad->SetNewSize(general.GetWidth(),general.GetHeight());
-        DrawLogic::UpdateTexture();
         displayLines[DirReader]->PrintString();
         displayLines[FilePicker]->PrintString();
-        dirN.ShowAll();
-        fileN.ShowAll();
     }
-    else{
-        DrawLogic::UpdateTexture();
-        dirN.ShowAll();
-        fileN.ShowAll();
+    else{      
+        wWidth=general.GetWidth();
+        wHeight=general.GetHeight();
     }
 }
 
+void ShowDir::ActivateWindow(){
+    wWidth=general.GetWidth();
+    wHeight=general.GetHeight();
+    myDrawPad->SetNewSize(wWidth,wHeight);
+    dirN.ShowAll();
+    fileN.ShowAll();
+    DrawLogic::UpdateTexture();
+    if (XPLMWindowIsInVR(myWindow)){
+        newT=nB+wHeight;
+        nR=newL+wWidth;
+        XPLMSetWindowGeometryVR(myWindow,wWidth,wHeight);
+    }
+    else{
+        XPLMGetWindowGeometry(myWindow, &newL, &newT, &nR, &nB);
+        newT=nB+wHeight;
+        nR=newL+wWidth;
+        XPLMSetWindowGeometry(myWindow,newL,newT,nR,nB);
+    }
+}
 
 void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
     XPLMGetWindowGeometry(g_FileWindow, &newL, &newT, &nR, &nB);
     if ((newT-nB)!=wHeight|(nR-newL)!=wWidth){
         if (XPLMWindowIsInVR(myWindow)){
+            newT=nB+wHeight;
+            nR=newL+wWidth;
             XPLMSetWindowGeometryVR(myWindow,wWidth,wHeight);
         }
-        else XPLMSetWindowGeometry(myWindow,newL,newT,newL+wWidth,newT-wHeight);
+        else{
+            newT=nB+wHeight;
+            nR=newL+wWidth;
+            XPLMSetWindowGeometry(myWindow,newL,newT,nR,nB);
+        }
     }
     myDrawPad->SetScreenOrigin(newL,nB,nR,newT);
     DrawLogic::DrawContent();
@@ -338,6 +361,6 @@ string ShowDir::GetSelectedPath(){
     return filePathSelected;
 }
 
-void ShowDir::GetWindowId(XPLMWindowID inw){
+void ShowDir::SetWindowId(XPLMWindowID inw){
     myWindow=inw;
 }

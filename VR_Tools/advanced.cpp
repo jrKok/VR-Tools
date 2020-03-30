@@ -217,9 +217,7 @@ void advanced::MakeModalButton(string name,string actionName,ulong myNumber,int 
 
 void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
 
-    int lft(left),top(0),right(0),btm(bottom);
-    XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    DrawLogic::SetScreenOrigin(left,bottom,right,top);
+    ManageModalWindow::ConstrainGeometry();
     DrawLogic::DrawContent();
     if (myself->cursor.HasSelection()){
         int l,r;
@@ -228,7 +226,8 @@ void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
     if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();//myself.activeLine->GetTextY()
 }
 
-int advanced::MouseHandler(XPLMWindowID, int x, int y, int is_down, void *){
+int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *){
+    int x(in_x-ManageModalWindow::GetLeft()),y(in_y-ManageModalWindow::GetBottom());
     if (is_down==xplm_MouseDown){
         string selAct("");
         myself->mouseDrag=false;

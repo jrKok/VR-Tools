@@ -23,6 +23,7 @@ public:
     bool IsSpecialKey();
     bool IsUTFKey();
     Key* GetMyPointer();
+
 private:
     char ch1,ch2;
     bool isUTF8,isUTFShift,isUTFAlt,isSpecial;

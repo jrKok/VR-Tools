@@ -22,6 +22,7 @@
 #include "hotspots.h"
 #include "globals.h"
 #include "fontman.h"
+#include "managemodalwindow.h"
 
 using std::string;
 
@@ -59,6 +60,8 @@ public:
           void  MakeFileWindow();
           void  ReadNewFile();
 static    void  EndEditMode();
+static    bool  HasModalWindow();
+static    void  SetModalWindow(bool mw);
 static    bool  IsLaunched;
 
 private:
@@ -69,18 +72,18 @@ static Layout *wLayout;
 static LayoutWithEdit *wELayout;
 static Layout* ptrLayout;
 static ShowDir *dispDir;
+static ManageModalWindow *manageMW;
 static DRefWindow drefW;
 static Hotspots htsp;
 static VRCommandFilter commandFilter;
 
 static int menuIdx,idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload;
 static XPLMMenuID  menuId,menuTextOpt,menuHotspots;
-static bool g_in_vr;
+static bool g_in_vr,hasModalWindow;
        XPLMDataRef g_vr_dref;
-
        XPLMCommandRef CommandText,CmdFirstLine,CmdNextLine,CmdPrevLine,CmdDelLine,CmdReload;
        IniSettings ini;
-       DrawLogic drw;
+       //DrawLogic drw;
        temporaryWindow tw;
        globals colordefs;
        fontMan fontmanager;

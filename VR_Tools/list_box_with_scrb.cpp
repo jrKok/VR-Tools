@@ -1,4 +1,5 @@
 #include "list_box_with_scrb.h"
+#include "fontman.h"
 
 List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      inkColor(Clr_BlackInk),
@@ -70,7 +71,6 @@ void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY)
 }
 
 void List_Box_With_ScrB::SetupforText(){
-    WriteDebug("list box : setup for text");
     XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&charHeight,nullptr);
     DeleteDisplayBox();
      pageHeightInL=int((heightPx-20)/(charHeight+2));
@@ -577,9 +577,7 @@ void List_Box_With_ScrB::clearText(){
 } //has to adjust scrB also
 
 int List_Box_With_ScrB::MeasureString(string str){
-    int retVal;
-    retVal=(int)XPLMMeasureString(xplmFont_Proportional,(char*)str.c_str(),str.size());
-    return retVal;
+    return (fontMan::MeasureString(str));
 }
 
 void List_Box_With_ScrB::SetSplitPolicy(int splitP){

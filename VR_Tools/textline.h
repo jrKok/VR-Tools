@@ -16,8 +16,11 @@ public:
     void   DeleteLine();
     void   setText (const string &in_Str);
     string GetText();
+    void   PrintBindingBox();
     void   PrintString();
     void   PrintStringOnly();
+    void   PrintStringOnLocalT();
+    void   PrintBox();
     bool   isHere(int,int);
     void   SetTextColor(char in_clr);
     void   SetBackGroundColor(char in_clr);
@@ -42,12 +45,13 @@ public:
     bool   GetSelected();
 
 private:
-    rectangles bindingBox;
+    int        bbl,bbb,bbr,bbt;
     string     textOfLine;
     int        myStringNumber;
+    int        width,height;
     int        index,textX,textY,textOx,textOy;
     int        mySize;
-    bool       isSelected, isModal;
+    bool       isSelected, isModal,isVisible;
     char       textColor,backGroundcol;
     stringOps ops;
 };

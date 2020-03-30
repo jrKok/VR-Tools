@@ -73,7 +73,7 @@ if (fileName!=""){
      AddLine(inputL);
      }
   textFile.close();  
-  if (needsUTF8) convertToUTF8();
+  //if (needsUTF8) convertToUTF8();
   SetupforText();}
   return true;
 }

@@ -53,7 +53,7 @@ public:
 private:
 
     Keyboard keyb;
-    bool showKeyb,keyPressed,specialKey,utfKey,editMode,hasToSave;
+    bool showKeyb,keyPressed,specialKey,utfKey,editMode,hasToSave,physK;
     char firstChar,secondChar;
     std::string fName,textToShow;
     TextEdit* tEdFileReader;

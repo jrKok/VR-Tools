@@ -24,6 +24,17 @@
 #include "button_vr.h"
 #include "drawlogic.h"
 
+/*this class, which a is a subclass from listbox and inherits its list capabilites, generates a graphical interface to enable the user
+ * to edit the vr config file. The advanced options for each hotspot are
+ * accessed by the 'advanced' class.
+ *
+ * It is generally called from the hotspot.cpp class and receives a callback to synchronize hotspot treatment with the caller
+ *
+ *It interfaces for VR hotspot management with :
+ * vrcreader which maintains the list of hotspots and consistency with the vr config file
+ * hotspots.cpp which is able to move the view to a given hotspot by using XP's native commands
+ * in order to enable move commands the action vrcommmandfilter has to be suspended during the move
+ */
 
 using std::string;
 using std::vector;
@@ -61,9 +72,8 @@ public:
     int  GetSelectedHotspot();
     string GetUserLine();
     int GetActionLaunched();
-    static void RecalculateDialog ();
-    static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
-    static int MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused);
+    static void DrawMyself(XPLMWindowID, void *);
+    static int MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_down, void *);
     void ProcessKeyPress(string keyName,string in_String);
     void LaunchAction(int in_action);
     void CheckButtonsVisibility();
@@ -85,10 +95,13 @@ public:
     void DisableEdit();
     bool IsEditDisabled();
     void MouseToUp();
+
     //functionality : move to, rename, create, up, down, delete, save
 private:
 
     void LaunchMoveCommand();
+
+    rectangles generalR;
     static XPLMCommandRef CmdRight,CmdLeft,CmdUp,CmdDown,CmdForward,CmdBackward;
     XPLMCommandRef CommandLaunched;
     std::function<void()> callBack;
@@ -96,7 +109,6 @@ private:
     button_VR *relogButton,*upButton,*downButton,*renameButton,*createButton,*deleteButton,*repositionButton;
     button_VR *vaftButton,*vforwButton,*vupButton,*vdownButton,*vleftButton,*vrightButton;
     button_VR *clicked;
-    rectangles *textRect;
     int width, height,answer,myStringNumber,myStringN2,myStringN3,textOffsetX,textOffsetY,selectedHotsp;
     float targetX,targetY,targetZ;
     string userLine;

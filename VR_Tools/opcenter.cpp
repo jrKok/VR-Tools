@@ -1,17 +1,19 @@
 #include "opcenter.h"
 
-OpCenter*       OpCenter::pointerToMe(nullptr);
-bool            OpCenter::g_in_vr(false);
-bool            OpCenter::is_In_Edit_Mode(false);
-XPLMWindowID    OpCenter::g_textWindow(nullptr);
-XPLMWindowID    OpCenter::g_FileWindow(nullptr);
-Layout         *OpCenter::wLayout(nullptr);
-LayoutWithEdit *OpCenter::wELayout(nullptr);
-Layout*         OpCenter::ptrLayout(nullptr);
-ShowDir        *OpCenter::dispDir(nullptr);
-DRefWindow      OpCenter::drefW;
-VRCommandFilter OpCenter::commandFilter;
-Hotspots        OpCenter::htsp;
+OpCenter*          OpCenter::pointerToMe(nullptr);
+bool               OpCenter::g_in_vr(false);
+bool               OpCenter::is_In_Edit_Mode(false);
+bool               OpCenter::hasModalWindow(false);
+XPLMWindowID       OpCenter::g_textWindow(nullptr);
+XPLMWindowID       OpCenter::g_FileWindow(nullptr);
+Layout            *OpCenter::wLayout(nullptr);
+LayoutWithEdit    *OpCenter::wELayout(nullptr);
+Layout*            OpCenter::ptrLayout(nullptr);
+ShowDir           *OpCenter::dispDir(nullptr);
+ManageModalWindow *OpCenter::manageMW(nullptr);
+DRefWindow         OpCenter::drefW;
+VRCommandFilter    OpCenter::commandFilter;
+Hotspots           OpCenter::htsp;
 
 int        OpCenter::menuIdx(0);
 int        OpCenter::idxOfModeMenuItem(0);
@@ -100,19 +102,25 @@ int OpCenter::SetupCenter(){
 
 void OpCenter::LaunchOperations(){
 
-    DrawLogic *ndp=new DrawLogic();
+    DrawLogic *ndp=new DrawLogic();//ndp = New DrawPad
     ndp->Initiate();
     ndp->SetId("Layout");
     wLayout=new Layout(ndp);
-   ndp=new DrawLogic();
-   ndp->Initiate();
-   ndp->SetId("LayoutWEdit");
 
+    ndp=new DrawLogic();
+    ndp->Initiate();
+    ndp->SetId("LayoutWEdit");
     wELayout=new LayoutWithEdit(ndp);
-   ndp=new DrawLogic();
-   ndp->Initiate();
-   ndp->SetId("Directory");
-   dispDir=new ShowDir(ndp);
+
+    ndp=new DrawLogic();
+    ndp->Initiate();
+    ndp->SetId("Directory");
+    dispDir=new ShowDir(ndp);
+
+    ndp=new DrawLogic();
+    ndp->Initiate();
+    ndp->SetId("ModalWindow");
+    manageMW=new ManageModalWindow(ndp);
 
     if (is_In_Edit_Mode){
         ptrLayout=wELayout;
@@ -267,9 +275,8 @@ void  OpCenter::drawFileWindow(XPLMWindowID in_window_id, void *){
 }
 
 int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *)
-
 {
-    if (DrawLogic::IsModalWindow()) return 1;
+    if (HasModalWindow()) return 1;
     switch (mouse_status){
 
         case xplm_MouseDown: {
@@ -322,7 +329,7 @@ void OpCenter::EndEditMode(){
 }
 
 int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *){
-    if (DrawLogic::IsModalWindow()) return 1;
+    if (HasModalWindow()) return 1;
     switch (mouse_status){
 
         case xplm_MouseDown: {
@@ -509,6 +516,14 @@ void  OpCenter::MakeFileWindow(){
 void  OpCenter::ReadNewFile(){
     MakeTextWindow();
     XPLMSetWindowTitle(g_textWindow,(char*)(FilePointer::GetCurrentFileName()).c_str());
+}
+
+void OpCenter::SetModalWindow(bool mw){
+    hasModalWindow=mw;
+}
+
+bool OpCenter::HasModalWindow(){
+    return hasModalWindow;
 }
 
 /********** Dummys ******************/

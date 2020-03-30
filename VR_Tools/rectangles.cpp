@@ -8,14 +8,35 @@ rectangles::rectangles(bool drawable):
     right(0),
     height(0),
     width(0),
-    isVisible(true)
+    my_currentColor(Clr_Black),
+    isDrawable(drawable),
+    isVisible(true),
+    isModal(false),
+    dbgName("")
 {
     if (drawable){
-             drawNumber=DrawLogic::AddRectangle(this);
+        drawNumber =DrawLogic::AddRectangle(this);
     }
-    else drawNumber=-1;
 }
 
+rectangles::rectangles(string name,bool drawable):
+    top(0),
+    left(0),
+    bottom(0),
+    right(0),
+    height(0),
+    width(0),
+    my_currentColor(Clr_Black),
+    isDrawable(drawable),
+    isVisible(true),
+    isModal(false),
+    dbgName(name)
+{
+    if (drawable){
+             drawNumber =DrawLogic::AddRectangle(this);
+    }
+    else drawNumber=0;
+}
 
 rectangles::rectangles(int in_top, int in_left, int in_bottom, int in_right, char in_Color, bool in_visibility ) :
 
@@ -26,15 +47,21 @@ rectangles::rectangles(int in_top, int in_left, int in_bottom, int in_right, cha
     height(0),
     width(0),
     my_currentColor(in_Color),
-    isVisible(in_visibility)
+    isDrawable(true),
+    isVisible(in_visibility),
+    dbgName("")
 {
     width=right-left;
     height=bottom-top;
     drawNumber=DrawLogic::AddRectangle(this);
+
 }
 
 
 rectangles::~rectangles(){
+    //if (DrawLogic::VerifyPointer(drawNumber,this)) DrawLogic::WriteDebug ("rectangle destructor, passed test for "+dbgName+" drawN ",drawNumber);
+    //else DrawLogic::WriteDebug ("rectangle destructor, didn't pass test for "+dbgName+" drawN ",drawNumber);
+    if (isDrawable) {DrawLogic::ReleaseRectangle(drawNumber);}
 
 }
 
@@ -86,9 +113,10 @@ char rectangles::GetColor() const{
     return my_currentColor;
 }
 
-int rectangles::GetId() const{
+ulong rectangles::GetId() const{
     return drawNumber;
 }
+
 void rectangles::WriteDebug(std::string message){
     std::string in_String="VR Tools : " +message+"\n";
     XPLMDebugString((char*)in_String.c_str());
@@ -106,19 +134,18 @@ void rectangles::resetMe(){
 }
 
 void rectangles::setColor(char in_Color){
-    if (drawNumber>-1){
+    if (isDrawable){
         my_currentColor=in_Color;
         DrawLogic::UpdateRectangle(drawNumber);
     }
 }
 
 void rectangles::setVisibility(bool in_Visibility){
-    if (in_Visibility!=isVisible ){
+    if ((in_Visibility!=isVisible)&isDrawable ){
         isVisible=in_Visibility;
-        if (drawNumber>-1){
-            if(isVisible) DrawLogic::UpdateRectangle(drawNumber);
-            else DrawLogic::HideRectangle(drawNumber);
-        }
+        if(isVisible) DrawLogic::UpdateRectangle(drawNumber);
+        else DrawLogic::HideRectangle(drawNumber);
+
     }
 }
 
@@ -139,4 +166,21 @@ void rectangles::PrintParameters(){
 
 void rectangles::UpdateMyTexture(){
     DrawLogic::UpdateRectangle(drawNumber);
+}
+
+void rectangles::SetDebugName(string in_string){
+    dbgName=in_string;
+}
+
+string rectangles::GetDebugName(){
+    return dbgName;
+}
+
+void rectangles::SetNewDrawNumber(ulong in_Nb){
+    drawNumber=in_Nb;
+    isDrawable=true;
+}
+
+ulong rectangles::GetDrawNumber(){
+    return drawNumber;
 }

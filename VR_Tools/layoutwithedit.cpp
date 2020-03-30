@@ -13,6 +13,7 @@ LayoutWithEdit::LayoutWithEdit(DrawLogic *newPad): Layout(newPad),
     utfKey(false),
     editMode(true),
     hasToSave(false),
+    physK(false),
     firstChar('\0'),
     secondChar('\0'),
     fName(""),
@@ -101,11 +102,11 @@ bool LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
         if (noResize){
             generalR.setVisibility(true);
             generalR.setColor(Clr_DarkGray);
-            DrawLogic::SetBackGroundColor(Clr_DarkGray);
+            myDrawPad->SetBackGroundColor(Clr_DarkGray);
         }
         else {
             generalR.setVisibility(false);
-            DrawLogic::SetBackGroundColor(Clr_BckgrdW);
+            myDrawPad->SetBackGroundColor(Clr_BckgrdW);
         }
 
         if (fitSizeToFile){
@@ -139,7 +140,7 @@ bool LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
             }
         }
         XPLMGetWindowGeometry(myWindow,&l,&t,&r,&b);
-        DrawLogic::SetScreenOrigin(l,b,r,t);
+        myDrawPad->SetScreenOrigin(l,b,r,t);
         minHeight=tEdFileReader->GetOffSetY()+180;
         maxHeight=tEdFileReader->GetOffSetY()+935;
         return true;
@@ -209,6 +210,7 @@ void LayoutWithEdit::recalculate(){ //gets called at every draw callback so this
 
 void LayoutWithEdit::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
+    myDrawPad->Initiate();
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
     recalculate();
     myDrawPad->SetScreenOrigin(l,b,r,t);
@@ -495,8 +497,8 @@ void LayoutWithEdit::QuitCommand(){
 
 void LayoutWithEdit::HandleAlertResult(){
     int response=myself->quitWoSave.GetAnswer();
-    if (response==1) myself->editMode=false;
-    if (response==2) {myself->tEdFileReader->Save();myself->editMode=false;}
+    if (response==1) {myself->editMode=false;myself->hasToSave=false;}
+    if (response==2) {myself->tEdFileReader->Save();myself->editMode=false;myself->hasToSave=false;}
     if (!myself->editMode) OpCenter::EndEditMode();
  }
 
@@ -536,13 +538,15 @@ void LayoutWithEdit::ToggleKeyboard(){
 void LayoutWithEdit::UsePhysicalKeyboard(){
     keyb.EnablePhysicalKeyboard(this);
     tButtons[B_UTF8]->setSelect(true);
-    //temporaryWindow::ShowAlert("Plane Keyboard commands are disabled",2);
+    physK=true;
+    temporaryWindow::ShowAlert("Plane's Keyboard commands are disabled",2);
 }
 
 void LayoutWithEdit::UnfocusPhysicalKeyboard(){
     keyb.DisablePhysicalKeyboard(this);
     tButtons[B_UTF8]->setSelect(false);
-    //temporaryWindow::ShowAlert("Plane Keyboad commands are enabled",1.5);
+    physK=false;
+    temporaryWindow::ShowAlert("Plane's Keyboad commands are enabled",1.5);
 }
 
 void LayoutWithEdit::SetTextToShow(string in_text){

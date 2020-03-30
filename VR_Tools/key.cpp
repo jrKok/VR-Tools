@@ -19,6 +19,7 @@ Key::Key(bool modal) : button_VR(modal),
 
 }
 void Key::DefineKey(char c1, char c2, bool utf, bool spec, string showVal, string mainVal,string shiftVal, string altVal, string abbrName, string abbrVal, int ln, int cl){
+    dbgName="key "+showVal;
     ch1=c1;
     ch2=c2;
     isUTF8=utf;
@@ -35,7 +36,6 @@ void Key::DefineKey(char c1, char c2, bool utf, bool spec, string showVal, strin
     line=ln;
     column=cl;
     DrawLogic::SetVisibilityString(stringNumber,true);
-
 }
 
 Key* Key::GetMyPointer(){

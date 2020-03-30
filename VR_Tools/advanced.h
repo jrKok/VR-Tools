@@ -47,7 +47,7 @@ public:
     void MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck);
     void MakeModalButton(string name, string actionName, ulong myNumber, int width, int height, int offsetX, int offsetY);
     static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
-    static int MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused);
+    static int MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_down, void * unused);
     void SelectLine(TextLine *in_line,int x,float *in_param);
     void ProcessKeyPress(bool special,string keyName,string in_String);
     void Backspace();

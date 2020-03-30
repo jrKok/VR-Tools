@@ -88,13 +88,12 @@ int  Alert3Buttons::GetAnswer(){
 }
 
 void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void *){
-    int lft(left),top,right,bottm(bottom);
-    XPLMGetWindowGeometry(in_window_id, &left, &top, &right, &bottom);
-    DrawLogic::SetScreenOrigin(left,bottm,right, top);
+    ManageModalWindow::ConstrainGeometry();
     DrawLogic::DrawContent();
 }
 
-int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
+int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void * unused){
+    int x(ix-ManageModalWindow::GetLeft()),y(iy-ManageModalWindow::GetBottom());
     switch (is_down){
     case xplm_MouseDown:{
         if(!XPLMIsWindowInFront(in_window_id))

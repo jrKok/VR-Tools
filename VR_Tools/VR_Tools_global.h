@@ -64,7 +64,8 @@ enum {
     Clr_Background=17,
     Clr_BackgroundS=18,
     Clr_BckgrdW=19,
-    Clr_InkSelect=20
+    Clr_InkSelect=20,
+    Clr_TextSelectBlue=21
 };
 #endif // SHOW_FPS_TEST_GLOBAL_H
 /*

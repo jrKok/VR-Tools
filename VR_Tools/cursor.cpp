@@ -108,37 +108,12 @@ int  cursor::UTFCharToPos(char* chtest){
     int i=chtest[0]*0x100+chtest[1];
     int width(0), advance(0), height(0),offset(0);
     fontMan::GetCharFromMap(i,width,height,offset,advance);
-    return height;
+    if (width) return 1;
+    else return 0;
 }
 
 int  cursor::GetLengthOfUTFString(const string &inLine){
-    //Measures the numbers of positions in a line
-    if (inLine=="") return 0;
-
-    char* testChar=new char[2];
-
-    int length(0);
-    bool afterFirstUtfChar(false);
-    for (char ansiCsgd:inLine){
-        char ansiC=static_cast<char>(ansiCsgd);
-        if (ansiC>=0){
-            testChar[1]=ansiC;
-            testChar[0]='\0';
-            length+=UTFCharToPos(testChar);
-        }
-        else {
-            if (afterFirstUtfChar){
-                afterFirstUtfChar=false;
-                testChar[1]=ansiC;
-                length+=UTFCharToPos(testChar);
-            }
-            else{
-                afterFirstUtfChar=true;
-                testChar[0]=ansiC;
-            }
-        }
-    }
-    return length;
+    return fontMan::GetNumberOfUTFCharsInString(inLine);
 }
 
 
@@ -189,7 +164,7 @@ void cursor::FindClosestXPosition(int inLine, int inX){
     currentLine=inLine;
     do{
 
-        if (inX<(posLines[lineNb][l]+offX+2) ){//a slightly offset detection for having a detection not too close to next char
+        if (inX<(posLines[lineNb][l]+offX+3) ){//a slightly offset detection for having a detection not too close to next char
             notFound=false;
             currentX=posLines[lineNb][l]+offX-1;//-1 for displaying cursor really between 2 chars
         }

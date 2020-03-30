@@ -16,10 +16,6 @@ class button_VR:public rectangles
 public:
     button_VR(bool modal=false);
     button_VR(string label,bool modal=false);
-    bool isSelected,isPressed,hasSymbol,warningMode;
-    //char* buttonText;
-    std::string buttonText;
-    std::vector<point> symbol;
 
 virtual void setVisibility(bool vis);
 virtual void SetOrigin(int in_x, int in_y);
@@ -47,6 +43,11 @@ virtual void Shift(int dx,int dy);
     char GetStringColorCode();
 
 protected:
+
+    char state_color,pressed_color,activated_color,text_color;
+    bool isSelected,isPressed,hasSymbol,warningMode;
+    std::string buttonText;
+    std::vector<point> symbol;
     bool isModalB;
     int  offsetTextX, offsetTextY,numberPoints;
     int symbolNumber,stringNumber;

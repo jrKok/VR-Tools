@@ -27,6 +27,7 @@ public:
     void MakeButton();
     void MakeLine();
     void SetupDirWindow(int left,int top);
+    void ActivateWindow();
     void RecolorFirstLines();
     void DrawDirWindow(XPLMWindowID g_FileWindow);
     int  processMouseDn(int,int);
@@ -46,7 +47,7 @@ public:
     int  GetLeft();
     int  GetWidth();
     int  GetHeight();
-    void GetWindowId(XPLMWindowID inw);
+    void SetWindowId(XPLMWindowID inw);
 
 
 private:

@@ -11,7 +11,8 @@
 #include "VR_Tools_global.h"
 
 using std::string;
-typedef std::vector<std::shared_ptr<Key>>  lineOfKeys;
+//typedef std::vector<std::shared_ptr<Key>>  lineOfKeys;
+typedef std::vector<Key*>  lineOfKeys;
 class LayoutWithEdit;
 
 class Keyboard
@@ -42,7 +43,7 @@ public:
 
     bool    ReadLine(int cx, int cy, lineOfKeys in_line, bool &special, string &keyName, string &keyVal);
     bool    PressKey(int cx, int cy, bool &special, string &keyName, string &keyVal);
-    string  ReadKey(std::shared_ptr<Key> key, bool &special, string &keyName);
+    string  ReadKey(Key *key, bool &special, string &keyName);
 
     bool    IsKeyPressed();
     void    ReleaseCurrentKey();
@@ -67,8 +68,10 @@ public:
     bool    IsAbbreviationsKeyActive();
     void    SetWarningMode(bool warning);
     void    SetVisibility(bool vis);
+    void    ShowDebugKeys();
 
 static int  Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VKs,void* inRefcon);
+
 static  lineOfKeys physicalKeys;
 static string activeKeyName,activeKeyString;
 static bool activeIsSpecialKey;

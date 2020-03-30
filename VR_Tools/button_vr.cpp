@@ -3,6 +3,10 @@
 
 button_VR::button_VR(bool modal) : rectangles(true),
 
+    state_color(Clr_LightBlue),
+    pressed_color(Clr_PushedBlue),
+    activated_color(Clr_SelectBlue),
+    text_color(Clr_White),
     isSelected(false),
     isPressed(false),
     hasSymbol(false),
@@ -22,6 +26,10 @@ button_VR::button_VR(bool modal) : rectangles(true),
 
 button_VR::button_VR(string label, bool modal) : rectangles(label,true),
 
+    state_color(Clr_LightBlue),
+    pressed_color(Clr_PushedBlue),
+    activated_color(Clr_SelectBlue),
+    text_color(Clr_White),
     isSelected(false),
     isPressed(false),
     hasSymbol(false),
@@ -54,7 +62,7 @@ void button_VR::setText(const std::string &in_String){
     if (stringNumber==-1) AddText();
     buttonText=in_String;
     DrawLogic::ChangeString(stringNumber,in_String);
-    DrawLogic::ChangeColorString(stringNumber,Clr_White);
+    DrawLogic::ChangeColorString(stringNumber,text_color);
     LocateText();
 }
 
@@ -88,7 +96,7 @@ void button_VR::setTextFixedSize(const std::string &in_String){
     buttonText=in_String;
 
         DrawLogic::ChangeString(stringNumber,in_String);
-        DrawLogic::ChangeColorString(stringNumber,Clr_White);
+        DrawLogic::ChangeColorString(stringNumber,text_color);
 
 
     //calculates Offsets for text
@@ -100,11 +108,13 @@ void button_VR::setTextFixedSize(const std::string &in_String){
 }
 
 void button_VR::setTextColor(char to_Clr){
-        DrawLogic::ChangeColorString(stringNumber,to_Clr);
+     text_color=to_Clr;
+     DrawLogic::ChangeColorString(stringNumber,to_Clr);
 }
 
 void button_VR::setButtonColor(char to_Clr){  
         my_currentColor=to_Clr;
+        state_color=to_Clr;
         DrawLogic::ChangeBckGrdColorString(stringNumber,to_Clr);
         ReDrawButton();
 }
@@ -137,7 +147,7 @@ void button_VR::setVisibility(bool vis){
 
 void button_VR::Press(){
     isPressed=true;
-    my_currentColor=warningMode?Clr_Red:Clr_PushedBlue;
+    my_currentColor=warningMode?Clr_Red:pressed_color;
     DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
     ReDrawButton();
 }
@@ -146,13 +156,13 @@ void button_VR::Release(){
     isPressed=false;
     if (isSelected)
     {
-        my_currentColor=Clr_SelectBlue;
+        my_currentColor=activated_color;
         DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
         ReDrawButton();
     }
     else
     {
-        my_currentColor=warningMode?Clr_RedKey:Clr_LightBlue;
+        my_currentColor=warningMode?Clr_RedKey:state_color;
         DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
         ReDrawButton();
     }
@@ -163,13 +173,13 @@ void button_VR::setSelect(bool selState){
     isSelected=selState;
     if (isSelected)
     {
-        my_currentColor=Clr_SelectBlue;
+        my_currentColor=activated_color;
         DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
         ReDrawButton();
     }
     else
     {
-        my_currentColor=warningMode?Clr_RedKey:Clr_LightBlue;
+        my_currentColor=warningMode?Clr_RedKey:state_color;
         DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
         ReDrawButton();
     }
@@ -186,7 +196,7 @@ void button_VR::SetToStateColor(){
     warningMode=false;
     isSelected=false;
     isPressed=false;
-    my_currentColor=Clr_LightBlue;
+    my_currentColor=state_color;
     DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
     ReDrawButton();
 }

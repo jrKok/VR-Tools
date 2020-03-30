@@ -25,7 +25,7 @@ public:
     int  GetAnswer();
     static void Recalculate ();
     static void DrawMyself(XPLMWindowID in_window_id, void *);
-    static int MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused);
+    static int MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void * unused);
     void EndAlert();//deletes what needs to be, calls a callback provided by the caller
 private:
 

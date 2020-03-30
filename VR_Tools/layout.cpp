@@ -44,6 +44,8 @@ Layout::~Layout(){
         bt=nullptr;
     }
     tButtons.clear();
+    delete myDrawPad;
+    myDrawPad=nullptr;
 
 }
 
@@ -294,6 +296,7 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
 }
 void Layout::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
+    myDrawPad->Initiate();
     float curT=XPLMGetElapsedTime();
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
     recalculate(curT);

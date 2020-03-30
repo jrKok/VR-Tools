@@ -1,76 +1,45 @@
 #include "managemodalwindow.h"
+#include "opcenter.h"
 
- XPLMDataRef  ManageModalWindow::g_vr_dref;
- XPLMWindowID ManageModalWindow::myModalWindow(nullptr);
- int          ManageModalWindow::myWidth(0);
- int          ManageModalWindow::myHeight(0);
- rectangles  *ManageModalWindow::myRect(nullptr);
- DrawLogic   *ManageModalWindow::myDrawPad(nullptr);
+ XPLMDataRef        ManageModalWindow::g_vr_dref;
+ XPLMWindowID       ManageModalWindow::myModalWindow(nullptr);
+ int                ManageModalWindow::myWidth(0);
+ int                ManageModalWindow::myHeight(0);
+ int                ManageModalWindow::myLeft(0);
+ int                ManageModalWindow::myBottom(0);
+ rectangles        *ManageModalWindow::myRect(nullptr);
+ ManageModalWindow *ManageModalWindow::myself(nullptr);
 
-ManageModalWindow::ManageModalWindow()
+
+ManageModalWindow::ManageModalWindow(DrawLogic *dp)
 
 {
-
+myself=this;
+myDrawPad=dp;
 }
 
 ManageModalWindow::~ManageModalWindow(){
 if (myRect!=nullptr) delete myRect;
 myRect= nullptr;
+if (myDrawPad!=nullptr) delete myDrawPad;
+myDrawPad= nullptr;
 }
 
+
 XPLMWindowID  ManageModalWindow::CreateModalWindow( void drawCB(XPLMWindowID,void*) ,char myColor,int width, int height){
-    if (myDrawPad!=nullptr) return nullptr;
-    myDrawPad=new DrawLogic();
-    myDrawPad->Initiate();
-    myDrawPad->SetNewSize(width,height);
-    myDrawPad->SetBackGroundColor(Clr_BckgrdW);
-    DrawLogic::EnableModalWindow();
-    myWidth=width;
-    myHeight=height;
-    int offsetX(60),offsetY(70);
-    int sLeft(0),sTop(0),sRight(0),sBottom(0);
-    g_vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
-    const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
-    XPLMGetScreenBoundsGlobal(&sLeft, &sTop, &sRight, &sBottom);
-
-    XPLMCreateWindow_t params;
-     params.structSize = sizeof(params);
-     params.visible = 1;
-     params.drawWindowFunc       = drawCB;
-     params.handleMouseClickFunc = dummy_mouse_handler;
-     params.handleRightClickFunc = dummy_mouse_handler;
-     params.handleMouseWheelFunc = dummy_wheel_handler;
-     params.handleKeyFunc        = dummy_key_handler;
-     params.handleCursorFunc     = dummy_cursor_status_handler;
-     params.refcon               = nullptr;
-     params.layer                    = xplm_WindowLayerFloatingWindows;
-     params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
-     params.left   = sLeft + offsetX;
-     params.bottom = sTop-offsetY-height;
-     params.right  = sLeft + width+offsetX;
-     params.top    = sTop -offsetY;
-
-    myModalWindow = XPLMCreateWindowEx(&params);
-    XPLMSetWindowPositioningMode(myModalWindow, vr_is_enabled>0?xplm_WindowVR:xplm_WindowPositionFree, -1);
-    XPLMSetWindowResizingLimits(myModalWindow, myWidth, myHeight, myWidth+70, myHeight+30);
-
-    myRect=new rectangles(true);//modal rectangle
-    myRect->SetDimensions(static_cast<int>(width)+10,height);
-    myRect->setColor(myColor);
-    myRect->setVisibility(true);
-    return myModalWindow;
+  return  CreateMousedModalWindow(dummy_mouse_handler,drawCB,myColor,width,height);
 }
 
 XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID, int, int, int, void*),void drawCB(XPLMWindowID,void*),char myColor, int width, int height){
-    if (myDrawPad!=nullptr) return nullptr;
-    myDrawPad=new DrawLogic();
-    myDrawPad->Initiate();
-    myDrawPad->SetNewSize(width,height);
-    myDrawPad->EnableModalWindow();
+    myself->myDrawPad->Initiate();
+    myself->myDrawPad->SetNewSize(width,height);
+    myself->myDrawPad->SetId("Modal Window");
+    myself->myDrawPad->SetBackGroundColor(myColor);
+    OpCenter::SetModalWindow(true);
     myWidth=width;
     myHeight=height;
-    int offsetX(40),offsetY(80);
-    int sLeft(0),sTop(0),sRight(0),sBottom(0);
+    int offsetX(40),offsetY(100);
+    int sLeft(0),sTop(height),sRight(width),sBottom(0);
     g_vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
     const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
     XPLMGetScreenBoundsGlobal(&sLeft, &sTop, &sRight, &sBottom);
@@ -88,38 +57,39 @@ XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID,
      params.layer                    = xplm_WindowLayerFloatingWindows;
      params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
      params.left   = sLeft + offsetX;
-     params.bottom = sTop-offsetY-height;
-     params.right  = sLeft + width+offsetX;
-     params.top    = sTop -offsetY;
+     params.bottom = sBottom+offsetY;
+     params.right  = sLeft+myWidth+offsetX;
+     params.top    = sBottom+myHeight+offsetY;
 
     myModalWindow = XPLMCreateWindowEx(&params);
     XPLMSetWindowPositioningMode(myModalWindow, vr_is_enabled>0?xplm_WindowVR:xplm_WindowPositionFree, -1);
-    XPLMSetWindowResizingLimits(myModalWindow, 10, 10, 2000, 1850);
+    XPLMSetWindowResizingLimits(myModalWindow, myWidth, myHeight, myWidth+70, myHeight+30);
 
-    myRect=new rectangles(true);//modal rectangle
-    myRect->SetDimensions(static_cast<int>(width)+10,height);
+    myRect=new rectangles("modalW generalR",false);
+    myself->myDrawPad->AddAsFirstRectangle(myRect);
+    myRect->SetDimensions(width,height);
     myRect->setColor(myColor);
     myRect->setVisibility(true);
     return myModalWindow;
 }
 
 void ManageModalWindow::MakeTopWindow(){
-    myDrawPad->ToUpperLevel();
-    XPLMBringWindowToFront(myModalWindow);
+    myself->myDrawPad->ToUpperLevel();
+    //XPLMBringWindowToFront(myModalWindow);
 }
 void ManageModalWindow::DestroyModalWindow(){
+    OpCenter::SetModalWindow(false);
     if (myModalWindow!=nullptr) XPLMDestroyWindow(myModalWindow);
     if (myRect!=nullptr) delete myRect;
     myRect=nullptr;
     myModalWindow=nullptr;
-    delete myDrawPad;
-    myDrawPad=nullptr;
+    myself->myDrawPad->FlushContent();
     myWidth=0;
     myHeight=0;
 
 }
 void ManageModalWindow::ResizeModalWindow(int width, int height){
-
+    myWidth=width;myHeight=height;
     if (XPLMWindowIsInVR(myModalWindow)==1)
         XPLMSetWindowGeometryVR(myModalWindow,width,height);
     else{
@@ -127,12 +97,37 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
         XPLMGetWindowGeometry(myModalWindow,&l,&t,&r,&b);
         XPLMSetWindowGeometry(myModalWindow,l,t,l+width,t-height);       
     }
+
     myRect->SetDimensions(width,height);
+    myself->myDrawPad->SetNewSize(width,height);
+}
+
+void ManageModalWindow::ConstrainGeometry(){
+    int top(0),right(0);
+    myself->myDrawPad->Initiate();
+    XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
+    if ((right-myLeft)>myWidth||(top-myBottom)>myHeight){
+        if (XPLMWindowIsInVR(myModalWindow)==1)
+            XPLMSetWindowGeometryVR(myModalWindow,myWidth,myHeight);
+        else{
+            XPLMSetWindowGeometry(myModalWindow,myLeft,myBottom+myHeight,myLeft+myWidth,myBottom);
+            XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
+        }
+    }
+    DrawLogic::SetScreenOrigin(myLeft,myBottom,right,top);
 }
 
 void ManageModalWindow::SetScreenCoords(int left, int bottom, int right, int top){
 
     DrawLogic::SetScreenOrigin(left,bottom,right, top);
+}
+
+int ManageModalWindow::GetLeft(){
+    return myLeft;
+}
+
+int ManageModalWindow::GetBottom(){
+    return myBottom;
 }
 
 int					ManageModalWindow::dummy_mouse_handler(XPLMWindowID , int, int, int, void *) { return 0; }
@@ -146,4 +141,16 @@ void ManageModalWindow::PrintmyRectvisstatus(){
 
 XPLMWindowID ManageModalWindow::GetCurrentWindowId(){
     return myModalWindow;
+}
+
+void ManageModalWindow::ReactivateDrawPad(){
+    myself->myDrawPad->Initiate();
+}
+
+void ManageModalWindow::HideMyRect(){
+    myRect->setVisibility(false);
+}
+
+void ManageModalWindow::DebugRects(){
+    myself->myDrawPad->PrintRectanglesAssessment();
 }

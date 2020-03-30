@@ -22,14 +22,11 @@ DrawLogic::DrawLogic():
      screenB(0),
      numberOfDeletedStrings(0),
      hasDeletedStrings(false),
-     isModal(false),
-    windowWidth(0),
-    windowHeight(0),
-    currentXWPos(0),
-    currentYWPos(0),
-    ident("DrawPad"),
-    black(),
-    cursor()
+     windowWidth(0),
+     windowHeight(0),
+     ident("DrawPad"),
+     black{0.0,0.0,0.0},
+     cursor{'|','\0'}
 {
     myself=this;
     XPLMGenerateTextureNumbers(&textNum, 1);
@@ -46,22 +43,35 @@ DrawLogic::~DrawLogic(){
 
 }
 
+DrawLogic* DrawLogic::GetCurrentPad(){
+    return myself;
+}
+
 void DrawLogic::SetBackGroundColor(char in_Color){
     myself->backGroundColor=in_Color;
 }
 
 void DrawLogic::WriteDebug(string message){
     string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
+   // XPLMDebugString((char*)in_String.c_str());
+    XPLMDebugString(ToC(in_String));
+}
+
+void DrawLogic::WriteDebug(string message,int i1){
+    WriteDebug(message+std::to_string(i1));
+}
+void DrawLogic::WriteDebug(string message,int i1,int i2){
+    WriteDebug(message+std::to_string(i1)+" "+std::to_string(i2));
+}
+void DrawLogic::WriteDebug(string message,int i1,int i2,int i3){
+    WriteDebug(message+std::to_string(i1)+" "+std::to_string(i2)+" "+std::to_string(i3));
+}
+void DrawLogic::WriteDebug(string message,int i1,int i2,int i3,int i4){
+    WriteDebug(message+std::to_string(i1)+" "+std::to_string(i2)+" "+std::to_string(i3)+" "+std::to_string(i4));
 }
 
 void DrawLogic::Initiate(){
     myself=this;
-    cursor[0]='|';
-    cursor[1]='\0';
-    black[0]=globals::colors[Clr_BlackInk].colorf[0];
-    black[1]=globals::colors[Clr_BlackInk].colorf[1];
-    black[2]=globals::colors[Clr_BlackInk].colorf[2];
     if (windowWidth&windowHeight){
 
         XPLMBindTexture2d(textNum, 0);
@@ -99,17 +109,6 @@ void DrawLogic::SetNewSize(int in_Width, int in_Height){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     //GenerateCurrentTexture();
-}
-
-void DrawLogic::DiagnosisOfRects(){
-    WriteDebug("diagnosis of rectangles for window"+ident);
-    for (const auto &rct: (*rects)){
-        WriteDebug("coords of Rect nb : "+std::to_string((*(rct.second)).GetId())+" - lt bt rg top :"
-                   +std::to_string((*(rct.second)).GetLeft())+" "
-                   +std::to_string((*(rct.second)).GetBottom())+" "
-                   +std::to_string((*(rct.second)).GetRight())+" "
-                   +std::to_string((*(rct.second)).GetTop())+" ");
-    }
 }
 
 void DrawLogic::FillAll(char in_Color){
@@ -150,6 +149,18 @@ void DrawLogic::DrawRectOnTexture(int in_l, int in_b, int in_r, int in_t, char i
     }
 }
 
+void DrawLogic::UpdateRectangle(ulong tag_Rect){
+    if (myself->windowWidth&&myself->windowHeight)
+    {
+        if ((*(myself->rects))[tag_Rect]->IsVisible())
+            myself->DrawRectOnTexture((*myself->rects)[tag_Rect]->GetLeft(),
+                                      (*myself->rects)[tag_Rect]->GetBottom(),
+                                      (*myself->rects)[tag_Rect]->GetRight(),
+                                      (*myself->rects)[tag_Rect]->GetTop(),
+                                      (*myself->rects)[tag_Rect]->GetColor());
+    }
+}
+
 void DrawLogic::WipeRectangle(rectangles const * const in_rect){
     DrawRectOnTexture(in_rect->GetLeft(),
                       in_rect->GetBottom(),
@@ -184,6 +195,7 @@ void DrawLogic::GenerateCurrentTexture(){
 }
 
 void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol, point start_point){
+    //Draws a string on a general background
     if (start_point.GetX()>0&&start_point.GetY()>0){
         ulong debut=static_cast<ulong>(start_point.GetY()*windowWidth);
         ulong xP=static_cast<ulong>(start_point.GetX());
@@ -255,6 +267,80 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
     }
 }
 
+void DrawLogic::DrawStringOnLocalTexture(string in_String, char in_Color, point start_point){
+    //Draws a string, reading the texture color before drawing, doesn't work if background wasn't wiped
+    if (start_point.GetX()>0&&start_point.GetY()>0){
+        ulong debut=static_cast<ulong>(start_point.GetY()*windowWidth);
+        ulong xP=static_cast<ulong>(start_point.GetX());
+
+        double bg[3],fg[3];
+
+
+        fg[0]=globals::colors[in_Color].red/255.0;
+        fg[1]=globals::colors[in_Color].green/255.0;
+        fg[2]=globals::colors[in_Color].blue/255.0;
+
+        unsigned char inc(0);
+        char cSize(1),it(0);
+        charrecord cBitmap;
+        int charInt(0),height(0),width(0),advance(0),offset(0);
+        if (in_String.length()==0) return;
+        for (ulong tg(0);tg<in_String.length();tg++){
+
+            inc=static_cast<unsigned char>(in_String[tg]);
+            if (inc>0x7F&&cSize==1){
+                if (inc<=0xDF) {
+                    cSize=2;it=0;charInt=inc*0x100;}
+                else
+                {cSize=3;it=1;charInt=inc*0x10000;}
+                continue;
+            } else{
+                if (cSize>1){
+                    if (it){
+                        charInt+=inc*0x100;
+                        it--;
+                        continue;
+                    } else{
+                        charInt+=inc;
+                        cSize=1;
+                    }
+
+                } else{
+                    charInt=inc;
+                }
+            }
+
+            //go try to print
+            if (charInt==0x20){
+                xP+=4;continue;
+            }
+            if (charInt==0x09){
+                xP+=12;continue;
+            }
+            cBitmap=fontMan::GetCharFromMap(charInt,width,height,offset,advance);
+            if (height&&((xP+advance)<=windowWidth)&&(start_point.GetY()+offset+height)<=windowHeight){
+                ulong lecteur=0;
+                debut=static_cast<ulong>((start_point.GetY()+offset)*windowWidth);
+
+                bg[0]=textureZone[debut+xP].red/255.0;
+                bg[1]=textureZone[debut+xP].green/255.0;
+                bg[2]=textureZone[debut+xP].blue/255.0;
+                for (ulong line=debut,ln=0;ln<height;ln++,line-=static_cast<ulong>(windowWidth)){
+                    for (ulong px=line+xP,it(0);it<width;it++,px++ ) {
+                        double rap(cBitmap.bitmap[lecteur]/255.0);
+                        textureZone[px].alpha=255;
+                        textureZone[px].red  =static_cast<unsigned char>(255*(fg[0]*rap+bg[0]*(1-rap)));
+                        textureZone[px].green=static_cast<unsigned char>(255*(fg[1]*rap+bg[1]*(1-rap)));
+                        textureZone[px].blue =static_cast<unsigned char>(255*(fg[2]*rap+bg[2]*(1-rap)));
+                        lecteur++;
+                    }
+                }
+                xP+=static_cast<ulong>((advance));
+            }
+        }
+    }
+}
+
 void DrawLogic::UpdateTexture(){
     myself->GenerateCurrentTexture();
 }
@@ -265,32 +351,39 @@ ulong DrawLogic::AddRectangle(rectangles *in_Rect){
     return retval;
 }
 
-void DrawLogic::UpdateRectangle(ulong tag_Rect){
-    if (myself->windowWidth&&myself->windowHeight)
-    {
-        if ((*(myself->rects))[tag_Rect]->IsVisible())
-            myself->DrawRectOnTexture((*myself->rects)[tag_Rect]->GetLeft(),
-                                      (*myself->rects)[tag_Rect]->GetBottom(),
-                                      (*myself->rects)[tag_Rect]->GetRight(),
-                                      (*myself->rects)[tag_Rect]->GetTop(),
-                                      (*myself->rects)[tag_Rect]->GetColor());
+void DrawLogic::AddAsFirstRectangle(rectangles *in_Rect){
+    if ((*myself->rects).size()){
+        ulong nNumber=myself->GetNewRectangleNumber();
+        for (ulong it(nNumber);it>0;it--){
+            (*myself->rects)[it]=(*myself->rects)[it-1];
+            (*myself->rects)[it]->SetNewDrawNumber(it);
+        }
     }
+    (*myself->rects)[0]=in_Rect;
+    in_Rect->SetNewDrawNumber(0);
 }
 
 ulong DrawLogic::GetNewRectangleNumber(){
     ulong nbrects=rects->size();
     if (hasDeletedRectangles){
+        WriteDebug("DrawLogic Get new number got deleted rectangles");
         for (ulong it(0);it<nbrects;it++){
             if (rects->find(it)==rects->end()) return it;
         }
+        hasDeletedRectangles=false;
+        return nbrects;
     }else {
-return (*rects).size();
+    return nbrects;
+    }
 }
 
-}
 void DrawLogic::ReleaseRectangle(ulong tag_Rect){
-    (*myself->rects).erase(tag_Rect);
-    myself->hasDeletedRectangles=true;
+    if ((*myself->rects).size()>0){
+        if ((*myself->rects).find(tag_Rect)!=(*myself->rects).end()){
+            (*myself->rects).erase(tag_Rect);
+            myself->hasDeletedRectangles=true;
+        }
+    }
 
 }
 
@@ -350,6 +443,7 @@ int DrawLogic::AddString(const string &in_String, const char in_Color, const cha
     thisString.s_Color[0]=globals::colors[in_Color].colorf[0];
     thisString.s_Color[1]=globals::colors[in_Color].colorf[1];
     thisString.s_Color[2]=globals::colors[in_Color].colorf[2];
+    thisString.s_BckGrdColor=bckgrdcol;
     thisString.s_visible=true;
     thisString.s_location=where;
     myself->strings->push_back(thisString);
@@ -359,17 +453,6 @@ int DrawLogic::AddString(const string &in_String, const char in_Color, const cha
 void DrawLogic::ChangeString(const int in_Element, const string &to_String){
     ulong here=IndexOfString(in_Element);
     (*(myself->strings))[here].s_String=to_String;
-    /*if (here<(*(myself->strings)).size()){
-        ulong sz=to_String.size();sz++;
-        char * fromString=new char [sz];
-         #if IBM
-        strncpy_s(fromString,sz,to_String.c_str(),sz);
-         #endif
-         #if LIN
-        strcpy(fromString,to_String.c_str());
-         #endif
-        (*(myself->strings))[here].s_String=fromString;
-    }*/
 }
 
 void  DrawLogic::DeleteString(const int in_Element){
@@ -443,6 +526,13 @@ void DrawLogic::PrintString(const int in_Element){
     myself->DrawStringOnTexture((*(myself->strings))[here].s_String,
                                 (*(myself->strings))[here].s_Color_ident,
                                 (*(myself->strings))[here].s_BckGrdColor,
+                                (*(myself->strings))[here].s_location);
+}
+
+void DrawLogic::PrintStringOnLocalT(const int in_Element){
+    ulong here=IndexOfString(in_Element);
+    myself->DrawStringOnLocalTexture((*(myself->strings))[here].s_String,
+                                (*(myself->strings))[here].s_Color_ident,
                                 (*(myself->strings))[here].s_location);
 }
 
@@ -534,14 +624,6 @@ void DrawLogic::ShowAllStrings(){
     }
 }
 
-void DrawLogic::EnableModalWindow(){
-    myself->isModal=true;
-}
-
-bool DrawLogic::IsModalWindow(){
-    return myself->isModal;
-}
-
 void DrawLogic::SetScreenOrigin(int in_left, int in_bottom, int in_right, int in_top){
     //update own coords
     if (myself->screenL==in_left&&in_bottom==myself->screenB) return;
@@ -549,8 +631,8 @@ void DrawLogic::SetScreenOrigin(int in_left, int in_bottom, int in_right, int in
     myself->screenL=in_left;
     myself->screenR=in_right;
     myself->screenT=in_top;
-    if (in_right-in_left!=myself->windowWidth) WriteDebug("inconsistency in WindowWidth "+std::to_string(in_right-in_left)+" "+std::to_string(myself->windowWidth));
-    if (in_top-in_bottom!=myself->windowHeight) WriteDebug("inconsistency in WindowHeight"+std::to_string(in_top-in_bottom)+" "+std::to_string(myself->windowHeight));
+    if (in_right-in_left!=myself->windowWidth) WriteDebug("inconsistency in WindowWidth   measured/required "+std::to_string(in_right-in_left)+"/"+std::to_string(myself->windowWidth));
+    if (in_top-in_bottom!=myself->windowHeight) WriteDebug("inconsistency in WindowHeight  measured/required "+std::to_string(in_top-in_bottom)+"/"+std::to_string(myself->windowHeight));
     //compute screen coords for strings
 
     for (auto &strg: (*myself->strings)){
@@ -565,9 +647,14 @@ void DrawLogic::FlushContent(){
     myself->numberOfDeletedStrings=0;
     myself->lastTriangleCreated=0;
     myself->hasDeletedStrings=false;
+    myself->hasDeletedRectangles=false;
+    myself->windowWidth=0;
+    myself->windowHeight=0;
     myself->currentRectNumber=0;
     myself->currentStringNumber=0;
     myself->currentTriangleNumber=0;
+    myself->cursorX=0;
+    myself->cursorY=0;
 }
 
 void DrawLogic::SetId(string in_ID){
@@ -576,6 +663,10 @@ void DrawLogic::SetId(string in_ID){
 
 string DrawLogic::GetId(){
     return ident;
+}
+
+string DrawLogic::GetSId(){
+    return myself->ident;
 }
 
 void DrawLogic::StringAssesment(){
@@ -611,4 +702,19 @@ void DrawLogic::PrintRectanglesAssessment(){
 
     }
     WriteDebug("End of rectangles report");
+}
+
+int DrawLogic::GetWidth(){
+    return windowWidth;
+}
+int DrawLogic::GetHeight(){
+    return windowHeight;
+}
+
+bool DrawLogic::VerifyPointer(ulong tag, rectangles *in_rect){
+    if ((*myself->rects).find(tag)!=(*myself->rects).end()) return false;
+    else{
+        if ((*myself->rects)[tag]==in_rect) return true;
+    }
+    return false;
 }

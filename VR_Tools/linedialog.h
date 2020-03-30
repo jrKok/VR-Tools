@@ -58,7 +58,7 @@ private:
     int width, height,answer,myStringNumber,textOffsetX,textOffsetY;
     string userLine;
     Keyboard *keyb;
-    TextLine editLine;
+    TextLine *editLine;
     cursor cursor;
     bool specialKey;
     static bool mouseLocated;

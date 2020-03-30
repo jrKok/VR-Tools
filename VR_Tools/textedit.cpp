@@ -1,4 +1,5 @@
 #include "textedit.h"
+#include "drawlogic.h"
 
 TextEdit::TextEdit(): TextReader(),
   hasToCommit(false),
@@ -47,7 +48,6 @@ bool TextEdit::Save(){
 
 void TextEdit::Recalculate(int in_lft,int in_tp){
     List_Box_With_ScrB::Recalculate(in_lft,in_tp);
-    cursor.Recalculate(box[0].GetTextX(),box[0].GetTextY());
 }
 
 
@@ -73,8 +73,8 @@ bool TextEdit::ReadFileToBuff(){
           }
        textFile.close();
        SetupforText();
-       cursor.Initiate(displayText,grlOffsetX,grlOffsetY,charHeight,pageHeightInL);
-     }
+       cursor.Initiate(displayText,textOnly.GetLeft()+5,textOnly.GetBottom(),charHeight,pageHeightInL);
+     } else return false;
      return true;
 }
 
@@ -84,20 +84,22 @@ bool TextEdit::ProceedClick(int x, int y){
     if (general.isHere(x,y)){
         //which element
         int retV(0);
+        ulong pgHgt=static_cast<ulong>(pageHeightInL),idxF=static_cast<ulong>(indxFirstOnPg);
         if (scrB.IsCommandForMe(x,y,retV)){//scrollBox ?
             DisplayAtLineN(scrB.GetPosFirstLine());
             needToContClick=true;//filterClick=false;//remove filter click when bug corrected
             return true;
         }
-        for (int ln(0);ln<pageHeightInL;ln++){//TextLine ?
+        for (ulong ln(0);ln<pgHgt;ln++){//TextLine ?
             if (box[ln].isHere(x,y)){
                 clickTime=XPLMGetElapsedTime();
                 currentIndxFP=indxFirstOnPg;
-                currentIndx=ln+indxFirstOnPg;
+                currentIndx=static_cast<int>(ln+idxF);
                 clickPosX=x;
                 clickPosY=y;
                 needToContClick=true;
                 cursor.FindPos(currentIndx,x);
+                if (cursor.HasCursor()) DrawLogic::SetCursorPosition(cursor.PosToX(),box[ln].GetTextY()+2);
                 return true;
             }
         }
@@ -119,18 +121,18 @@ void TextEdit::ProceedClickCont(int x, int y){
             DisplayAtLineN(scrB.GetPosFirstLine());
             return;
         }
-
        if (currentIndx!=-1){
-    //selection mode if click hold for more than a second (or less, to be determined
+    //selection mode if click hold for more than 0.3 second (or less, to be determined
            if (!dragLines){
               if ((XPLMGetElapsedTime()-clickTime)>0.3f) dragLines=true;
            }
            else{
               for (auto bx:box){
                 if (bx.isHere(x,y)){
-                    cursor.DragPos(bx.GetIndex()+indxFirstOnPg,x);}
+                    cursor.DragPos(bx.GetIndex()+indxFirstOnPg,x);
+                    DisplayPage();}
                 else{
-                    if ((XPLMGetElapsedTime()-clickTime)>0.3f){
+                    if ((XPLMGetElapsedTime()-clickTime)>0.3f){//scroll the display at a rate of 3.3 lines/sec
                         if (y<textOnly.GetTop()) {
                             MoveDnNLines(1);
                             cursor.MoveCursorUp();
@@ -171,17 +173,46 @@ void TextEdit::ProceedEndClick(){//Mouse Up
 }
 
 void TextEdit::DisplayPage(){
-    List_Box_With_ScrB::DisplayPage();
-    cursor.SetIndxFirstPage(indxFirstOnPg);
+    //Paint background
+        textOnly.UpdateMyTexture();
+    //DrawSelectionRectangle
 
+    //cast Variables to usable types
+        ulong idx=static_cast<ulong>(indxFirstOnPg),
+                uPageHeight=static_cast<ulong>(pageHeightInL),
+                uSelectedLine=static_cast<ulong>(lineSelected),
+                uNumberOLs=static_cast<ulong>(totalNbL);
+    //compute boundaries
+        indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
+        if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
+    //copy & fill the box for displaying the text lines
+        for (ulong ln(0);ln<uPageHeight;ln++){
+            if (idx<uNumberOLs){
+                box[ln].setText((*displayText)[idx]);
+                box[ln].SetSelected(uSelectedLine==idx);
+                if (cursor.HasCursor()) {
+                    if (box[ln].GetIndex()==cursor.GetLine())
+                        DrawLogic::SetCursorPosition(cursor.PosToX(),box[ln].GetTextY()+2);
+                }
+                if (cursor.HasSelection()){
+                    int l(0),r(0);
+                    if (cursor.IsIndexInSelection(box[ln].GetIndex(),l,r)){
+
+                        DrawLogic::PrintRectOnTexture(l,box[ln].GetBottom(),r,box[ln].GetTop(),Clr_TextSelectBlue);
+                    }
+                }
+                box[ln].PrintStringOnLocalT();
+            }
+            else {
+                box[ln].setText("");
+            }
+            idx++;
+        }
+    cursor.SetIndxFirstPage(indxFirstOnPg);
 }
 
 void TextEdit::DrawCursor(){
-    if (cursor.HasCursor()){
-        for (auto bx:box){
-            if ((bx.GetIndex()+indxFirstOnPg)==cursor.GetLine()) cursor.DrawCursor(bx.GetTextY()+3);
-        }
-    }
+cursor.DrawCursor();
 
 }
 

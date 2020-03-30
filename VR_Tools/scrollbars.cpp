@@ -30,8 +30,8 @@ ScrollBars::ScrollBars(bool modal):
     general(false),
     core(0,0,0,0,Clr_Black,false),
     lift(0,0,0,0,Clr_White,false),
-    commandUp(modal),
-    commandDown(modal)
+    commandUp("scroll up",modal),
+    commandDown("scroll down",modal)
 
 {}
 
@@ -45,6 +45,8 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
    totalheight=height;
    totalLines=totLines;
    page=linesInPage;
+   core.SetDebugName("scrollb core");
+   lift.SetDebugName("scrollb lift");
 
    if ((totLines>0)&&(totalLines>=page)){
        commandUp.resetMe();
@@ -268,6 +270,10 @@ void ScrollBars::SetVisibility(bool iV){
         commandDown.setVisibility(iV);
         commandUp.setVisibility(iV);
         isVisible=iV;
+        if (isVisible){
+            core.UpdateMyTexture();
+            lift.UpdateMyTexture();
+        }
     }
 
 }

@@ -1,5 +1,10 @@
 #ifndef HOTSPOTS_H
 #define HOTSPOTS_H
+/*
+ * This class handles the custom commands for hotspot management.
+ * It executes the move to commands, triggers UI based hotspot editing with vrviews.
+ * The writing and reading of the vr_config.txt is performed by the Vrcreader class.
+ */
 #include "VR_Tools_global.h"
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
@@ -29,8 +34,8 @@ void  Setup();
     static float readValuesCallback(float elpSc,float elpTime,int countr,void* refcon);
     static void  PrepareToMove();
     static float MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refcon);
-    static int   Create_Hotspot_Handler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
-    static int   Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase, void *);
+    static int   Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void * inRefcon);
+    static int   Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, void *);
     static void  MakeMoveComplete();
     static void  MakeMove4();
     static void  Handle_End_Of_Create_Command();

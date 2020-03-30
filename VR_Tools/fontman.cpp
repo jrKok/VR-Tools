@@ -6,7 +6,8 @@ FT_Library fontMan::library(nullptr);
 FT_Face    fontMan::face(nullptr);
 map<int,charrecord> *fontMan::chars(new map<int,charrecord>);
 
-fontMan::fontMan()
+fontMan::fontMan() :
+    count(0)
 {
 
 }
@@ -54,6 +55,7 @@ void fontMan::Initialise(){
                 }
             }
         }
+        DrawLogic::WriteDebug("font Man left shift number of left shifted, ",count);
     }
 }
 
@@ -106,14 +108,18 @@ void fontMan::CharCodeToMap(char cSize, unsigned char in_code[]){
 
 charrecord fontMan::GetCharFromMap(int in_UTF, int &out_width, int &out_height, int &out_offset,int &out_advance){
     charrecord rec;
+    rec.height=0;
+    rec.width=0;
+    out_height=0;
+    out_width=0;
     if ((*chars).find(in_UTF)==(*chars).end())
+    {
         DrawLogic::WriteDebug("fontMan GetCharFromMap : didn't find "+std::to_string(in_UTF));
-    else {
-        out_height=0;
-        rec.height=0;
-
+        return rec;
     }
     rec=(*chars)[in_UTF];
+    if (in_UTF==0x20) {out_width=4;rec.width=4;}
+    if (in_UTF==0x09) {out_width=12;rec.width=12;}
     out_width=static_cast<int>(rec.width);
     out_height=static_cast<int>(rec.height);
     out_advance=static_cast<int>(rec.advance);
@@ -122,16 +128,19 @@ charrecord fontMan::GetCharFromMap(int in_UTF, int &out_width, int &out_height, 
 }
 
 void fontMan::LeftShift(charrecord &toworkon){
-
     bool leftColnotBlack(false);
     unsigned int allPix=toworkon.width*toworkon.height;
     for (unsigned int col(0);col<allPix;col+=toworkon.width){
         leftColnotBlack=leftColnotBlack|toworkon.bitmap[col];
     }
 
-    if (leftColnotBlack) return;
-    else
-    {
+    bool rightColnotBlack(false);
+    for (unsigned int col(toworkon.width-1);col<allPix;col+=toworkon.width){
+        rightColnotBlack=rightColnotBlack|toworkon.bitmap[col];
+    }
+
+    if (!leftColnotBlack&rightColnotBlack)
+    {   count++;
         unsigned char temp[144];
         for (int idx(0);idx<144;idx++) temp[idx]=toworkon.bitmap[idx];
         for (unsigned int row(0);row<toworkon.height;row++){
@@ -141,41 +150,21 @@ void fontMan::LeftShift(charrecord &toworkon){
             toworkon.bitmap[row*toworkon.width+toworkon.width-1]=0;
         }
     }
+
     return;
 }
 
 int fontMan::MeasureString(const string &in_String){
 
    int length(0);
-   unsigned char inc(0);
-   char cSize(1),it(0);
-   int charInt(0),height(0),width(0),advance(0),offset(0);
+   int height(0),width(0),advance(0),offset(0);
    if (in_String.length()==0) return length;
+   vInt codes;
+   StringToCode(in_String,codes);
 
-   for (ulong tg(0);tg<in_String.length();tg++){
+   for (auto charInt:codes){
 
-       inc=static_cast<unsigned char>(in_String[tg]);
-       if (inc>0x7F&&cSize==1){
-           if (inc<=0xDF) {
-               cSize=2;it=0;charInt=inc*0x100;}
-           else
-           {cSize=3;it=1;charInt=inc*0x10000;}
-           continue;
-       } else{
-           if (cSize>1){
-               if (it){
-                   charInt+=inc*0x100;
-                   it--;
-                   continue;
-               } else{
-                   charInt+=inc;
-                   cSize=1;
-               }
 
-           } else{
-               charInt=inc;
-           }
-       }
        //decode character
        if (charInt==0x20){
            length+=4;continue;
@@ -185,7 +174,7 @@ int fontMan::MeasureString(const string &in_String){
        }
        fontMan::GetCharFromMap(charInt,width,height,offset,advance);
        if (height){
-           length+=height+advance;
+           length+=advance;
        }
    }
    return length;
@@ -195,11 +184,58 @@ void fontMan::GetPositions(const string &in_String,vInt &out_pos){
     out_pos.clear();
     int length(0);
     out_pos.push_back(length);
+
+    int height(0),width(0),advance(0),offset(0);
+    if (in_String.length()==0) return;
+    vInt codes;
+    StringToCode(in_String,codes);
+
+    for (auto charInt:codes){
+
+        //decode character
+        if (charInt==0x20){
+            length+=4;
+            out_pos.push_back(length);
+            continue;
+
+        }
+        if (charInt==9){
+            length+=12;
+            out_pos.push_back(length);
+            continue;
+        }
+        fontMan::GetCharFromMap(charInt,width,height,offset,advance);
+        if (width){
+            length+=advance;
+            out_pos.push_back(length);
+        }
+    }
+    return;
+
+}
+
+int fontMan::GetNumberOfUTFCharsInString(const string &in_String){
+    vInt codes;
+    StringToCode(in_String,codes);
+    return static_cast<int>(codes.size());
+}
+
+void fontMan::EndFreeType(){
+    if (library!=nullptr){
+            FT_Done_Face(face);
+            FT_Done_Library(library);
+            face=nullptr;
+            library=nullptr;
+}
+}
+
+void fontMan::StringToCode(const string &in_String, vInt &out_codes){
+    //makes a vector of ints, one int per UTF8 character
+    out_codes.clear();
+
+    int charInt(0);
     unsigned char inc(0);
     char cSize(1),it(0);
-    int charInt(0),height(0),width(0),advance(0),offset(0);
-    if (in_String.length()==0) return;
-
     for (ulong tg(0);tg<in_String.length();tg++){
 
         inc=static_cast<unsigned char>(in_String[tg]);
@@ -224,33 +260,8 @@ void fontMan::GetPositions(const string &in_String,vInt &out_pos){
                 charInt=inc;
             }
         }
-        //decode character
-        if (charInt==0x20){
-            length+=4;
-            out_pos.push_back(length);
-            continue;
-
-        }
-        if (charInt==9){
-            length+=12;
-            out_pos.push_back(length);
-            continue;
-        }
-        fontMan::GetCharFromMap(charInt,width,height,offset,advance);
-        if (height){
-            length+=advance;
-            out_pos.push_back(length);
+        if (charInt==0x09|charInt>=0x20){
+            out_codes.push_back(charInt);
         }
     }
-    return;
-
-}
-
-void fontMan::EndFreeType(){
-    if (library!=nullptr){
-            FT_Done_Face(face);
-            FT_Done_Library(library);
-            face=nullptr;
-            library=nullptr;
-}
 }

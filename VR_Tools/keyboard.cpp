@@ -2,7 +2,7 @@
 #include "layoutwithedit.h"
 //size of a space = 4px
 
-std::vector<std::shared_ptr<Key>> Keyboard::physicalKeys;
+lineOfKeys Keyboard::physicalKeys;
 string Keyboard::activeKeyName("");
 string Keyboard::activeKeyString("");
 bool Keyboard::activeIsSpecialKey(false);
@@ -42,6 +42,11 @@ Keyboard::Keyboard(bool modal):
 }
 
 Keyboard::~Keyboard(){
+    for (auto k: kL1)  delete k;
+    for (auto k: kL2)  delete k;
+    for (auto k: kL3)  delete k;
+    for (auto k: kL4)  delete k;
+    for (auto k: kL5)  delete k;
     myKeyboard=nullptr;
 }
 void Keyboard::WriteDebug(string message){
@@ -151,7 +156,7 @@ void Keyboard::FindKeySpecs(const string &in_Def,//  find Key specifications fro
     else WriteDebug("invalid keyboard specification file");
 }
 
-int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,std::vector<std::shared_ptr<Key>> &keyLine){
+int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,lineOfKeys &keyLine){
     std::vector<string>* keyDefs=new(std::vector<string>);
     bool isSpecialKey(false);
     string showS(""),mainS(""),shiftS(""),altS(""),abbrS(""),abbrN("");
@@ -160,7 +165,8 @@ int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,
     for (auto &newkeyString:*keyDefs){
         ulong vk_tag;
         FindKeySpecs(newkeyString,isSpecialKey,showS,mainS,shiftS,altS,abbrN,abbrS,offset,width,vk_tag);
-        auto nextkey=std::make_shared<Key>(isModal);
+        //auto nextkey=std::make_shared<Key>(false);
+        Key *nextkey=new Key(false);
         nextkey->setVisibility(true);
         nextkey->SetOrigin(offX+stepper+offset,offY);
         stepper+=width+offset;
@@ -268,15 +274,15 @@ void Keyboard::Relocate (int newX, int newY){
     rL3.SetOrigin(rL3.GetLeft()+deltaX,rL3.GetBottom()+deltaY);
     rL4.SetOrigin(rL4.GetLeft()+deltaX,rL4.GetBottom()+deltaY);
     rL5.SetOrigin(rL5.GetLeft()+deltaX,rL5.GetBottom()+deltaY);
-    for (std::shared_ptr<Key> k: kL1)  k->Shift(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL2)  k->Shift(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL3)  k->Shift(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL4)  k->Shift(deltaX,deltaY);
-    for (std::shared_ptr<Key> k: kL5)  k->Shift(deltaX,deltaY);
+    for (auto k: kL1)  k->Shift(deltaX,deltaY);
+    for (auto k: kL2)  k->Shift(deltaX,deltaY);
+    for (auto k: kL3)  k->Shift(deltaX,deltaY);
+    for (auto k: kL4)  k->Shift(deltaX,deltaY);
+    for (auto k: kL5)  k->Shift(deltaX,deltaY);
 }
 
 bool  Keyboard::ReadLine(int cx, int cy, lineOfKeys in_line, bool &special, std::string &keyName, std::string &keyVal){
-    for (std::shared_ptr<Key> k: in_line) {
+    for (auto k: in_line) {
         if (k->isHere(cx,cy)){
             keyVal=ReadKey(k,special,keyName);
             activeKey=k->GetMyPointer();
@@ -332,7 +338,7 @@ bool Keyboard::PressKey(int cx, int cy, bool &special, string &keyName, string &
     return isInKeyB;
 }
 
-string Keyboard::ReadKey(std::shared_ptr<Key> key, bool &special, string &keyName){
+string Keyboard::ReadKey(Key* key, bool &special, string &keyName){
     keyPressed=true;
     special=key->IsSpecialKey();
     keyName=key->GetKeyName();
@@ -413,74 +419,74 @@ void Keyboard::ReleaseStates(){
 }
 
 void Keyboard::ToShiftKeys(){
-    for (std::shared_ptr<Key> k: kL1) {
-        if (!(k->IsSpecialKey())) k->setTextFixedSize(k->GetKeyShift());
+    for (auto k: kL1) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyShift());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL2) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyShift());
+    for (auto k: kL2) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyShift());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL3) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyShift());
+    for (auto k: kL3) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyShift());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL4) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyShift());
+    for (auto k: kL4) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyShift());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL5) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyShift());
+    for (auto k: kL5) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyShift());k->ReDrawButton();}
     }
 }
 
 void Keyboard::ToNormalKeys(){
-    for (std::shared_ptr<Key> k: kL1) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyName());
+    for (auto k: kL1) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL2) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyName());
+    for (auto k: kL2) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL3) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyName());
+    for (auto k: kL3) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL4) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyName());
+    for (auto k: kL4) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL5) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyName());
+    for (auto k: kL5) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyName());k->ReDrawButton();}
     }
 }
 
 void Keyboard::ToAltKeys(){
-    for (std::shared_ptr<Key> k: kL1) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAlt());
+    for (auto k: kL1) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAlt());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL2) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAlt());
+    for (auto k: kL2) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAlt());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL3) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAlt());
+    for (auto k: kL3) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAlt());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL4) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAlt());
+    for (auto k: kL4) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAlt());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL5) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAlt());
+    for (auto k: kL5) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAlt());k->ReDrawButton();}
     }
 }
 
 void Keyboard::ToAbbrKeys(){
-    for (std::shared_ptr<Key> k: kL1) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAbbrName());
+    for (auto k: kL1) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAbbrName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL2) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAbbrName());
+    for (auto k: kL2) {
+        if (!k->IsSpecialKey()){k->setTextFixedSize(k->GetKeyAbbrName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL3) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAbbrName());
+    for (auto k: kL3) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAbbrName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL4) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAbbrName());
+    for (auto k: kL4) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAbbrName());k->ReDrawButton();}
     }
-    for (std::shared_ptr<Key> k: kL5) {
-        if (!k->IsSpecialKey()) k->setTextFixedSize(k->GetKeyAbbrName());
+    for (auto k: kL5) {
+        if (!k->IsSpecialKey()) {k->setTextFixedSize(k->GetKeyAbbrName());k->ReDrawButton();}
     }
 }
 void Keyboard::ShiftCapsPressed(){
@@ -573,18 +579,18 @@ bool Keyboard::IsAbbreviationsKeyActive(){
 
 void Keyboard::SetWarningMode(bool warning){
     if (warning){
-        for (std::shared_ptr<Key> k: kL1) k->SetToWarningColor();
-        for (std::shared_ptr<Key> k: kL2) k->SetToWarningColor();
-        for (std::shared_ptr<Key> k: kL3) k->SetToWarningColor();
-        for (std::shared_ptr<Key> k: kL4) k->SetToWarningColor();
-        for (std::shared_ptr<Key> k: kL5) k->SetToWarningColor();
+        for (auto k: kL1) k->SetToWarningColor();
+        for (auto k: kL2) k->SetToWarningColor();
+        for (auto k: kL3) k->SetToWarningColor();
+        for (auto k: kL4) k->SetToWarningColor();
+        for (auto k: kL5) k->SetToWarningColor();
         }
     else{
-        for (std::shared_ptr<Key> k: kL1) k->SetToStateColor();
-        for (std::shared_ptr<Key> k: kL2) k->SetToStateColor();
-        for (std::shared_ptr<Key> k: kL3) k->SetToStateColor();
-        for (std::shared_ptr<Key> k: kL4) k->SetToStateColor();
-        for (std::shared_ptr<Key> k: kL5) k->SetToStateColor();
+        for (auto k: kL1) k->SetToStateColor();
+        for (auto k: kL2) k->SetToStateColor();
+        for (auto k: kL3) k->SetToStateColor();
+        for (auto k: kL4) k->SetToStateColor();
+        for (auto k: kL5) k->SetToStateColor();
         }
 }
 
@@ -635,7 +641,7 @@ int  Keyboard::Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VKs,v
          }
 
         //mapped keys and commands
-         std::shared_ptr<Key> pushed=Keyboard::physicalKeys[static_cast<ulong>(in_VK)];
+         Key* pushed=Keyboard::physicalKeys[static_cast<ulong>(in_VK)];
          Key push;
          if (pushed!=nullptr){
              activeIsSpecialKey=pushed->IsSpecialKey();
@@ -712,9 +718,17 @@ void    Keyboard::DisablePhysicalKeyboard(void *caller){
 }
 
 void Keyboard::SetVisibility(bool vis){
-    for (std::shared_ptr<Key> k: kL1) k->setVisibility(vis);
-    for (std::shared_ptr<Key> k: kL2) k->setVisibility(vis);
-    for (std::shared_ptr<Key> k: kL3) k->setVisibility(vis);
-    for (std::shared_ptr<Key> k: kL4) k->setVisibility(vis);
-    for (std::shared_ptr<Key> k: kL5) k->setVisibility(vis);
+    for (auto k: kL1) k->setVisibility(vis);
+    for (auto k: kL2) k->setVisibility(vis);
+    for (auto k: kL3) k->setVisibility(vis);
+    for (auto k: kL4) k->setVisibility(vis);
+    for (auto k: kL5) k->setVisibility(vis);
+}
+
+void Keyboard::ShowDebugKeys(){
+for (auto k: kL1)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
+for (auto k: kL2)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
+for (auto k: kL3)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
+for (auto k: kL4)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
+for (auto k: kL5)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
 }

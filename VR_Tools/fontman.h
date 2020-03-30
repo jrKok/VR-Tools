@@ -14,6 +14,8 @@ public:
 static charrecord GetCharFromMap(int in_UTF, int &out_width, int &out_height, int &out_offset, int &out_advance);
 static int        MeasureString (const string &in_string);
 static void       GetPositions  (const string &in_string,vInt &out_pos);
+static void       StringToCode  (const string &in_String, vInt &out_codes);
+static int        GetNumberOfUTFCharsInString(const string &in_string);
 
 static bool       FreeTypeStarted;
 static bool       FreeTypeError;
@@ -22,6 +24,7 @@ private:
     static map<int,charrecord> *chars;
     static FT_Library library;
     static FT_Face    face;
+           int      count;
 
 };
 

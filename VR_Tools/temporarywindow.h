@@ -17,19 +17,18 @@
 using std::string;
 using std::vector;
 
-
 class temporaryWindow
 {
 public:
     temporaryWindow();
-    static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
+    static void DrawMyself(XPLMWindowID in_window_id, void *);
     static void ShowAlert(string in_String,float time_to_show);
     static void StopAlert();
 private:
     static XPLMWindowID myXPWindow;
     static int myWindowNumber,myStringNumber;
     static float duration,timeStamp;
-    static int top,left, right, bottom;
+    static int width,height;
 };
 
 #endif // TEMPORARYWINDOW_H
