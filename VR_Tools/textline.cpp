@@ -58,6 +58,12 @@ void TextLine::setText (const string &in_Str){
     DrawLogic::ChangeString(myStringNumber,textOfLine);
 }
 
+void TextLine::setTextAndUpdate(const string &in_Str){
+    textOfLine=ops.cleanOut(in_Str,"\r");
+    mySize=static_cast<int>(textOfLine.length());
+    DrawLogic::ChangeString(myStringNumber,textOfLine);
+    PrintString();
+}
 string TextLine::GetText(){
     return textOfLine;
 }
@@ -87,8 +93,7 @@ bool TextLine::isHere(int x_in, int y_in){
 void TextLine::SetTextColor(char in_clr){
      textColor=in_clr;
      DrawLogic::ChangeColorString(myStringNumber,in_clr);
-     DrawLogic::PrintRectOnTexture(bbl,bbb,bbr,bbt,backGroundcol);
-     DrawLogic::PrintString(myStringNumber);
+     PrintString();
 }
 
 void TextLine::SetBackGroundColor(char in_clr){

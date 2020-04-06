@@ -64,6 +64,7 @@ void button_VR::setText(const std::string &in_String){
     DrawLogic::ChangeString(stringNumber,in_String);
     DrawLogic::ChangeColorString(stringNumber,text_color);
     LocateText();
+    ReDrawButton();
 }
 
 void button_VR::LocateText(){
@@ -174,15 +175,14 @@ void button_VR::setSelect(bool selState){
     if (isSelected)
     {
         my_currentColor=activated_color;
-        DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
-        ReDrawButton();
     }
     else
     {
         my_currentColor=warningMode?Clr_RedKey:state_color;
-        DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
-        ReDrawButton();
     }
+    DrawLogic::ChangeBckGrdColorString(stringNumber,my_currentColor);
+
+    ReDrawButton();
 }
 
 void button_VR::SetToWarningColor(){

@@ -553,6 +553,15 @@ int Keyboard::MyWidth(){
 int Keyboard::MyHeight(){
     return allKeyboard.GetHeight();
 }
+
+int Keyboard::MyBottom(){
+    return allKeyboard.GetBottom();
+}
+
+int Keyboard::MyLeft(){
+    return allKeyboard.GetLeft();
+}
+
 bool Keyboard::IsSpecialKey(){
     return specialKey;
 }

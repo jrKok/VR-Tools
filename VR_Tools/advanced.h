@@ -35,7 +35,7 @@ using std::vector;
 
 struct Action{
     string ActionName;
-    button_VR button;
+    button_VR *button;
     ulong number;
 };
 class advanced
@@ -46,6 +46,8 @@ public:
 
     void MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck);
     void MakeModalButton(string name, string actionName, ulong myNumber, int width, int height, int offsetX, int offsetY);
+    void MakeLine(TextLine &in_Line, int in_x, int in_y, int in_width, int in_height, string in_text);
+    void PrintLines();
     static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
     static int MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_down, void * unused);
     void SelectLine(TextLine *in_line,int x,float *in_param);
@@ -72,7 +74,7 @@ private:
     std::function<void()> callBack;
     static advanced *myself;
     Hotspot currentHsp;
-    vector<Action> actionButtons;
+    vector<Action*> actionButtons;
     float *activeParameter;
     float bBoxOffset,bBoxLatShift,bBoxAxShift,bBoxheight,bBoxWidth;
     float rot,tilt,pitch;
@@ -82,7 +84,6 @@ private:
     string sittingT,offsetT,rightShiftT,aftShiftT,heightT,widthT,rotT,tiltT,pitchT;
     int sittingN,offsetN,rightShiftN,aftShiftN,heightN,widthN,rotN,tiltN,pitchN,hsNameN,hsBoxN,hsAdditionalN;
     rectangles rectSit,rectBox,rectParam,rectButtons;
-    rectangles sittingB,offsetB,rightShiftB,aftShiftB,heightB,widthB,rotB,tiltB,pitchB;
     point sittingP,offsetP,rightShiftP,aftShiftP,heightP,widthP,rotP,tiltP,pitchP,hsNameP,hsBoxP,hsAdditionalP;
     string actionSelected;
     cursor cursor;

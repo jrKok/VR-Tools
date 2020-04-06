@@ -8,7 +8,6 @@ advanced *advanced::myself(nullptr);
 
 advanced::advanced():
     endAlert(false),
-
     callBack(),
     currentHsp(),
     actionButtons(),
@@ -21,7 +20,6 @@ advanced::advanced():
     sittingN(0),offsetN(0),rightShiftN(0),aftShiftN(0),heightN(0),widthN(0),rotN(0),tiltN(0),pitchN(0),
     hsNameN(0),hsBoxN(0),hsAdditionalN(0),
     rectSit(true),rectBox(true),rectParam(true),rectButtons(true),
-    sittingB(true),offsetB(true),rightShiftB(true),aftShiftB(true),heightB(true),widthB(true),rotB(true),tiltB(true),pitchB(true),
     sittingP(),offsetP(),rightShiftP(),aftShiftP(),heightP(),widthP(),rotP(),tiltP(),pitchP(),
     hsNameP(),hsBoxP(),hsAdditionalP(),
     actionSelected(""),
@@ -51,6 +49,10 @@ myself=this;
 }
 advanced::~advanced(){
     if (numpad != nullptr) delete numpad;
+    for (auto  ab: actionButtons){
+        delete (*ab).button;
+        delete ab;
+    }
 }
 
 void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
@@ -62,22 +64,24 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
     currentHsp=htsp;
     ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,wWidth,450);
 
-    rectSit.SetDimensions(wWidth,52);
-    rectSit.SetOrigin(0,398);
-    rectSit.setColor(Clr_LighterGray);
-
-    rectBox.SetDimensions(wWidth,140);
-    rectBox.SetOrigin(0,rectSit.GetBottom()-rectSit.GetHeight());
-    rectBox.setColor(Clr_LightGray);
+    rectButtons.SetDimensions(wWidth,163);
+    rectButtons.SetOrigin(0,0);
+    rectButtons.setColor(Clr_LighterGray);
 
     rectParam.SetDimensions(wWidth,95);
-    rectParam.SetOrigin(0,rectBox.GetBottom()-rectBox.GetHeight());
-    rectParam.setColor(Clr_LighterGray);
+    rectParam.SetOrigin(0,rectButtons.GetTop());
+    rectParam.setColor(Clr_LightGray);
 
-    rectButtons.SetDimensions(wWidth,30);
-    rectButtons.SetOrigin(0,rectParam.GetBottom()-rectParam.GetHeight());
-    rectButtons.setColor(Clr_LightGray);
+    rectBox.SetDimensions(wWidth,140);
+    rectBox.SetOrigin(0,rectParam.GetTop());
+    rectBox.setColor(Clr_LighterGray);
 
+    rectSit.SetDimensions(wWidth,52);
+    rectSit.SetOrigin(0,rectBox.GetTop());
+    rectSit.setColor(Clr_LightGray);
+
+
+//T for text
        sittingT="sitting/Standing :";
         offsetT="gap between box-spot :";
     rightShiftT="lateral shift :";
@@ -89,19 +93,24 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
           tiltT="Tilt (PHI) : ";
       string nm="Advanced Parameters for Hotspot : "+currentHsp.name;
 
-       sittingP.SetCoords(col1-8-stringOps::StringSize(sittingT),rectSit.GetBottom()+lH+lH);
-        offsetP.SetCoords(col1-3-stringOps::StringSize(offsetT),rectBox.GetBottom()+lH+lH);
-    rightShiftP.SetCoords(col1-3-stringOps::StringSize(rightShiftT),offsetP.GetY()+lH);
-      aftShiftP.SetCoords(col1-3-stringOps::StringSize(aftShiftT),rightShiftP.GetY()+lH);
-         widthP.SetCoords(col1-3-stringOps::StringSize(widthT),aftShiftP.GetY()+lH);
-        heightP.SetCoords(col1-3-stringOps::StringSize(heightT),widthP.GetY()+lH);
-           rotP.SetCoords(col1-3-stringOps::StringSize(rotT),rectParam.GetBottom()+lH+20);
-         pitchP.SetCoords(col1-3-stringOps::StringSize(pitchT),rotP.GetY()+lH);
-          tiltP.SetCoords(col1-3-stringOps::StringSize(tiltT),pitchP.GetY()+lH);
-        hsNameP.SetCoords(col1-100,rectSit.GetBottom()+lH);
-         hsBoxP.SetCoords(col1-100,rectBox.GetBottom()+lH);
-  hsAdditionalP.SetCoords(col1-100,rectParam.GetBottom()+lH);
+      //P for points of origin
 
+       sittingP.SetCoords(col1-8-stringOps::StringSize(sittingT),rectSit.GetBottom()+2);
+        heightP.SetCoords(col1-3-stringOps::StringSize(heightT),rectBox.GetBottom()+2);
+         widthP.SetCoords(col1-3-stringOps::StringSize(widthT),heightP.GetY()+lH);
+      aftShiftP.SetCoords(col1-3-stringOps::StringSize(aftShiftT),widthP.GetY()+lH);
+    rightShiftP.SetCoords(col1-3-stringOps::StringSize(rightShiftT),aftShiftP.GetY()+lH);
+        offsetP.SetCoords(col1-3-stringOps::StringSize(offsetT),rightShiftP.GetY()+lH);
+
+          tiltP.SetCoords(col1-3-stringOps::StringSize(tiltT),rectParam.GetBottom()+2);
+          pitchP.SetCoords(col1-3-stringOps::StringSize(pitchT),tiltP.GetY()+lH);
+           rotP.SetCoords(col1-3-stringOps::StringSize(rotT),pitchP.GetY()+lH);
+
+        hsNameP.SetCoords(col1-100,rectSit.GetBottom()+lH+4);
+         hsBoxP.SetCoords(col1-100,offsetP.GetY()+lH);
+  hsAdditionalP.SetCoords(col1-100,rotP.GetY()+lH);
+
+//N for Names, in fact Labels for the textlines, getting their drawing numbers
      sittingN=DrawLogic::AddString(sittingT,Clr_BlackInk,Clr_LightGray,sittingP);
       offsetN=DrawLogic::AddString(offsetT,Clr_BlackInk,Clr_LightGray,offsetP);
   rightShiftN=DrawLogic::AddString(rightShiftT,Clr_BlackInk,Clr_LightGray,rightShiftP);
@@ -116,117 +125,112 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
        hsBoxN=DrawLogic::AddString("Position of Binding Box relative to Hotspot :",Clr_PushedBlue,Clr_LightGray,hsBoxP);
 hsAdditionalN=DrawLogic::AddString("hotspot orientation : ",Clr_PushedBlue,Clr_LightGray,hsAdditionalP);
 
-     int corr=10;
-     sittingB.SetDimensions(textBoxWidth+7,textBoxHeight);sittingB.SetOrigin(col1-10,sittingP.GetY()-corr);
-      offsetB.SetDimensions(textBoxWidth,textBoxHeight);offsetB.SetOrigin(col1-3,offsetP.GetY()-10);
-  rightShiftB.SetDimensions(textBoxWidth,textBoxHeight);rightShiftB.SetOrigin(col1-3,rightShiftP.GetY()-corr);
-    aftShiftB.SetDimensions(textBoxWidth,textBoxHeight);aftShiftB.SetOrigin(col1-3,aftShiftP.GetY()-corr);
-       widthB.SetDimensions(textBoxWidth,textBoxHeight);widthB.SetOrigin(col1-3,widthP.GetY()-corr);
-      heightB.SetDimensions(textBoxWidth,textBoxHeight);heightB.SetOrigin(col1-3,heightP.GetY()-corr);
-         rotB.SetDimensions(textBoxWidth-20,textBoxHeight);rotB.SetOrigin(col1-3,rotP.GetY()-corr);
-       pitchB.SetDimensions(textBoxWidth-20,textBoxHeight);pitchB.SetOrigin(col1-3,pitchP.GetY()-corr);
-        tiltB.SetDimensions(textBoxWidth-20,textBoxHeight);tiltB.SetOrigin(col1-3,tiltP.GetY()-corr);
-
-        sittingB.setColor(Clr_White);
-        offsetB.setColor(Clr_White);
-        rightShiftB.setColor(Clr_White);
-        aftShiftB.setColor(Clr_White);
-        widthB.setColor(Clr_White);
-        heightB.setColor(Clr_White);
-        rotB.setColor(Clr_White);
-        pitchB.setColor(Clr_White);
-        tiltB.setColor(Clr_White);
-       corr=10;
-        sittingL.SetDimensions(textBoxWidth+7,textBoxHeight);sittingL.SetOrigin(col1-10,sittingB.GetBottom()+corr);
-         offsetL.SetDimensions(textBoxWidth,textBoxHeight);offsetL.SetOrigin(col1-3,offsetB.GetBottom()+corr);
-     rightShiftL.SetDimensions(textBoxWidth,textBoxHeight);rightShiftL.SetOrigin(col1-3,rightShiftB.GetBottom()+corr);
-       aftShiftL.SetDimensions(textBoxWidth,textBoxHeight);aftShiftL.SetOrigin(col1-3,aftShiftB.GetBottom()+corr);
-          widthL.SetDimensions(textBoxWidth,textBoxHeight);widthL.SetOrigin(col1-3,widthB.GetBottom()+corr);
-         heightL.SetDimensions(textBoxWidth,textBoxHeight);heightL.SetOrigin(col1-3,heightB.GetBottom()+corr);
-            rotL.SetDimensions(textBoxWidth-20,textBoxHeight);rotL.SetOrigin(col1-3,rotB.GetBottom()+corr);
-          pitchL.SetDimensions(textBoxWidth-20,textBoxHeight);pitchL.SetOrigin(col1-3,pitchB.GetBottom()+corr);
-           tiltL.SetDimensions(textBoxWidth-20,textBoxHeight);tiltL.SetOrigin(col1-3,tiltB.GetBottom()+corr);
+ // L for Text Lines, define also their boxes.
 
            GetBBoxDescription();
 
-           sittingL.setText(currentHsp.type);
-           offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset));
-           rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift));
-           aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift));
-           widthL.setText(stringOps::ConvertFloatToString(bBoxWidth));
-           heightL.setText(stringOps::ConvertFloatToString(bBoxheight));
-           rotL.setText(stringOps::ConvertFloatToString(currentHsp.psi,0));
-           pitchL.setText(stringOps::ConvertFloatToString(currentHsp.the,0));
-           tiltL.setText(stringOps::ConvertFloatToString(currentHsp.phi,0));
+           MakeLine(sittingL,col1-10,sittingP.GetY(),textBoxWidth+7,textBoxHeight,currentHsp.type);
+           MakeLine(offsetL,col1-3,offsetP.GetY(),textBoxWidth,textBoxHeight,stringOps::ConvertFloatToString(bBoxOffset));
+           MakeLine(rightShiftL,col1-3,rightShiftP.GetY(),textBoxWidth,textBoxHeight,stringOps::ConvertFloatToString(bBoxLatShift));
+           MakeLine(aftShiftL,col1-3,aftShiftP.GetY(),textBoxWidth,textBoxHeight,stringOps::ConvertFloatToString(bBoxAxShift));
+           MakeLine(widthL,col1-3,widthP.GetY(),textBoxWidth,textBoxHeight,stringOps::ConvertFloatToString(bBoxWidth));
+           MakeLine(heightL,col1-3,heightP.GetY(),textBoxWidth,textBoxHeight,stringOps::ConvertFloatToString(bBoxheight));
+           MakeLine(rotL,col1-3,rotP.GetY(),textBoxWidth-20,textBoxHeight,stringOps::ConvertFloatToString(currentHsp.psi,0));
+           MakeLine(pitchL,col1-3,pitchP.GetY(),textBoxWidth-20,textBoxHeight,stringOps::ConvertFloatToString(currentHsp.the,0));
+           MakeLine(tiltL,col1-3,tiltP.GetY(),textBoxWidth-20,textBoxHeight,stringOps::ConvertFloatToString(currentHsp.phi,0));
 
         int oX=col1+6+textBoxWidth,bW=64;
-        MakeModalButton("Cancel","Cancel",0,100,20,170,rectButtons.GetBottom()+5);
-        MakeModalButton("SITTING","Sitting",1,bW,bH,oX,sittingB.GetBottom());
-        MakeModalButton("STANDING","Standing",2,bW,bH,oX+bW+2,sittingB.GetBottom());
-        MakeModalButton("+5cm","Raise50",3,bW,bH,oX,offsetB.GetBottom());
-        MakeModalButton("-5cm","Lower50",4,bW,bH,oX+bW+2,offsetB.GetBottom());
-        MakeModalButton("+2cm(R)","Right20",5,bW,bH,oX,rightShiftB.GetBottom());
-        MakeModalButton("-2cm(L)","Left20",6,bW,bH,oX+bW+2,rightShiftB.GetBottom());
-        MakeModalButton("-2cm(F)","For20",7,bW,bH,oX,aftShiftB.GetBottom());
-        MakeModalButton("+2cm(B)","Aft20",8,bW,bH,oX+bW+2,aftShiftB.GetBottom());
-        MakeModalButton("+5cm","Width20",9,bW,bH,oX,widthB.GetBottom());
-        MakeModalButton("-5cm","Width-20",10,bW,bH,oX+bW+2,widthB.GetBottom());
-        MakeModalButton("+10cm","Taller20",11,bW,bH,oX,heightB.GetBottom());
-        MakeModalButton("-10cm","Shorter20",12,bW,bH,oX+bW+2,heightB.GetBottom());
-        MakeModalButton("Forw","rot0",13,bW/2,bH,oX,rotB.GetBottom());
-        MakeModalButton("Right","rot90",14,bW/2,bH,oX+bW/2+2,rotB.GetBottom());
-        MakeModalButton("Back","rot180",15,bW/2,bH,oX+bW+4,rotB.GetBottom());
-        MakeModalButton("Left","rot270",16,bW/2,bH,oX+3*bW/2+6,rotB.GetBottom());
-        MakeModalButton("+5°","pitch+5",17,bW,bH,oX,pitchB.GetBottom());
-        MakeModalButton("-5°","pitch-5",18,bW,bH,oX+bW+2,pitchB.GetBottom());
-        MakeModalButton("+2°","tilt+2°",19,bW,bH,oX,tiltB.GetBottom());
-        MakeModalButton("-2°","tilt-2°",20,bW,bH,oX+bW+2,tiltB.GetBottom());
-        MakeModalButton("Commit","Ok",21,100,20,40,rectButtons.GetBottom()+5);
 
-        int offcmX(195),offcmY(rectButtons.GetBottom()+30);
+        MakeModalButton("Cancel","Cancel",0,100,20,170,rectButtons.GetTop()-25);
+        MakeModalButton("SITTING","Sitting",1,bW,bH,oX,sittingL.GetBottom());
+        MakeModalButton("STANDING","Standing",2,bW,bH,oX+bW+2,sittingL.GetBottom());
+        MakeModalButton("+5cm","Raise50",3,bW,bH,oX,offsetL.GetBottom());
+        MakeModalButton("-5cm","Lower50",4,bW,bH,oX+bW+2,offsetL.GetBottom());
+        MakeModalButton("+2cm(R)","Right20",5,bW,bH,oX,rightShiftL.GetBottom());
+        MakeModalButton("-2cm(L)","Left20",6,bW,bH,oX+bW+2,rightShiftL.GetBottom());
+        MakeModalButton("-2cm(F)","For20",7,bW,bH,oX,aftShiftL.GetBottom());
+        MakeModalButton("+2cm(B)","Aft20",8,bW,bH,oX+bW+2,aftShiftL.GetBottom());
+        MakeModalButton("+5cm","Width20",9,bW,bH,oX,widthL.GetBottom());
+        MakeModalButton("-5cm","Width-20",10,bW,bH,oX+bW+2,widthL.GetBottom());
+        MakeModalButton("+10cm","Taller20",11,bW,bH,oX,heightL.GetBottom());
+        MakeModalButton("-10cm","Shorter20",12,bW,bH,oX+bW+2,heightL.GetBottom());
+        MakeModalButton("Forw","rot0",13,bW/2,bH,oX,rotL.GetBottom());
+        MakeModalButton("Right","rot90",14,bW/2,bH,oX+bW/2+2,rotL.GetBottom());
+        MakeModalButton("Back","rot180",15,bW/2,bH,oX+bW+4,rotL.GetBottom());
+        MakeModalButton("Left","rot270",16,bW/2,bH,oX+3*bW/2+6,rotL.GetBottom());
+        MakeModalButton("+5°","pitch+5",17,bW,bH,oX,pitchL.GetBottom());
+        MakeModalButton("-5°","pitch-5",18,bW,bH,oX+bW+2,pitchL.GetBottom());
+        MakeModalButton("+2°","tilt+2°",19,bW,bH,oX,tiltL.GetBottom());
+        MakeModalButton("-2°","tilt-2°",20,bW,bH,oX+bW+2,tiltL.GetBottom());
+        MakeModalButton("Commit","Ok",21,100,20,40,rectButtons.GetTop()-25);
+
+        // make numpad and its associated buttons
+
+        numpad=new Keyboard(true);
+        numpad->MakeKeyboard(100,rectButtons.GetBottom()+10,true);
+        numpad->SetVisibility(true);
+
+        numpad->Relocate((wWidth/2)-(numpad->MyWidth()/2),numpad->MyBottom());
+
+        int offcmX(numpad->MyLeft()+numpad->MyWidth()+2),offcmY(numpad->MyBottom());
         MakeModalButton("m","m",22,40,20,offcmX,offcmY);
         MakeModalButton("cm","cm",23,40,20,offcmX,offcmY+22);
         MakeModalButton("mm","mm",24,40,20,offcmX,offcmY+44);
         MakeModalButton("ft","ft",25,40,20,offcmX,offcmY+66);
         MakeModalButton("inch","inch",26,40,20,offcmX,offcmY+88);
-
         forcursor.push_back("");
 
-        numpad=new Keyboard(true);
-        numpad->MakeKeyboard(100,rectButtons.GetBottom()+30,true);
-        numpad->SetVisibility(true);
         ChangeCurrentUnit(0,22);
-
+        DrawLogic::UpdateTexture();
+        PrintLines();
         //ManageModalWindow::ResizeModalWindow(wWidth,400);
 }
 
 void advanced::MakeModalButton(string name,string actionName,ulong myNumber,int width, int height, int offsetX, int offsetY){
-    button_VR thisButton;
-    thisButton.SetDimensions(width,height);
-    thisButton.SetOrigin(offsetX,offsetY);
-    thisButton.SetToStateColor();
-    thisButton.setText(name);
-    thisButton.setVisibility(true);
-    Action newAction;
-    newAction.ActionName=actionName;
-    newAction.button=thisButton;
-    newAction.number=myNumber;
+    DrawLogic::WriteDebug("advanced::MakeModalButton got to make "+name);
+    button_VR *thisButton(new button_VR(actionName,false));
+    thisButton->SetDimensions(width,height);
+    thisButton->SetOrigin(offsetX,offsetY);
+    thisButton->SetToStateColor();
+    thisButton->setText(name);
+    thisButton->SetDebugName(name);
+    thisButton->setVisibility(true);
+    Action *newAction=new (Action);
+    newAction->ActionName=actionName;
+    newAction->button=thisButton;
+    newAction->number=myNumber;
     actionButtons.push_back(newAction);
+    DrawLogic::WriteDebug("advanced::MakeModalButton made "+name);
 }
 
+void advanced::MakeLine(TextLine &in_Line, int in_x, int in_y, int in_width, int in_height, string in_text){
+    in_Line.SetOrigin(in_x,in_y);
+    in_Line.SetDimensions(in_width,in_height);
+    in_Line.SetBackGroundColor(Clr_White);
+    in_Line.setText(in_text);
+    in_Line.PrintString();
+}
 
+void advanced::PrintLines(){
+    sittingL.PrintString();
+    offsetL.PrintString();
+    rightShiftL.PrintString();
+    aftShiftL.PrintString();
+    widthL.PrintString();
+    heightL.PrintString();
+    rotL.PrintString();
+    pitchL.PrintString();
+    tiltL.PrintString();
+}
 void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
 
     ManageModalWindow::ConstrainGeometry();
     DrawLogic::DrawContent();
-    if (myself->cursor.HasSelection()){
-        int l,r;
-        myself->cursor.IsIndexInSelection(0,l,r);
-        myself->cursor.DrawRectangle(l,myself->activeLine->GetTop(),r,myself->activeLine->GetBottom());}
     if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();//myself.activeLine->GetTextY()
 }
 
 int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *){
+    ManageModalWindow::MakeTopWindow();
     int x(in_x-ManageModalWindow::GetLeft()),y(in_y-ManageModalWindow::GetBottom());
     if (is_down==xplm_MouseDown){
         string selAct("");
@@ -234,18 +238,18 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
         myself->epochClick=0;
 
         for (auto bt:myself->actionButtons){
-            if (bt.button.isHere(x,y)){
-                selAct=bt.ActionName;
-                selectedB=bt.number;
-                bt.button.Press();
-                myself->ButtonAction(selAct,static_cast<ulong>(bt.number));
+            if (bt->button->isHere(x,y)){
+                selAct=bt->ActionName;
+                selectedB=bt->number;
+                bt->button->Press();
+                myself->ButtonAction(selAct,static_cast<ulong>(bt->number));
                 return 1;
             }
         }
-        if (myself->sittingB.isHere(x,y)){
+        if (myself->sittingL.isHere(x,y)){
             return 1;
         }
-        if (myself->offsetB.isHere(x,y)){
+        if (myself->offsetL.isHere(x,y)){
 
             myself->SelectLine(&(myself->offsetL),x,&myself->bBoxOffset);
             myself->notallowed="";
@@ -257,7 +261,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             if (myself->currentUnit==1||myself->currentUnit==4) myself->numberOfDigits=2;
             return 1;
         }
-        if (myself->rightShiftB.isHere(x,y)){
+        if (myself->rightShiftL.isHere(x,y)){
             myself->SelectLine(&(myself->rightShiftL),x,&myself->bBoxLatShift);
             myself->notallowed="";
             myself->maxlength=7;
@@ -268,7 +272,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             if (myself->currentUnit==1||myself->currentUnit==4) myself->numberOfDigits=2;
             return 1;
         }
-        if (myself->aftShiftB.isHere(x,y)){
+        if (myself->aftShiftL.isHere(x,y)){
             myself->SelectLine(&(myself->aftShiftL),x,&myself->bBoxAxShift);
             myself->notallowed="";
             myself->maxlength=7;
@@ -279,7 +283,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             if (myself->currentUnit==1||myself->currentUnit==4) myself->numberOfDigits=2;
             return 1;
         }
-        if (myself->widthB.isHere(x,y)){
+        if (myself->widthL.isHere(x,y)){
             myself->SelectLine(&(myself->widthL),x,&myself->bBoxWidth);
             myself->notallowed="-+";
             myself->maxlength=6;
@@ -290,7 +294,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             if (myself->currentUnit==1||myself->currentUnit==4) myself->numberOfDigits=2;
             return 1;
         }
-        if (myself->heightB.isHere(x,y)){
+        if (myself->heightL.isHere(x,y)){
             myself->SelectLine(&(myself->heightL),x,&myself->bBoxheight);
             myself->notallowed="-+";
             myself->maxlength=6;
@@ -302,7 +306,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             return 1;
         }
 
-        if (myself->rotB.isHere(x,y)){
+        if (myself->rotL.isHere(x,y)){
             myself->SelectLine(&(myself->rotL),x,&myself->rot);
             myself->notallowed="-+.";
             myself->maxlength=3;
@@ -313,7 +317,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             return 1;
         }
 
-        if (myself->pitchB.isHere(x,y)){
+        if (myself->pitchL.isHere(x,y)){
             myself->SelectLine(&(myself->pitchL),x,&myself->pitch);
             myself->notallowed=".";
             myself->maxlength=3;
@@ -324,7 +328,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             return 1;
         }
 
-        if (myself->tiltB.isHere(x,y)){
+        if (myself->tiltL.isHere(x,y)){
             myself->SelectLine(&(myself->tiltL),x,&myself->tilt);
             myself->notallowed=".";
             myself->maxlength=3;
@@ -358,47 +362,61 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
         myself->numpad->ReleaseCurrentKey();
 
         if (selectedB>0) {
-            myself->actionButtons[selectedB].button.Release();
+            myself->actionButtons[selectedB]->button->Release();
             selectedB=0;
         }
-        if (myself->endAlert) {myself->EndEdit();myself->callBack();return 1;}
+        if (myself->endAlert) {
+            myself->EndEdit();
+            myself->callBack();
+            return 1;}
     }
+ if (myself->cursor.HasCursor()&&myself->activeLine!=nullptr) DrawLogic::SetCursorPosition(myself->cursor.PosToX(),myself->activeLine->GetTextY()+2);
+ if (myself->cursor.HasSelection()&&myself->activeLine!=nullptr) {
+     int l(0),r(0);
+     if (myself->cursor.IsIndexInSelection(0,l,r)){
+         myself->activeLine->PrintBox();
+         DrawLogic::PrintRectOnTexture(l,myself->activeLine->GetBottom(),r,myself->activeLine->GetTop(),Clr_TextSelectBlue);
+         myself->activeLine->PrintStringOnLocalT();
+
+     }
+ }
     return 1;
 }
 
 void advanced::ButtonAction(string actionName, ulong mbutton){
+    DrawLogic::WriteDebug("advanced ButtonAction received "+actionName);
     ulong nod(1);
     if (currentUnit==0||currentUnit==3) nod=4;
     if (currentUnit==1||currentUnit==4) nod=2;
     actionSelected=actionName;
-   if (actionName=="Cancel") endAlert=true;
+    if (actionName=="Cancel"){ endAlert=true;DrawLogic::WriteDebug("advanced buttonaction cancelr selected");}
    if (actionName=="Ok") {endAlert=true; Commit();}
-   if (actionName=="Sitting"){sittingL.setText("SITTING");currentHsp.type="SITTING";}
-   if (actionName=="Standing"){sittingL.setText(("STANDING"));currentHsp.type="STANDING";}
-   if (actionName=="Raise50"){bBoxOffset+=gapincr;offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,nod));}
-   if (actionName=="Lower50"){bBoxOffset-=gapincr;offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,nod));}
-   if (actionName=="Right20"){bBoxLatShift+=latshiftincr;rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,nod));}
-   if (actionName=="Left20"){bBoxLatShift-=latshiftincr;rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,nod));}
-   if (actionName=="For20"){bBoxAxShift-=axshiftincr;aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,nod));}
-   if (actionName=="Aft20"){bBoxAxShift+=axshiftincr;aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,nod));}
-   if (actionName=="Width20"){bBoxWidth+=widthincr;widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,nod));}
-   if (actionName=="Width-20"){bBoxWidth-=widthincr;if (bBoxWidth<0.1f) bBoxWidth=0.1f;widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,nod));}
-   if (actionName=="Taller20"){bBoxheight+=heightincr;heightL.setText(stringOps::ConvertFloatToString(bBoxheight,nod));}
-   if (actionName=="Shorter20"){bBoxheight-=heightincr;if (bBoxheight<0.1f) bBoxheight=0.1f;heightL.setText(stringOps::ConvertFloatToString(bBoxheight,nod));}
-   if (actionName=="rot0")   {  rot=0;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
-   if (actionName=="rot90")  { rot=90;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
-   if (actionName=="rot180") {rot=180;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
-   if (actionName=="rot270") {rot=270;rotL.setText(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="Sitting"){sittingL.setTextAndUpdate("SITTING");currentHsp.type="SITTING";}
+   if (actionName=="Standing"){sittingL.setTextAndUpdate(("STANDING"));currentHsp.type="STANDING";}
+   if (actionName=="Raise50"){bBoxOffset+=gapincr;offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset,nod));}
+   if (actionName=="Lower50"){bBoxOffset-=gapincr;offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset,nod));}
+   if (actionName=="Right20"){bBoxLatShift+=latshiftincr;rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift,nod));}
+   if (actionName=="Left20"){bBoxLatShift-=latshiftincr;rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift,nod));}
+   if (actionName=="For20"){bBoxAxShift-=axshiftincr;aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift,nod));}
+   if (actionName=="Aft20"){bBoxAxShift+=axshiftincr;aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift,nod));}
+   if (actionName=="Width20"){bBoxWidth+=widthincr;widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth,nod));}
+   if (actionName=="Width-20"){bBoxWidth-=widthincr;if (bBoxWidth<0.1f) bBoxWidth=0.1f;widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth,nod));}
+   if (actionName=="Taller20"){bBoxheight+=heightincr;heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight,nod));}
+   if (actionName=="Shorter20"){bBoxheight-=heightincr;if (bBoxheight<0.1f) bBoxheight=0.1f;heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight,nod));}
+   if (actionName=="rot0")   {  rot=0;rotL.setTextAndUpdate(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="rot90")  { rot=90;rotL.setTextAndUpdate(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="rot180") {rot=180;rotL.setTextAndUpdate(stringOps::ConvertFloatToString(rot,0));}
+   if (actionName=="rot270") {rot=270;rotL.setTextAndUpdate(stringOps::ConvertFloatToString(rot,0));}
    if (actionName=="pitch+5"){
        pitch+=pitchincr;
        if (pitch>90) pitch=90;
-       pitchL.setText(stringOps::ConvertFloatToString(pitch,0));}
+       pitchL.setTextAndUpdate(stringOps::ConvertFloatToString(pitch,0));}
    if (actionName=="pitch-5"){
        pitch-=pitchincr;
        if (pitch<-90) pitch=-90;
-       pitchL.setText(stringOps::ConvertFloatToString(pitch,0));}
-   if (actionName=="tilt+2°"){tilt+=tiltincr;if (tilt>180) tilt=180;tiltL.setText(stringOps::ConvertFloatToString(tilt,0));}
-   if (actionName=="tilt-2°"){tilt-=tiltincr;if (tilt<-180) tilt=-180;tiltL.setText(stringOps::ConvertFloatToString(tilt,0));}
+       pitchL.setTextAndUpdate(stringOps::ConvertFloatToString(pitch,0));}
+   if (actionName=="tilt+2°"){tilt+=tiltincr;if (tilt>180) tilt=180;tiltL.setTextAndUpdate(stringOps::ConvertFloatToString(tilt,0));}
+   if (actionName=="tilt-2°"){tilt-=tiltincr;if (tilt<-180) tilt=-180;tiltL.setTextAndUpdate(stringOps::ConvertFloatToString(tilt,0));}
    if (actionName=="Ok"){Commit();}
    if (actionName=="m") {ChangeCurrentUnit(0,mbutton);}
    if (actionName=="cm") {ChangeCurrentUnit(1,mbutton);}
@@ -438,6 +456,7 @@ void advanced::CommitActiveLine(){
             activeLine->setText(stringOps::ConvertFloatToString(val,numberOfDigits));
         }
         cursor.EraseCursor();
+        activeLine->PrintString();
         activeLine=nullptr;
         activeParameter=nullptr;
     }
@@ -480,6 +499,7 @@ void advanced::ProcessKeyPress(bool special,string keyName,string in_String){
         if (keyName=="LEFT") {MoveCursorLeft();}
 
     }
+    activeLine->PrintString();
 }
 void advanced::Backspace(){
     if (cursor.HasCursor()){
@@ -549,6 +569,7 @@ void advanced::EndEdit(){
     CommitActiveLine();
     delete numpad;
     numpad=nullptr;
+    DrawLogic::WriteDebug("advanced endedit going to destroy modal window");
    ManageModalWindow::DestroyModalWindow();
 }
 
@@ -583,12 +604,10 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
     bBoxAxShift= ConvertMeterToUnit(new_unit,ConvertUnitToMeter(currentUnit,bBoxAxShift));
     currentUnit=new_unit;
 
-
     for (auto &mb:actionButtons){
-        mb.button.setSelect(false);
+        mb->button->setSelect(false);
     }
-    actionButtons[in_button].button.setSelect(true);
-
+    actionButtons[in_button]->button->setSelect(true);
     switch (new_unit){
     case 0:  {//meters
         gapincr=0.05f;
@@ -597,22 +616,22 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         latshiftincr=0.02f;
         axshiftincr=0.02f;
         //actionbuttons 3 à 12
-        actionButtons[3].button.setText("+5cm");
-        actionButtons[4].button.setText("-5cm");
-        actionButtons[5].button.setText("+2cm(R)");
-        actionButtons[6].button.setText("-2cm(L)");
-        actionButtons[7].button.setText("-2cm(F)");
-        actionButtons[8].button.setText("+2cm(B)");
-        actionButtons[9].button.setText("+5cm");
-        actionButtons[10].button.setText("-5cm");
-        actionButtons[11].button.setText("+10cm");
-        actionButtons[12].button.setText("-10cm");
+        actionButtons[3]->button->setText("+5cm");
+        actionButtons[4]->button->setText("-5cm");
+        actionButtons[5]->button->setText("+2cm(R)");
+        actionButtons[6]->button->setText("-2cm(L)");
+        actionButtons[7]->button->setText("-2cm(F)");
+        actionButtons[8]->button->setText("+2cm(B)");
+        actionButtons[9]->button->setText("+5cm");
+        actionButtons[10]->button->setText("-5cm");
+        actionButtons[11]->button->setText("+10cm");
+        actionButtons[12]->button->setText("-10cm");
         if (numberOfDigits>0) numberOfDigits=4;
-        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset));
-        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift));
-        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift));
-        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth));
-        heightL.setText(stringOps::ConvertFloatToString(bBoxheight));
+        offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset));
+        rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift));
+        aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift));
+        widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth));
+        heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight));
         break;
     }
     case 1:  {//centimeters
@@ -622,22 +641,22 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         latshiftincr=2;
         axshiftincr=2;
         //actionbuttons 3 à 12
-        actionButtons[3].button.setText("+5cm");
-        actionButtons[4].button.setText("-5cm");
-        actionButtons[5].button.setText("+2cm(R)");
-        actionButtons[6].button.setText("-2cm(L)");
-        actionButtons[7].button.setText("-2cm(F)");
-        actionButtons[8].button.setText("+2cm(B)");
-        actionButtons[9].button.setText("+5cm");
-        actionButtons[10].button.setText("-5cm");
-        actionButtons[11].button.setText("+10cm");
-        actionButtons[12].button.setText("-10cm");
+        actionButtons[3]->button->setText("+5cm");
+        actionButtons[4]->button->setText("-5cm");
+        actionButtons[5]->button->setText("+2cm(R)");
+        actionButtons[6]->button->setText("-2cm(L)");
+        actionButtons[7]->button->setText("-2cm(F)");
+        actionButtons[8]->button->setText("+2cm(B)");
+        actionButtons[9]->button->setText("+5cm");
+        actionButtons[10]->button->setText("-5cm");
+        actionButtons[11]->button->setText("+10cm");
+        actionButtons[12]->button->setText("-10cm");
         if (numberOfDigits>0) numberOfDigits=2;
-        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,2));
-        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,2));
-        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,2));
-        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,2));
-        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,2));
+        offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset,2));
+        rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift,2));
+        aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift,2));
+        widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth,2));
+        heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight,2));
         break;
     }
     case 2:  {//millimeters
@@ -647,22 +666,22 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         latshiftincr=20;
         axshiftincr=20;
         //actionbuttons 3 à 12
-        actionButtons[3].button.setText("+5cm");
-        actionButtons[4].button.setText("-5cm");
-        actionButtons[5].button.setText("+2cm(R)");
-        actionButtons[6].button.setText("-2cm(L)");
-        actionButtons[7].button.setText("-2cm(F)");
-        actionButtons[8].button.setText("+2cm(B)");
-        actionButtons[9].button.setText("+5cm");
-        actionButtons[10].button.setText("-5cm");
-        actionButtons[11].button.setText("+10cm");
-        actionButtons[12].button.setText("-10cm");
+        actionButtons[3]->button->setText("+5cm");
+        actionButtons[4]->button->setText("-5cm");
+        actionButtons[5]->button->setText("+2cm(R)");
+        actionButtons[6]->button->setText("-2cm(L)");
+        actionButtons[7]->button->setText("-2cm(F)");
+        actionButtons[8]->button->setText("+2cm(B)");
+        actionButtons[9]->button->setText("+5cm");
+        actionButtons[10]->button->setText("-5cm");
+        actionButtons[11]->button->setText("+10cm");
+        actionButtons[12]->button->setText("-10cm");
         if (numberOfDigits>0) numberOfDigits=1;
-        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,1));
-        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,1));
-        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,1));
-        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,1));
-        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,1));
+        offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset,1));
+        rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift,1));
+        aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift,1));
+        widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth,1));
+        heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight,1));
         break;
     }
     case 3:   {//feet
@@ -672,22 +691,22 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         latshiftincr=0.0833333f;
         axshiftincr =0.0833333f;
         //actionbuttons 3 à 12
-        actionButtons[3].button.setText("+2i");
-        actionButtons[4].button.setText("-2i");
-        actionButtons[5].button.setText("+1i(R)");
-        actionButtons[6].button.setText("-1i(L)");
-        actionButtons[7].button.setText("-1i(F)");
-        actionButtons[8].button.setText("+1i(B)");
-        actionButtons[9].button.setText("+2i");
-        actionButtons[10].button.setText("-2i");
-        actionButtons[11].button.setText("+4i");
-        actionButtons[12].button.setText("-4i");
+        actionButtons[3]->button->setText("+2i");
+        actionButtons[4]->button->setText("-2i");
+        actionButtons[5]->button->setText("+1i(R)");
+        actionButtons[6]->button->setText("-1i(L)");
+        actionButtons[7]->button->setText("-1i(F)");
+        actionButtons[8]->button->setText("+1i(B)");
+        actionButtons[9]->button->setText("+2i");
+        actionButtons[10]->button->setText("-2i");
+        actionButtons[11]->button->setText("+4i");
+        actionButtons[12]->button->setText("-4i");
         if (numberOfDigits>0) numberOfDigits=4;
-        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,4));
-        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,4));
-        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,4));
-        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,4));
-        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,4));
+        offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset,4));
+        rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift,4));
+        aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift,4));
+        widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth,4));
+        heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight,4));
         break;
     }
     case 4:  {//inches
@@ -697,22 +716,22 @@ void advanced::ChangeCurrentUnit(int new_unit, ulong in_button){
         latshiftincr=1;
         axshiftincr =1;
         //actionbuttons 3 à 12
-        actionButtons[3].button.setText("+2i");
-        actionButtons[4].button.setText("-2i");
-        actionButtons[5].button.setText("+1i(R)");
-        actionButtons[6].button.setText("-1i(L)");
-        actionButtons[7].button.setText("-1i(F)");
-        actionButtons[8].button.setText("+1i(B)");
-        actionButtons[9].button.setText("+2i");
-        actionButtons[10].button.setText("-2i");
-        actionButtons[11].button.setText("+4i");
-        actionButtons[12].button.setText("-4i");
+        actionButtons[3]->button->setText("+2i");
+        actionButtons[4]->button->setText("-2i");
+        actionButtons[5]->button->setText("+1i(R)");
+        actionButtons[6]->button->setText("-1i(L)");
+        actionButtons[7]->button->setText("-1i(F)");
+        actionButtons[8]->button->setText("+1i(B)");
+        actionButtons[9]->button->setText("+2i");
+        actionButtons[10]->button->setText("-2i");
+        actionButtons[11]->button->setText("+4i");
+        actionButtons[12]->button->setText("-4i");
         if (numberOfDigits>0) numberOfDigits=2;
-        offsetL.setText(stringOps::ConvertFloatToString(bBoxOffset,2));
-        rightShiftL.setText(stringOps::ConvertFloatToString(bBoxLatShift,2));
-        aftShiftL.setText(stringOps::ConvertFloatToString(bBoxAxShift,2));
-        widthL.setText(stringOps::ConvertFloatToString(bBoxWidth,2));
-        heightL.setText(stringOps::ConvertFloatToString(bBoxheight,2));
+        offsetL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxOffset,2));
+        rightShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxLatShift,2));
+        aftShiftL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxAxShift,2));
+        widthL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxWidth,2));
+        heightL.setTextAndUpdate(stringOps::ConvertFloatToString(bBoxheight,2));
         break;
     }
     }

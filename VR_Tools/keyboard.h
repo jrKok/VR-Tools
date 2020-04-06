@@ -60,6 +60,8 @@ public:
     void    ToAbbrKeys();
     int     MyWidth();
     int     MyHeight();
+    int     MyBottom();
+    int     MyLeft();
     bool    IsSpecialKey();
     bool    IsShiftKeyActive();
     bool    IsCapsKeyActive();

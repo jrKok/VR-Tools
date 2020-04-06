@@ -20,12 +20,12 @@ void fontMan::Initialise(){
         XPLMGetSystemPath(sysPath);
         string sysDir=sysPath;//conversion from char[]
         string fontname=sysDir+"Resources\\fonts\\DejaVuSans.ttf";
-        if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType Init Free Type gave error "+std::to_string(er));FreeTypeError=true;}
+        if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType Init Free Type gave error ",er);FreeTypeError=true;}
         er= FT_New_Face( library,
                          fontname.c_str(),
                          0,
                          &face );
-        if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType New Face returned error "+std::to_string(er));FreeTypeError=true;}
+        if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType New Face returned error ",er);FreeTypeError=true;}
         //er= FT_Set_Char_Size(face,0,10*64,96,96);
         er= FT_Set_Pixel_Sizes(face,11,11);
         unsigned char pass[3];
@@ -55,7 +55,6 @@ void fontMan::Initialise(){
                 }
             }
         }
-        DrawLogic::WriteDebug("font Man left shift number of left shifted, ",count);
     }
 }
 

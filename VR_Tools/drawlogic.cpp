@@ -151,6 +151,7 @@ void DrawLogic::DrawRectOnTexture(int in_l, int in_b, int in_r, int in_t, char i
 
 void DrawLogic::UpdateRectangle(ulong tag_Rect){
     if (myself->windowWidth&&myself->windowHeight)
+
     {
         if ((*(myself->rects))[tag_Rect]->IsVisible())
             myself->DrawRectOnTexture((*myself->rects)[tag_Rect]->GetLeft(),
@@ -366,7 +367,6 @@ void DrawLogic::AddAsFirstRectangle(rectangles *in_Rect){
 ulong DrawLogic::GetNewRectangleNumber(){
     ulong nbrects=rects->size();
     if (hasDeletedRectangles){
-        WriteDebug("DrawLogic Get new number got deleted rectangles");
         for (ulong it(0);it<nbrects;it++){
             if (rects->find(it)==rects->end()) return it;
         }
@@ -378,6 +378,7 @@ ulong DrawLogic::GetNewRectangleNumber(){
 }
 
 void DrawLogic::ReleaseRectangle(ulong tag_Rect){
+    WriteDebug("drawlogic::release_rectangle got request from ",tag_Rect);
     if ((*myself->rects).size()>0){
         if ((*myself->rects).find(tag_Rect)!=(*myself->rects).end()){
             (*myself->rects).erase(tag_Rect);
@@ -615,6 +616,8 @@ void  DrawLogic::PrintMyStats(){
     myself->WriteDebug("number of strings "+std::to_string(myself->strings->size()));
     myself->WriteDebug("current String Number "+std::to_string(myself->currentStringNumber));
     myself->WriteDebug("number of deleted strings "+std::to_string(myself->numberOfDeletedStrings));
+    myself->PrintRectanglesAssessment();
+    myself->PrintStringAssessment();
 }
 
 void DrawLogic::ShowAllStrings(){

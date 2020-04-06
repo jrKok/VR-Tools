@@ -470,10 +470,13 @@ void Hotspots::Handle_End_Of_Edit(){
             delete advancedEditor;
             advancedEditor=nullptr;
         }
+        delete myself->vrconfigEditor;//have to delete before launching new window  to avoid having rects destroyed after creating the new window.
+        myself->vrconfigEditor=nullptr;
         ManageModalWindow::MakeTopWindow();
         advancedEditor=new advanced();
         advancedEditor->MakeAdvancedDialog(hs,Handle_Advanced);
     }
+
     if (myself->vrconfigEditor!=nullptr){
         delete myself->vrconfigEditor;
         myself->vrconfigEditor=nullptr;
@@ -493,9 +496,11 @@ void Hotspots::Handle_Advanced(){
     }else {
        VRCReader::AnalyzeFile();
    }
+   DrawLogic::WriteDebug("hotspots handle advanced going to delete advancedEditor");
    delete advancedEditor;
     advancedEditor=nullptr;
     OpCenter::SetModalWindow(false);
+    DrawLogic::WriteDebug("hotspots handle_Advanced : deleted advancedEditor");
 }
 
 int Hotspots::Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void* inRefcon){

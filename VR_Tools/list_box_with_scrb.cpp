@@ -302,8 +302,8 @@ void List_Box_With_ScrB::ProceedEndClick(){//Mouse Up
     needToContClick=false;
     dragLines=false;
     delLines=false;
-    if (scrB.OngoingDrag()) scrB.EndDrag();
-    if (scrB.OngoingRepeat()) scrB.EndRepeat();
+    scrB.EndDrag();
+    scrB.EndRepeat();
 }
 
 void List_Box_With_ScrB::Recalculate(int in_lft, int in_bt){

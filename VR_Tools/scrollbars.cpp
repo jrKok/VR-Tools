@@ -1,4 +1,5 @@
 #include "scrollbars.h"
+#include "drawlogic.h"
 
 /* this class implements a scroll bar with 2 commands, a lift or thumb cursor,
  * based on text widgets,
@@ -74,9 +75,10 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
        lowCore=offY+15;
        topCore=lowCore+heightOfCore-15;
 
-       if (topCore<limitLastLine){//if there are more lines then vertical pixels in core then proportionnalise the core
+       if ((heightOfCore-15)<limitLastLine){//if there are more lines then vertical pixels in core then proportionnalise the core
           heightOfLift=15;
-          linesPPx=static_cast<float>(limitLastLine)/static_cast<float>(topCore);
+          lift.SetDimensions(15,15);
+          linesPPx=static_cast<float>(limitLastLine)/static_cast<float>(heightOfCore-15);
         }
         else{
           topCore=lowCore+limitLastLine;
@@ -87,13 +89,10 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
 
         lift.SetOrigin(offX,15);
         SetPosFirstLine(firstLine);
-        core.setColor(Clr_Gray);
-        lift.setColor(Clr_White);
         SetVisibility(true);
    }
    else{//no extra lines are to be displayed, no initialisation occured
        SetVisibility(false);
-
    }
 }
 
@@ -113,7 +112,7 @@ bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
         }
         if (core.isHere(x,y)){
             if (lift.isHere(x,y)){
-                retVal=y;
+                retVal=numberfirstLine;
                 BeginDrag(y);
                 return true;
             }
@@ -146,27 +145,28 @@ void ScrollBars::BeginDrag(int y){
     drag=true;
 }
 
-int  ScrollBars::DragY(int y){
+int  ScrollBars::DragY(int in_y){
     if (drag) {
-        int diff=y-dragPosY; //get variation of position
-        int dy=y0+diff; //convert into variation of offset
+        int dy=dragPosY-in_y; //get variation of position
+        int newY=y0-dy; //convert into new lift bottom position
+        DrawLogic::WriteDebug("scrollbars;;dragy dy is ",dy);
         //limit variation of offset into bounds
-        if (dy>=topCore) {
+        if (newY>=topCore) {
             numberfirstLine=0;
             lift.SetOrigin(lift.GetLeft(),topCore);
             core.UpdateMyTexture();
             lift.UpdateMyTexture();
             return numberfirstLine;
             }
-        if (dy<=lowCore) {
+        if (newY<=lowCore) {
             numberfirstLine=limitLastLine;
             lift.SetOrigin(lift.GetLeft(),lowCore);
             core.UpdateMyTexture();
             lift.UpdateMyTexture();
             return numberfirstLine;}
         //if in bounds convert pixels to line number
-        numberfirstLine=(topCore-dy)*static_cast<int>(linesPPx);
-        lift.SetOrigin(lift.GetLeft(),dy);
+        numberfirstLine=static_cast<int>((topCore-newY)*linesPPx);
+        lift.SetOrigin(lift.GetLeft(),newY);
         core.UpdateMyTexture();
         lift.UpdateMyTexture();
         return numberfirstLine;
@@ -211,7 +211,6 @@ bool ScrollBars::ShouldRepeat(){
             UpPage();
             return true;
         }
-
     }
     return false;
 }
@@ -234,28 +233,26 @@ void ScrollBars::SetPosFirstLine(int firstLine){
     //This function calculates position of lift WRT firstLine
     //with special positions of firstLine=0 and firstLine between possible position of last line and total number of lines
 
-    if (firstLine<=0) {
+   if (firstLine<=0) {
         numberfirstLine=0;
         lift.SetOrigin(lift.GetLeft(),topCore);
-        core.UpdateMyTexture();
-        lift.UpdateMyTexture();
-    }else{
-    if (firstLine>=limitLastLine){
-        numberfirstLine=limitLastLine;
-        lift.SetOrigin(lift.GetLeft(),lowCore);
-        core.UpdateMyTexture();
-        lift.UpdateMyTexture();}
-    else{
-        if (linesPPx==1.0f){
+   }else{
+      if (firstLine>=limitLastLine){
+         numberfirstLine=limitLastLine;
+         lift.SetOrigin(lift.GetLeft(),lowCore);
+      }
+      else{
+         if (linesPPx==1.0f){
             numberfirstLine=firstLine;
             lift.SetOrigin(lift.GetLeft(),topCore-numberfirstLine);
-            core.UpdateMyTexture();
-            lift.UpdateMyTexture();
-        }else{
+         }else{
             numberfirstLine=firstLine;
-            lift.SetOrigin(lift.GetLeft(),topCore-numberfirstLine*(topCore-lowCore)/limitLastLine);
-        }
-    }}
+            lift.SetOrigin(lift.GetLeft(),topCore-static_cast<int>((numberfirstLine)/linesPPx));
+         }
+      }
+   }
+   core.UpdateMyTexture();
+   lift.UpdateMyTexture();
 }
 
 int ScrollBars::GetPosFirstLine(){
@@ -265,17 +262,16 @@ int ScrollBars::GetPosFirstLine(){
 void ScrollBars::SetVisibility(bool iV){
     if (isVisible!=iV){
         general.setVisibility(iV);
-        lift.setVisibility(iV);
         core.setVisibility(iV);
+        lift.setVisibility(iV);
         commandDown.setVisibility(iV);
         commandUp.setVisibility(iV);
         isVisible=iV;
-        if (isVisible){
-            core.UpdateMyTexture();
-            lift.UpdateMyTexture();
-        }
     }
-
+    if (isVisible){
+        core.UpdateMyTexture();
+        lift.UpdateMyTexture();
+    }
 }
 
 void ScrollBars::LineUpNLines(int nL){

@@ -16,11 +16,11 @@ public:
     void   DeleteLine();
     void   setText (const string &in_Str);
     string GetText();
-    void   PrintBindingBox();
+    void   setTextAndUpdate(const string &in_Str);
+    void   PrintBox();
     void   PrintString();
     void   PrintStringOnly();
     void   PrintStringOnLocalT();
-    void   PrintBox();
     bool   isHere(int,int);
     void   SetTextColor(char in_clr);
     void   SetBackGroundColor(char in_clr);

@@ -136,6 +136,7 @@ void LineDialog::DrawMyself(XPLMWindowID in_window_id, void * unused){
 }
 
 int LineDialog::MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused){
+    ManageModalWindow::MakeTopWindow();
     switch (is_down){
     case xplm_MouseDown:{
         if(!XPLMIsWindowInFront(in_window_id))
