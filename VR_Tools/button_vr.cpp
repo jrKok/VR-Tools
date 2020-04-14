@@ -69,7 +69,7 @@ void button_VR::setText(const std::string &in_String){
 
 void button_VR::LocateText(){
     int tWidth=static_cast<int>(XPLMMeasureString(xplmFont_Proportional,(char*)buttonText.c_str(),buttonText.length()));
-    int tHeight(0);
+    int tHeight(10);
     XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&tHeight,nullptr);
     offsetTextY=(height/2)-(tHeight/2)+bottom;
     if (tWidth>=(width-4)){

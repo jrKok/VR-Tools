@@ -23,7 +23,6 @@ public:
     bool ReadFileToBuff();
     void DisplayPage();
     void DrawCursor();
-    void DrawSelectionRects();
     void UpdateBox(int thisLine);
     void MoveCursorUp();
     void MoveCursorDown();

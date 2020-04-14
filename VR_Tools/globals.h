@@ -1,12 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-#include FT_TYPES_H
-#include FT_OUTLINE_H
-#include FT_RENDER_H
-#include <rectangles.h>
+
+#include "rectangles.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -35,15 +30,7 @@ struct textureColor
    unsigned char alpha;
 };
 
-struct charrecord
-{
-    unsigned char bitmap[144];
-    FT_ULong charcode;
-    long yOffset;
-    unsigned int width;
-    unsigned int height;
-    unsigned int advance;
-};
+
 
 struct color
 {

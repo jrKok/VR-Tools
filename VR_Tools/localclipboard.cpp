@@ -46,7 +46,7 @@ string LocalClipBoard::PullText(){
                 void * str=GlobalLock(hText);
                 if (str!=nullptr)
                 {
-                    Layout::WriteDebug("read sring");
+                    //DrawLogic::WriteDebug("read string");
                     char* wClipStr=reinterpret_cast<char*>(str);
                     clip=wClipStr;
                 }

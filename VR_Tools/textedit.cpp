@@ -69,7 +69,7 @@ bool TextEdit::ReadFileToBuff(){
        while (getline(textFile,inputL)){
            inputL=ops.cleanOut(inputL,CR);//remove carriage return
            inputL+=LF;//but add line feed for saving, so to know where the original breaks were
-          AddLine(cursor.ReadLineToUTF(inputL));
+          AddLine(inputL);
           }
        textFile.close();
        SetupforText();
@@ -180,7 +180,7 @@ void TextEdit::DisplayPage(){
     //cast Variables to usable types
         ulong idx=static_cast<ulong>(indxFirstOnPg),
                 uPageHeight=static_cast<ulong>(pageHeightInL),
-                uSelectedLine=static_cast<ulong>(lineSelected),
+                //uSelectedLine=static_cast<ulong>(lineSelected),
                 uNumberOLs=static_cast<ulong>(totalNbL);
     //compute boundaries
         indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
@@ -189,7 +189,7 @@ void TextEdit::DisplayPage(){
         for (ulong ln(0);ln<uPageHeight;ln++){
             if (idx<uNumberOLs){
                 box[ln].setText((*displayText)[idx]);
-                box[ln].SetSelected(uSelectedLine==idx);
+                //box[ln].SetSelected(uSelectedLine==idx);
                 if (cursor.HasCursor()) {
                     if (box[ln].GetIndex()==cursor.GetLine())
                         DrawLogic::SetCursorPosition(cursor.PosToX(),box[ln].GetTextY()+2);
@@ -199,9 +199,11 @@ void TextEdit::DisplayPage(){
                     if (cursor.IsIndexInSelection(box[ln].GetIndex(),l,r)){
 
                         DrawLogic::PrintRectOnTexture(l,box[ln].GetBottom(),r,box[ln].GetTop(),Clr_TextSelectBlue);
+                        box[ln].PrintStringOnLocalT();
                     }
+                    else box[ln].PrintStringOnly();
                 }
-                box[ln].PrintStringOnLocalT();
+                else box[ln].PrintStringOnly();
             }
             else {
                 box[ln].setText("");
@@ -216,15 +218,6 @@ cursor.DrawCursor();
 
 }
 
-void TextEdit::DrawSelectionRects(){
-    if (cursor.HasSelection()){
-        int l,r;
-        for (auto bx:box){
-            if (cursor.IsIndexInSelection(bx.GetIndex(),l,r)) cursor.DrawRectangle(l,bx.GetTop(),r,bx.GetBottom());
-        }
-    }
-
-}
 void TextEdit::MoveCursorUp(){
     if (cursor.HasCursor()){
         cursor.MoveCursorUp();

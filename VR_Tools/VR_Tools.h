@@ -45,7 +45,8 @@
     #include <cstring>
     #include <cstdint>
 #else
-    #include <gl/GL.h>
+  /*  #include <GL/glew.h>
+    #include <gl/GL.h>*/
 #endif
 
 #ifndef XPLM301

@@ -53,14 +53,9 @@ OpCenter::~OpCenter(){
     ptrLayout=nullptr;
 }
 
-void OpCenter::WriteDebug(string in_String){
-    in_String="VR Tools : " +in_String+"\r\n";
-    XPLMDebugString((char*)in_String.c_str());
-}
-
 int OpCenter::SetupCenter(){
 
-    WriteDebug("Go To GetIniParams");
+    DrawLogic::WriteDebug("Go To GetIniParams");
     colordefs.DefineColors();
     IniSettings::GetIniParams();
     g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
@@ -95,13 +90,14 @@ int OpCenter::SetupCenter(){
     MakeMenus();
     commandFilter.init();
 
-    WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
+    DrawLogic::WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
     IsLaunched=true;
     return g_vr_dref != nullptr;
 }
 
 void OpCenter::LaunchOperations(){
-
+    DrawLogic::MakeGLContext();
+    DrawLogic::WriteDebug("OpCenter Launchoperations : made GLContext");
     DrawLogic *ndp=new DrawLogic();//ndp = New DrawPad
     ndp->Initiate();
     ndp->SetId("Layout");
@@ -470,7 +466,7 @@ void  OpCenter::MakeTextWindow(){
              (*ptrLayout).SetWindowHandle(g_textWindow);
              (*ptrLayout).CheckButtonsVisibility();
          }
-             else WriteDebug(("couldn't initiate the textfile, file not found"));
+             else DrawLogic::WriteDebug(("couldn't initiate the textfile, file not found"));
 
        }
 }
@@ -510,7 +506,7 @@ void  OpCenter::MakeFileWindow(){
        g_textWindow=nullptr;
 
     }
-    else WriteDebug("erronous call to MakeFileWindow");
+    else DrawLogic::WriteDebug("erronous call to MakeFileWindow");
 }
 
 void  OpCenter::ReadNewFile(){

@@ -23,7 +23,6 @@ public:
     ShowDir(DrawLogic *newPad);
     ~ShowDir();
 
-    void WriteDebug(string message);
     void MakeButton();
     void MakeLine();
     void SetupDirWindow(int left,int top);

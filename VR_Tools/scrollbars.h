@@ -29,7 +29,6 @@ public:
     void LineDownNLines (int nL);
     void UpPage();
     void DownPage();
-    void WriteDebug(std::string message);
     void BeginRepeat(int cmd);
     bool ShouldRepeat();
     void EndRepeat();

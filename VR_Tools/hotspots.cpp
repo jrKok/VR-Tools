@@ -503,7 +503,7 @@ void Hotspots::Handle_Advanced(){
     DrawLogic::WriteDebug("hotspots handle_Advanced : deleted advancedEditor");
 }
 
-int Hotspots::Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void* inRefcon){
+int Hotspots::Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void*){
     if (inPhase==xplm_CommandBegin&&!OpCenter::HasModalWindow()&&phaseMove==0&&XPLMGetDatai(g_vr_dref)){
         if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
         if (dlg==nullptr){dlg=new LineDialog();}

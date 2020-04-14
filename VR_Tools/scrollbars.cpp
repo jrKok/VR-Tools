@@ -36,11 +36,6 @@ ScrollBars::ScrollBars(bool modal):
 
 {}
 
-void ScrollBars::WriteDebug(std::string message){
-    std::string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
-}
-
 void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,int offX, int offY){
 
    totalheight=height;
@@ -149,7 +144,6 @@ int  ScrollBars::DragY(int in_y){
     if (drag) {
         int dy=dragPosY-in_y; //get variation of position
         int newY=y0-dy; //convert into new lift bottom position
-        DrawLogic::WriteDebug("scrollbars;;dragy dy is ",dy);
         //limit variation of offset into bounds
         if (newY>=topCore) {
             numberfirstLine=0;

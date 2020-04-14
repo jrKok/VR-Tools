@@ -109,11 +109,11 @@ private:
     button_VR *relogButton,*upButton,*downButton,*renameButton,*createButton,*deleteButton,*repositionButton;
     button_VR *vaftButton,*vforwButton,*vupButton,*vdownButton,*vleftButton,*vrightButton;
     button_VR *clicked;
-    int width, height,answer,myStringNumber,myStringN2,myStringN3,textOffsetX,textOffsetY,selectedHotsp;
+    int width, height,answer,myStringN2,myStringN3,textOffsetX,textOffsetY,selectedHotsp;
     float targetX,targetY,targetZ;
     string userLine;
     Keyboard *keyb;
-    TextLine editLine;
+    TextLine editLine, logCoords;
     cursor cursor;
     bool specialKey;
     bool actionLaunched,mightSave,disableEdit,filterblock;

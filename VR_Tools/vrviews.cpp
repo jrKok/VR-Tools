@@ -35,7 +35,6 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     width(320),
     height(400),
     answer(0),
-    myStringNumber(0),
     myStringN2(0),
     myStringN3(0),
     textOffsetX(0),
@@ -47,6 +46,7 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     userLine(""),
     keyb(nullptr),
     editLine(true),
+    logCoords(true),
     cursor(),
     specialKey(false),
     actionLaunched(false),
@@ -157,8 +157,10 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
 
     ManageModalWindow::ResizeModalWindow(width,height);
     point p;
-    p.SetCoords(textOffsetX,textOffsetY);
-    myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,Clr_LighterGray,p);
+    logCoords.SetDimensions(width-textOffsetX,12);
+    logCoords.SetOrigin(textOffsetX,textOffsetY);
+    logCoords.SetBackGroundColor(Clr_LighterGray);
+    logCoords.setText(alertStr);
     p.SetCoords(100,posSecondLine);
     myStringN2=DrawLogic::AddString("If needed, Select a hotspot :",Clr_BlackInk,Clr_LighterGray,p);
     p.SetCoords(textOffsetX,posThirdLine);
@@ -337,7 +339,7 @@ int VrViews::GetActionLaunched(){
 
 void VrViews::DrawMyself(XPLMWindowID, void *){
     ManageModalWindow::ConstrainGeometry();
-    DrawLogic::DrawContent();
+    DrawLogic::RenderContent();
     myself->cursor.DrawCursor();
 }
 
@@ -498,7 +500,7 @@ void VrViews::MouseToUp(){
                     +" Y="+stringOps::ConvertFloatToString(myself->targetY)
                     +" Z="+stringOps::ConvertFloatToString(myself->targetZ)
                     +" PSI="+stringOps::ConvertFloatToString(0);
-            DrawLogic::ChangeString(myself->myStringNumber,toPass);
+            logCoords.setTextAndUpdate(toPass);
             myself->actionLaunched=false;
             VRCommandFilter::commandBlock=myself->filterblock;
             myself->action=0;
@@ -533,7 +535,7 @@ void VrViews::LaunchAction(int in_action){
                 +" Y="+stringOps::ConvertFloatToString(targetY)
                 +" Z="+stringOps::ConvertFloatToString(targetZ)
                 +" PSI="+stringOps::ConvertFloatToString(0);
-        DrawLogic::ChangeString(myStringNumber,toPass);
+        logCoords.setTextAndUpdate(toPass);
         actionLaunched=false;
 
     }break;

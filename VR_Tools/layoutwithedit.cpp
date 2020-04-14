@@ -210,7 +210,7 @@ void LayoutWithEdit::recalculate(){ //gets called at every draw callback so this
 
 void LayoutWithEdit::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
-    myDrawPad->Initiate();
+    myDrawPad->ToUpperLevel();
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
     recalculate();
     myDrawPad->SetScreenOrigin(l,b,r,t);
@@ -244,7 +244,7 @@ void LayoutWithEdit::DrawTextW(XPLMWindowID g_textWindow){
         }
         tEdFileReader->DisplayPage();//to draw updated displays of backgrounds
     }
-    myDrawPad->DrawContent();
+    myDrawPad->RenderElements();
     tEdFileReader->DrawCursor();
 }
 
@@ -493,6 +493,7 @@ void LayoutWithEdit::QuitCommand(){
     if (hasToSave){
         quitWoSave.MakeAlert("Don't Save","Save","Cancel","All recent modifications will be lost ?",HandleAlertResult);
     }
+    else editMode=false;
 }
 
 void LayoutWithEdit::HandleAlertResult(){

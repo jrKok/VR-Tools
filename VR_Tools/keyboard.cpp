@@ -1,5 +1,6 @@
 #include "keyboard.h"
 #include "layoutwithedit.h"
+#include "drawlogic.h"
 //size of a space = 4px
 
 lineOfKeys Keyboard::physicalKeys;
@@ -48,10 +49,6 @@ Keyboard::~Keyboard(){
     for (auto k: kL4)  delete k;
     for (auto k: kL5)  delete k;
     myKeyboard=nullptr;
-}
-void Keyboard::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
 }
 
 void Keyboard::MakeKeyDefs(const string &in_Line,std::vector<string> &out_keys){
@@ -104,17 +101,17 @@ void Keyboard::FindKeySpecs(const string &in_Def,//  find Key specifications fro
         int vk_num(0);
         vk_tag=0;
         if ((specs[0]=="")||(specs[1]=="")||(specs[2]=="")||(specs[3]=="")) {
-            WriteDebug("Invalid key definition in statement "+in_Def);
+            DrawLogic::WriteDebug("Invalid key definition in statement "+in_Def);
             return;
         }
         try{vk_num=std::stoi(specs[0]);}
         catch(std::invalid_argument& e){
             iterator--;
-            WriteDebug("Keyboard definition file invalid, must contain a reference to a VK_key for every virtual key");
+            DrawLogic::WriteDebug("Keyboard definition file invalid, must contain a reference to a VK_key for every virtual key");
             return;
         }
         if (vk_num>189){
-            WriteDebug("Keyboard definition file contains an invalid reference to a VK_Key : >189");
+            DrawLogic::WriteDebug("Keyboard definition file contains an invalid reference to a VK_Key : >189");
         }
         else {
             if (vk_num>0)
@@ -153,7 +150,7 @@ void Keyboard::FindKeySpecs(const string &in_Def,//  find Key specifications fro
             if (iterator<nbSpecs) abbrString=ConvString(specs[iterator]);
         }
     }
-    else WriteDebug("invalid keyboard specification file");
+    else DrawLogic::WriteDebug("invalid keyboard specification file");
 }
 
 int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,lineOfKeys &keyLine){
@@ -182,7 +179,7 @@ int Keyboard::MakeLine(const int &offY, const string &keyDefLine,int lineNumber,
         }
         keyLine.push_back(nextkey);
         if (vk_tag<=250) physicalKeys[vk_tag]=nextkey;
-        else WriteDebug("keyboard implementation, can't take virtual key codes over 250 : check keyb definition file");
+        else DrawLogic::WriteDebug("keyboard implementation, can't take virtual key codes over 250 : check keyb definition file");
         col++;
 
     }
@@ -616,7 +613,7 @@ int  Keyboard::Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VKs,v
      LayoutWithEdit * caller=reinterpret_cast<LayoutWithEdit*>(inRefcon);
      caller->SetTextToShow("VK code = "+std::to_string(in_VK));
 
-     if ((flag&xplm_key_down)&&!physicalKeyPressed){
+     if ((flag&XPLM_KEY_DOWN)&&!physicalKeyPressed){
          //initial press, no other key pressed
          physicalKeyPressed=true;
          activeVKCode=in_VK;
@@ -668,7 +665,7 @@ int  Keyboard::Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VKs,v
                  activeKeyString=activeKeyName;
                  myKeyboard->SetCTRLToggle(true);
              }
-         }else myKeyboard->WriteDebug("key for in_VK "+std::to_string(in_VK)+" is not attributed");
+         }else DrawLogic::WriteDebug("key for in_VK "+std::to_string(in_VK)+" is not attributed");
 
          if (activeKeyName!=""){
              caller->SetSpecialKey(activeIsSpecialKey);

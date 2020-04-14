@@ -38,7 +38,6 @@ public:
     int  ResumeOperations();
 
     /*Forward declarations */
- static   void  WriteDebug(string in_string);
  static   void  drawText(XPLMWindowID, void *);
  static   void  drawFileWindow(XPLMWindowID in_window_id, void *);
  static   int   handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *);

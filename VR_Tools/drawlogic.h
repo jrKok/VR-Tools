@@ -25,7 +25,6 @@
  */
 
 
-
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
 #include "XPLMDataAccess.h"
@@ -34,6 +33,7 @@
 #include "XPLMUtilities.h"
 #include "XPLMMenus.h"
 #include "point.h"
+
 #include <memory>
 #include <globals.h>
 
@@ -46,7 +46,8 @@
     #include <cstring>
     #include <cstdint>
 #else
-    #include <GL/gl.h>
+    #include <gl/glew.h>
+    //#include <gl/GL.h>
 #endif
 
 class DrawLogic
@@ -54,40 +55,50 @@ class DrawLogic
 public:
     DrawLogic();
     ~DrawLogic();
+    //Helpers
     static void  WriteDebug(string message);
     static void  WriteDebug(string message,int i1);
     static void  WriteDebug(string message,int i1,int i2);
     static void  WriteDebug(string message,int i1,int i2,int i3);
     static void  WriteDebug(string message,int i1,int i2,int i3,int i4);
-    static DrawLogic*  GetCurrentPad();
-    void  Initiate();
-    void  ToUpperLevel();
-    void  SetNewSize(int in_Width, int in_Height);
-    void  FillAll(char in_Color);
-static void PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color);
-    void  DrawRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color);
-    void  WipeRectangle(const rectangles * const in_rect);
-    void  GenerateCurrentTexture();
-    void  DrawStringOnTexture(string in_String,char in_Color,char bckCol, point start_point);
-    void  DrawStringOnLocalTexture(string in_String, char in_Color, point start_point);
-    void  RelocateStrings();
-    ulong GetNewRectangleNumber();
+
+    //Initializers
+       static bool  MakeGLContext();
+              void  checkCompileErrors(unsigned int shader, std::string type);
+ static DrawLogic*  GetCurrentPad();
+              void  Initiate();
+              void  ToUpperLevel();
+              void  SetNewSize(int in_Width, int in_Height);
+              void  SetWindowH(XPLMWindowID in_WH);
+
+    //Texture Functions
+       void  FillAll(char in_Color);
+static void  UpdateTexture();
+       void  GenerateCurrentTexture(); //Draws all elements at once
+
+static void  PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color); //static function to call the next
+       void  DrawRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color);
+       void  WipeRectangle(const rectangles * const in_rect);
+
+static void  PrintString(const int in_Element);
+static void  PrintStringOnLocalT(const int in_Element);
+       void  DrawStringOnTexture(string in_String,char in_Color,char bckCol, point start_point);
+       void  DrawStringOnLocalTexture(string in_String, char in_Color, point start_point);
+       void  RelocateStrings();
+
+
+    //Rectangle vector management
+    ulong          GetNewRectangleNumber();
     static ulong   AddRectangle(rectangles *in_Rect);
     static void    AddAsFirstRectangle(rectangles *in_Rect);
     static void    UpdateRectangle(ulong tag_Rect);
     static void    ReleaseRectangle(ulong tag_Rect);
     static void    HideRectangle(ulong tag_Rect);
-    static void    UpdateTexture();
 
+    //string vector management
     static int   AddString(const string &in_String, const char in_Color,const char bckgrdcol, point where);
     void         EraseStrings();
     static ulong IndexOfString(const int &in_Element);
-    void         DrawElements();
-    void         DrawStrings();
-    void         SetId(string in_ID);
-    string       GetId();
-    static string GetSId();
-    static char* ToC(const string &in_String);
     static void  ChangeString(const int in_Element, const string &to_String);
     static void  ChangeColorString(const int in_Element,const char &to_Color);
     static void  ChangeBckGrdColorString (const int in_Element,const char &to_Color);
@@ -96,17 +107,27 @@ static void PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color
     static void  SetVisibilityString(const int in_Element,const bool &is_Visible);
     static bool  GetVisibilityString(const int in_Element);
     static char  GetColorCodeString (const int in_Element);
-    static void  PrintString(const int in_Element);
-    static void  PrintStringOnLocalT(const int in_Element);
 
-    static void  DrawContent();
+    //Cursor Management
+    static void  SetCursorPosition(int x, int y);
+    static void  RenderCursor();
+
+    // Rendering the texture from the GPU to the screen
+    static void  RenderContent();
+    void         RenderElements();
+    void         RenderElementsDirectGL();
+    void         DrawStrings();
+    void         SetId(string in_ID);
+    string       GetId();
+   static string GetSId();
+
+   //Adjustements, Data coherence
+    static char* ToC(const string &in_String);
     static void  FlushContent();
     static void  SetScreenOrigin(int in_left,int in_bottom,int in_right,int in_top);
     static void  SetBackGroundColor(char in_Color);
 
-    static void  SetCursorPosition(int x, int y);
-    static void  DrawCursor();
-
+    //Debugging functions
     static void  StringAssesment();
            void  PrintStringAssessment();
            void  PrintRectanglesAssessment();
@@ -117,6 +138,7 @@ static void PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color
     static bool  VerifyPointer(ulong tag, rectangles *in_rect);
 
 private:
+    static unsigned int shaderProgram,VAO,VBO,EBO;
     map<ulong,rectangles*> *rects;
     vector<StringToDraw> *strings;
     std::array<textureColor,MaxWWidth*MaxWHeight> textureZone;
@@ -131,7 +153,8 @@ private:
     int screenT;
     int screenB;
     int numberOfDeletedStrings;
-    bool hasDeletedStrings,hasDeletedRectangles;
+    bool hasDeletedStrings,hasDeletedRectangles,hasToUpdate;
+    XPLMWindowID myWindow;
     static DrawLogic *myself;
 
     int    windowWidth,windowHeight;
@@ -139,7 +162,6 @@ private:
     int    cursorX,cursorY;
     float  black[3];
     char   cursor[2];
-
 };
 
 #endif // DRAWLOGIC_H

@@ -62,6 +62,7 @@ XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID,
      params.top    = sBottom+myHeight+offsetY;
 
     myModalWindow = XPLMCreateWindowEx(&params);
+    myself->myDrawPad->SetWindowH(myModalWindow);
     XPLMSetWindowPositioningMode(myModalWindow, vr_is_enabled>0?xplm_WindowVR:xplm_WindowPositionFree, -1);
     XPLMSetWindowResizingLimits(myModalWindow, myWidth, myHeight, myWidth+70, myHeight+30);
 
@@ -90,6 +91,7 @@ void ManageModalWindow::DestroyModalWindow(){
 }
 void ManageModalWindow::ResizeModalWindow(int width, int height){
     myWidth=width;myHeight=height;
+    XPLMSetWindowResizingLimits(myModalWindow, myWidth, myHeight, myWidth+70, myHeight+30);
     if (XPLMWindowIsInVR(myModalWindow)==1)
         XPLMSetWindowGeometryVR(myModalWindow,width,height);
     else{
@@ -104,14 +106,20 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
 
 void ManageModalWindow::ConstrainGeometry(){
     int top(0),right(0);
-    myself->myDrawPad->Initiate();
-    XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
-    if ((right-myLeft)>myWidth||(top-myBottom)>myHeight){
-        if (XPLMWindowIsInVR(myModalWindow)==1)
+    myself->myDrawPad->ToUpperLevel();
+    XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);  
+    if (XPLMWindowIsInVR(myModalWindow)==1){
+        int in_Width,in_Height;
+        XPLMGetWindowGeometryVR(myModalWindow, &in_Width, &in_Height);
+        if (in_Width!=myWidth||in_Height!=myHeight){
             XPLMSetWindowGeometryVR(myModalWindow,myWidth,myHeight);
-        else{
-            XPLMSetWindowGeometry(myModalWindow,myLeft,myBottom+myHeight,myLeft+myWidth,myBottom);
             XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
+        }
+    }
+     else{
+        if ((right-myLeft)>myWidth||(top-myBottom)>myHeight){
+           XPLMSetWindowGeometry(myModalWindow,myLeft,myBottom+myHeight,myLeft+myWidth,myBottom);
+           XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
         }
     }
     DrawLogic::SetScreenOrigin(myLeft,myBottom,right,top);

@@ -1,15 +1,11 @@
 #include "stringops.h"
+#include "drawlogic.h"
 
 string stringOps::digits("0123456789");
 string stringOps::numSigns("+.-");
 stringOps::stringOps()
 {
 
-}
-
-void stringOps::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
 }
 
 bool stringOps::contains(const string inString, const string inContains){
@@ -76,7 +72,7 @@ string stringOps::splitAtSize(string &inString, int in_sz){//used for truncate a
     //the caller has to ensure that inString is superior to in_sz
     string left("");
     if (in_sz>0){
-       int MaxL=findLengthForSize(inString,in_sz);
+       ulong MaxL=findLengthForSize(inString,in_sz);
        left=inString.substr(0,MaxL);//do a brutal split at MaxL
        inString=inString.substr(MaxL);
     }
@@ -145,12 +141,12 @@ string stringOps::DecodeInstruction(string in_instr, string &out_right,string &c
     left=Trim(left," \t");
     if (contains(left,";")) return (""); //then line is commented
     //if there is text in quotes, extract it, and it will become the value to return
-    int posSemi(-1);
-    if (contains(right,";")) posSemi=right.find(";");
+    ulong posSemi(0); bool found(false);
+    if (contains(right,";")) {posSemi=right.find(";");found=true;}
     if (contains(right,"\"")){
         auto firstQt=right.find("\"");
         auto secondQt=right.find_last_of("\"");
-        if (posSemi>=0){
+        if (found){
             if (firstQt<posSemi){
                if (secondQt==firstQt) right="";
                else {
@@ -171,7 +167,7 @@ string stringOps::DecodeInstruction(string in_instr, string &out_right,string &c
 
     }
     //no text in quotes, first split of any comments
-    if (posSemi>-1){
+    if (found){
         comment=right.substr(posSemi);//return the comment with the semi colon
         right=right.substr(0,posSemi);
     }
@@ -256,12 +252,12 @@ float  stringOps::ConvertStringToFloat(string in_string) {
             return out_float;
         }
         else{
-            stringOps::WriteDebug("vrconfig a string couldn't be converted to a float (wasn't a number)");
+            DrawLogic::WriteDebug("vrconfig a string couldn't be converted to a float (wasn't a number)");
             return 0;
         }
     }
     else {
-    stringOps::WriteDebug("vrconfig a string couldn't be converted to a float (was empty)");
+    DrawLogic::WriteDebug("vrconfig a string couldn't be converted to a float (was empty)");
     return 0;
     }
 }

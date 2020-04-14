@@ -28,10 +28,6 @@ public:
     Layout(DrawLogic *newPad);
     virtual ~Layout();
 
-
-     static void WriteDebug(string message);
-     static void InitCycleDebug(int nbs);
-     static void WriteDebugInCycles(string message);
             void Begin();
     virtual bool initiate();
     virtual bool resize();

@@ -1,4 +1,5 @@
 #include "vrcreader.h"
+#include "drawlogic.h"
 
 int VRCReader::activeHotspotNumber(0);
 int VRCReader::numberOfHotspotsInfile(0);
@@ -34,7 +35,7 @@ string VRCReader::GetVRConfigFileName() {
           vrConfigBackup=planeDir+"/"+planeModelName+"_vrconfig.bck";
       }
 
-      stringOps::WriteDebug("VR config file is "+vrConfigFileName);
+      DrawLogic::WriteDebug("VR config file is "+vrConfigFileName);
       return planeModelName;
   }
 
@@ -68,6 +69,7 @@ string VRCReader::GetVRConfigFileName() {
     AddLine(itr,"   PRESET_PHI 0.0000",true);
     AddLine(itr,"END_TELEPORT_HOTSPOT",true);
  }
+
  void   VRCReader::AddLine(int &nb,string in_line,bool hsdef,int hsnum){
       vrconfigFile.push_back(in_line);
 
@@ -107,7 +109,7 @@ string VRCReader::GetVRConfigFileName() {
          return isVrValid;
      }
      else{
-         stringOps::WriteDebug("couldn't open "+vrConfigFileName);
+         DrawLogic::WriteDebug("couldn't open "+vrConfigFileName);
          return false;
      }
 
@@ -249,7 +251,7 @@ void   VRCReader::SaveVRConfig() {
         path pBck=vrConfigBackup;
         if (!exists(pBck)) {
             copy_file (pO,pBck,copy_options::overwrite_existing);
-            stringOps::WriteDebug("The original vrconfig is copied as "+vrConfigBackup);
+            DrawLogic::WriteDebug("The original vrconfig is copied as "+vrConfigBackup);
         }
     }
     std::fstream cfgFile;
@@ -278,8 +280,8 @@ void   VRCReader::SaveVRConfig() {
             itr++;
         }
     }
-    stringOps::WriteDebug("Replaced "+vrConfigFileName);
-    stringOps::WriteDebug("The original vrconfig is copied as "+vrConfigBackup);
+    DrawLogic::WriteDebug("Replaced "+vrConfigFileName);
+    DrawLogic::WriteDebug("The original vrconfig is copied as "+vrConfigBackup);
     cfgFile.close();
 }
 
@@ -333,6 +335,7 @@ void VRCReader::CreateHotspot(string in_name, float x, float y, float z, float r
     hs.PresetX=x;
     hs.PresetY=y;
     hs.PresetZ=z;
+    hs.psi=rot;
     hs.psi=0;
     /*if (rot>=45&&rot<135) hs.psi=90;
     if (rot>=135&&rot<225) hs.psi=180;
@@ -408,7 +411,8 @@ void VRCReader::SetHotspotName(int in_Line,string in_Name){
       (*hotspots)[idx].PresetX=x;
       (*hotspots)[idx].PresetY=y;
       (*hotspots)[idx].PresetZ=z;
-      //(*hotspots)[idx].psi=rot;
+      (*hotspots)[idx].psi=rot;
+      (*hotspots)[idx].psi=0;
       (*hotspots)[idx].the=pitch;
       (*hotspots)[idx].phi=tilt;
       (*hotspots)[idx].AABBminX=x-0.3f;
@@ -444,10 +448,10 @@ void VRCReader::SetAdvancedOptions(Hotspot in_HS){
         (*hotspots)[aH].type=in_HS.type;
     }
     else {
-        stringOps::WriteDebug("hotspots name don't match, advanced options not set, report this to the developer");
-        stringOps::WriteDebug("hotspot received "+in_HS.name);
-        stringOps::WriteDebug("hotspot number is "+std::to_string(in_HS.hotspotNumber));
-        stringOps::WriteDebug("hotspot corresponding to number "+(*hotspots)[aH].name);
+        DrawLogic::WriteDebug("hotspots name don't match, advanced options not set, report this to the developer");
+        DrawLogic::WriteDebug("hotspot received "+in_HS.name);
+        DrawLogic::WriteDebug("hotspot number is "+std::to_string(in_HS.hotspotNumber));
+        DrawLogic::WriteDebug("hotspot corresponding to number "+(*hotspots)[aH].name);
     }
 
 }

@@ -2,11 +2,9 @@
 #define KEYBOARD_H
 
 #include <key.h>
-#include <memory>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <vector>
 #include "XPLMUtilities.h"
 #include "VR_Tools_global.h"
 
@@ -20,7 +18,6 @@ class Keyboard
 public:
     Keyboard(bool modal=false);
     ~Keyboard();
-    void    WriteDebug(string message);
     string  ConvString(const string &in_String);
     void    MakeKeyDefs(const string &in_Line,std::vector<string> &out_keys);
     void    FindKeySpecs(const string &in_Def,

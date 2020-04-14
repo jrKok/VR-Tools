@@ -553,21 +553,6 @@ int  cursor::EndLineToY(int firstLine){
     return yL;
 }
 
-void cursor::DrawRectangle(int left, int top, int right, int bottom){
-
-    glColor3fv(lightblue);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-    glBegin(GL_TRIANGLE_FAN);
-   {
-     glVertex2i(left, top);
-     glVertex2i(right, top);
-     glVertex2i(right, bottom);
-     glVertex2i(left, bottom);
-   }
-   glEnd();
-
-}
-
 void cursor::DrawCursor(){
 //draws a blinking cursor, textedit checks if the cursor is at the right line
     if (hasCursor&&!hasSelection){
@@ -582,7 +567,7 @@ void cursor::DrawCursor(){
     }
     if (cursorOn){
         //string crsr=string(cursorChar);
-        DrawLogic::DrawCursor();
+        DrawLogic::RenderCursor();
     }
    }
 }

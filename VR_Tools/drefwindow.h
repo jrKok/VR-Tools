@@ -26,7 +26,8 @@
 #if LIN
     #include <GL/gl.h>
 #else
-    #include <GL/gl.h>
+    #include <gl/glew.h>
+   // #include <gl/GL.h>
 #endif
 
 using std::string;
@@ -37,7 +38,6 @@ class DRefWindow
 public:
     DRefWindow();
     ~DRefWindow();
-    void WriteDebug(string in_string);
     void ToggleShowMode();
     void Setup();
     void Unload();

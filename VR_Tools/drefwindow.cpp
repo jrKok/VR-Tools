@@ -77,17 +77,12 @@ DRefWindow::~DRefWindow(){
 myself=nullptr;
 }
 
-void DRefWindow::WriteDebug(string in_String){
-    in_String="VR Tools : " +in_String+"\r\n";
-    XPLMDebugString((char*)in_String.c_str());
-}
-
 void DRefWindow::Setup(){
     g_vr_dref        = XPLMFindDataRef("sim/graphics/VR/enabled");
     g_FPS            = XPLMFindDataRef("sim/time/framerate_period");
     if (g_FPS==nullptr){
         g_FPS        = XPLMFindDataRef("sim/operation/misc/frame_rate_period");
-        WriteDebug("will use misc/frame_rate_period for FPS");}
+        DrawLogic::WriteDebug("will use misc/frame_rate_period for FPS");}
     g_IAS            = XPLMFindDataRef("sim/flightmodel/position/indicated_airspeed");
     g_TAS            = XPLMFindDataRef("sim/flightmodel/position/true_airspeed");
     g_GS             = XPLMFindDataRef("sim/flightmodel/position/groundspeed");
@@ -192,7 +187,7 @@ void DRefWindow::drawWReport(XPLMWindowID, void *){
     int l, t, r, b;
     XPLMGetWindowGeometry(idDrefWindow, &l, &t, &r, &b);
 
-    glColor3fv(DRefWindow::gray);
+   /* glColor3fv(DRefWindow::gray);
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     glBegin(GL_TRIANGLE_FAN);
     {
@@ -201,7 +196,7 @@ void DRefWindow::drawWReport(XPLMWindowID, void *){
         glVertex2i(r-1, b+1);
         glVertex2i(l+1, b+1);
     }
-    glEnd();
+    glEnd();*/
 
         XPLMDrawString(DRefWindow::cyan, l+10, t-16, (char *)s_qnh.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-28, (char *)s_winds.c_str(), nullptr, xplmFont_Proportional);

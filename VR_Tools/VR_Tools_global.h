@@ -10,7 +10,6 @@
    #include <filesystem>
     using ulong=unsigned long long;
     using namespace std::experimental::filesystem;
-   //#include <GL/gl.h>
 #endif
 #if LIN
    #include <experimental/filesystem>

@@ -18,7 +18,6 @@ class stringOps
 {
 public:
     stringOps();
-static       void WriteDebug(string message);
 static       bool contains(const string inString, const string inContains);
 static     string splitRight(const string inString, const string split);
 static     string cleanOut(const string inString,const string inToClean);

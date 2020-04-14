@@ -51,23 +51,6 @@ Layout::~Layout(){
 
 //Helpers
 
-void Layout::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
-}
-
-void Layout::InitCycleDebug(int nbs){
-    cycle=nbs;
-}
-
-void Layout::WriteDebugInCycles(string message){
-    if (cycle>0){
-        string in_String="VR Tools : " +message+"\n";
-        XPLMDebugString((char*)in_String.c_str());
-        cycle--;
-    }
-}
-
 bool Layout::OpenWindowAtStart(){
     return openAtStart;
 }
@@ -296,7 +279,7 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
 }
 void Layout::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
-    myDrawPad->Initiate();
+    myDrawPad->ToUpperLevel();
     float curT=XPLMGetElapsedTime();
     XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
     recalculate(curT);
@@ -343,7 +326,7 @@ void Layout::DrawTextW(XPLMWindowID g_textWindow){
             }
         }
     }
-    DrawLogic::DrawContent();
+    DrawLogic::RenderContent();
 }
 
 void Layout::DoFlash(){
@@ -557,7 +540,7 @@ void Layout::LaunchCommand(int refCommand){
          break;}
 
          case B_Show_All:{
-        WriteDebug("layout commandprocess color code for step 1 scrollBar"+std::to_string(tFileReader->GetScrollBarsColorCode()));
+        DrawLogic::WriteDebug("layout commandprocess color code for step 1 scrollBar"+std::to_string(tFileReader->GetScrollBarsColorCode()));
              tFileReader->ShowAll();
              tFileReader->SetupforText();
          break;}
@@ -617,7 +600,7 @@ void Layout::LaunchCommand(int refCommand){
          break;  }
 }
     CheckButtonsVisibility();
-            WriteDebug("layout commandprocess color code for afterBV scrollBar"+std::to_string(tFileReader->GetScrollBarsColorCode()));
+            DrawLogic::WriteDebug("layout commandprocess color code for afterBV scrollBar"+std::to_string(tFileReader->GetScrollBarsColorCode()));
 }
 
 void Layout::ClosegWindow(){
@@ -652,6 +635,7 @@ string Layout::GetDirName(){
 
 void Layout::SetWindowHandle(XPLMWindowID thisW){
     myWindow=thisW;
+    myDrawPad->SetWindowH(thisW);
     XPLMGetWindowGeometry(myWindow, &l, &t, &r, &b);
     if (isWindowInVR())
     XPLMGetWindowGeometryVR(myWindow,&vrWidth,&vrHeight);

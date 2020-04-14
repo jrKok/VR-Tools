@@ -17,6 +17,22 @@
  */
 
 #include "globals.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+#include FT_TYPES_H
+#include FT_OUTLINE_H
+#include FT_RENDER_H
+
+struct charrecord
+{
+    unsigned char bitmap[144];
+    FT_ULong charcode;
+    long yOffset;
+    unsigned int width;
+    unsigned int height;
+    unsigned int advance;
+};
 
 class fontMan
 {

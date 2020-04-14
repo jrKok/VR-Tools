@@ -114,11 +114,11 @@ void LineDialog::MakeDialog(const string &yesStr,
     ManageModalWindow::ResizeModalWindow(width,height);
     keyb->SetVisibility(true);
     editLine->setTextAndUpdate(userLine);
-    cursor.Initiate(&forCursor,editLine->GetBottom(),editLine->GetLeft(),20,1);
+    cursor.Initiate(&forCursor,editLine->GetLeft(),editLine->GetBottom(),20,1);
     cursor.SetCursorAt(0,0);
     DrawLogic::SetCursorPosition(cursor.PosToX(),editLine->GetTextY()+2);
-
     DrawLogic::UpdateTexture();
+    editLine->setTextAndUpdate(userLine);
 }
 
 int  LineDialog::GetAnswer(){

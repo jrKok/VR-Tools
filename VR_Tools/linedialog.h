@@ -33,8 +33,8 @@ public:
     int  GetAnswer();
     string GetUserLine();
     static void Recalculate ();
-    static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
-    static int MouseHandler(XPLMWindowID in_window_id, int x, int y, int is_down, void * unused);
+    static void DrawMyself(XPLMWindowID, void *);
+    static int MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_down, void *);
     void ProcessKeyPress(std::string keyName,std::string in_String);
     void ContinueKeyPress();
     bool IsLineNotTooWide();
@@ -54,7 +54,6 @@ private:
 
     std::function<void()> callBack;
     button_VR *yesButton,*noButton,*cancelButton;
-    rectangles *textRect;
     int width, height,answer,myStringNumber,textOffsetX,textOffsetY;
     string userLine;
     Keyboard *keyb;
@@ -62,7 +61,6 @@ private:
     cursor cursor;
     bool specialKey;
     static bool mouseLocated;
-    static int left,top;
     static XPLMWindowID myXPWindow;
     static LineDialog *myself;
     vector<string> forCursor;

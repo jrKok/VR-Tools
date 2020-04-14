@@ -34,7 +34,7 @@ void  Setup();
     static float readValuesCallback(float elpSc,float elpTime,int countr,void* refcon);
     static void  PrepareToMove();
     static float MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refcon);
-    static int   Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void * inRefcon);
+    static int   Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void *);
     static int   Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, void *);
     static void  MakeMoveComplete();
     static void  MakeMove4();

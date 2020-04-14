@@ -37,11 +37,6 @@ ShowDir::~ShowDir(){
 
 //Helper functions
 
-void ShowDir::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
-}
-
 void ShowDir::MakeButton(){
     button_VR *button=new button_VR();
     button->SetOrigin(10,10);
@@ -182,6 +177,7 @@ void ShowDir::ActivateWindow(){
     myDrawPad->SetNewSize(wWidth,wHeight);
     dirN.ShowAll();
     fileN.ShowAll();
+    myDrawPad->SetWindowH(myWindow);
     DrawLogic::UpdateTexture();
     if (XPLMWindowIsInVR(myWindow)){
         newT=nB+wHeight;
@@ -197,6 +193,7 @@ void ShowDir::ActivateWindow(){
 }
 
 void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
+    myDrawPad->ToUpperLevel();
     XPLMGetWindowGeometry(g_FileWindow, &newL, &newT, &nR, &nB);
     if ((newT-nB)!=wHeight|(nR-newL)!=wWidth){
         if (XPLMWindowIsInVR(myWindow)){
@@ -211,7 +208,7 @@ void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
         }
     }
     myDrawPad->SetScreenOrigin(newL,nB,nR,newT);
-    DrawLogic::DrawContent();
+    myDrawPad->RenderElements();
 }
 
 int  ShowDir::processMouseDn(int x,int y){

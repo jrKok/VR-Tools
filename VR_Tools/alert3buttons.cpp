@@ -89,7 +89,7 @@ int  Alert3Buttons::GetAnswer(){
 
 void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void *){
     ManageModalWindow::ConstrainGeometry();
-    DrawLogic::DrawContent();
+    DrawLogic::RenderContent();
 }
 
 int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void * unused){

@@ -18,11 +18,11 @@
 #include <XPLMUtilities.h>
 #include <XPLMProcessing.h>
 
-#if LIN
+/*#if LIN
     #include <GL/gl.h>
 #else
     #include <GL/gl.h>
-#endif
+#endif*/
 
 //class Layout;
 
@@ -72,7 +72,6 @@ public:
     int  LineToY(int firstLine);
     int  EndPosToX();
     int  EndLineToY(int firstLine);
-    void DrawRectangle(int left, int top, int right, int bottom);
     void DrawCursor();
     void BeginCursorBlink();
     string ReadLineToUTF(string inLine);

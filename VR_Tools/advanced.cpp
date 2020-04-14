@@ -225,7 +225,7 @@ void advanced::PrintLines(){
 void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
 
     ManageModalWindow::ConstrainGeometry();
-    DrawLogic::DrawContent();
+    DrawLogic::RenderContent();
     if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();//myself.activeLine->GetTextY()
 }
 
