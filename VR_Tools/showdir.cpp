@@ -177,7 +177,7 @@ void ShowDir::ActivateWindow(){
     myDrawPad->SetNewSize(wWidth,wHeight);
     dirN.ShowAll();
     fileN.ShowAll();
-    myDrawPad->SetWindowH(myWindow);
+    myDrawPad->SetWindowHandle(myWindow);
     DrawLogic::UpdateTexture();
     if (XPLMWindowIsInVR(myWindow)){
         newT=nB+wHeight;
@@ -192,22 +192,29 @@ void ShowDir::ActivateWindow(){
     }
 }
 
+void ShowDir::Update(){
+    if (myWindow){
+        myDrawPad->ToUpperLevel();
+        XPLMGetWindowGeometry(myWindow, &newL, &newT, &nR, &nB);
+        int wW(0),wH(0);
+        if ((newT-nB)!=wHeight|(nR-newL)!=wWidth){
+            if (XPLMWindowIsInVR(myWindow)){
+                newT=nB+wHeight;
+                nR=newL+wWidth;
+                XPLMSetWindowGeometryVR(myWindow,wWidth,wHeight);
+            }
+            else{
+                newT=nB+wHeight;
+                nR=newL+wWidth;
+                XPLMSetWindowGeometry(myWindow,newL,newT,nR,nB);
+            }
+        }
+        myDrawPad->UpdateDrawPad(wWidth,wHeight,newL,nB,nR,newT);
+    }
+}
 void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
     myDrawPad->ToUpperLevel();
-    XPLMGetWindowGeometry(g_FileWindow, &newL, &newT, &nR, &nB);
-    if ((newT-nB)!=wHeight|(nR-newL)!=wWidth){
-        if (XPLMWindowIsInVR(myWindow)){
-            newT=nB+wHeight;
-            nR=newL+wWidth;
-            XPLMSetWindowGeometryVR(myWindow,wWidth,wHeight);
-        }
-        else{
-            newT=nB+wHeight;
-            nR=newL+wWidth;
-            XPLMSetWindowGeometry(myWindow,newL,newT,nR,nB);
-        }
-    }
-    myDrawPad->SetScreenOrigin(newL,nB,nR,newT);
+
     myDrawPad->RenderElements();
 }
 
@@ -344,6 +351,8 @@ int  ShowDir::GetWidth(){return general.GetWidth();}
 int  ShowDir::GetHeight(){return general.GetHeight();}
 
 void ShowDir::CloseDirWindow(){
+    myWindow=nullptr;
+    myDrawPad->CloseWindow();
 }
 
 void ShowDir::SelectFileLine(){

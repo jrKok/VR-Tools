@@ -81,8 +81,11 @@ void button_VR::LocateText(){
 }
 
 void button_VR::SetTextOffsets(int oX,int oY){
-    offsetTextX=oX;
-    offsetTextY=oY;
+    offsetTextX=oX+left;
+    offsetTextY=oY+bottom;
+    stringLocation.SetCoords(offsetTextX,offsetTextY);
+    DrawLogic::RelocateString(stringNumber,stringLocation);
+    ReDrawButton();
 }
 
 void button_VR::SetOffsetY(int in_oY){
@@ -121,7 +124,6 @@ void button_VR::setButtonColor(char to_Clr){
 }
 
 void button_VR::resetMe(){
-    symbol.clear();
     isVisible=false;
     isSelected=false;
     buttonText="";

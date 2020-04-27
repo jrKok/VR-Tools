@@ -36,7 +36,7 @@ public:
     void MakeLinePos(const string &thisline);
     void MakeLinePosAgain(const ulong line,const string &thisline);
      int FindPositionInNativeLine(const string &in_string, int in_pos);
-    void SetIndxFirstPage(int indx);
+    void SetFirstLineOnPage(int indx);
     void FindClosestXPosition(int inLine, int inX);
     int  UTFCharToPos(char *chtest);
     int  GetLengthOfUTFString(const string &inLine);

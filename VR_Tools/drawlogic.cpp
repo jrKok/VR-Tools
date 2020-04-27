@@ -32,7 +32,7 @@ DrawLogic::DrawLogic():
      windowHeight(0),
      ident("DrawPad"),
      black{0.0,0.0,0.0},
-     cursor{'|','\0'}
+     cursor{'I','\0'}
 {
     myself=this;
     XPLMGenerateTextureNumbers(&textNum, 1);
@@ -92,7 +92,7 @@ bool DrawLogic::MakeGLContext(){
        "   TexCoord = vec2(aTexCoord.x,aTexCoord.y);\n"
        "}\0";
 
-   const char *fragmentShaderSource = "#version 330 core\n"
+   const char *fragmentShaderSource = "#version 330 core\n" //
        "out uvec4 FragColor;\n"
        "in vec2 TexCoord;\n"
        "uniform usampler2D texture1;\n"
@@ -105,20 +105,20 @@ bool DrawLogic::MakeGLContext(){
    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
    glCompileShader(vertexShader);
-   myself->checkCompileErrors(vertexShader, "VERTEX");
+   //myself->checkCompileErrors(vertexShader, "VERTEX");
 
    //fragment shader compile
    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
    glCompileShader(fragmentShader);
-   myself->checkCompileErrors(fragmentShader, "FRAGMENT");
+   //myself->checkCompileErrors(fragmentShader, "FRAGMENT");
 
   // merge shaders in Program
    shaderProgram = glCreateProgram();
    glAttachShader(shaderProgram, vertexShader);
    glAttachShader(shaderProgram, fragmentShader);
    glLinkProgram(shaderProgram);
-   myself-> checkCompileErrors(shaderProgram, "PROGRAM");
+  // myself-> checkCompileErrors(shaderProgram, "PROGRAM");
    WriteDebug("vertex and fragment shaders compiled");//Let the world know that 2 more shaders are now on the GPU
 
 // Make space
@@ -202,23 +202,16 @@ void DrawLogic::Initiate(){
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
-/*ulong sze(MaxWWidth*MaxWHeight);
-long adress(reinterpret_cast<long>(&textureZone[0])),newAdress(0);
-for (ulong atg(1);atg<sze;atg++){
-    newAdress=reinterpret_cast<long>(&textureZone[atg]);
-  if (newAdress-adress==4){
-      adress=newAdress;
-  }
-  else{
-      WriteDebug("DrawLogic : textureZone is not contiguous at iteration "+std::to_string(atg));
-      break;
-  }
-}*/
 }
 
-void DrawLogic::SetWindowH(XPLMWindowID in_WH){
+void DrawLogic::SetWindowHandle(XPLMWindowID in_WH){
     myWindow=in_WH;
 }
+
+void DrawLogic::CloseWindow(){
+  myWindow=nullptr;
+}
+
 void DrawLogic::ToUpperLevel(){
    if (myself!=this) Initiate();
 }
@@ -273,7 +266,6 @@ void DrawLogic::DrawRectOnTexture(int in_l, int in_b, int in_r, int in_t, char i
 
 void DrawLogic::UpdateRectangle(ulong tag_Rect){
     if (myself->windowWidth&&myself->windowHeight)
-
     {
         if ((*(myself->rects))[tag_Rect]->IsVisible())
             myself->DrawRectOnTexture((*myself->rects)[tag_Rect]->GetLeft(),
@@ -334,37 +326,13 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
         fg[1]=globals::colors[in_Color].green/255.0;
         fg[2]=globals::colors[in_Color].blue/255.0;
 
-        unsigned char inc(0);
-        char cSize(1),it(0);
         charrecord cBitmap;
-        int charInt(0),height(0),width(0),advance(0),offset(0);
+        int height(0),width(0),advance(0),offset(0);
         if (in_String.length()==0) return;
-        for (ulong tg(0);tg<in_String.length();tg++){
+        vInt to_Draw;
+        fontMan::StringToCode(in_String,to_Draw);
 
-            inc=static_cast<unsigned char>(in_String[tg]);
-            if (inc>0x7F&&cSize==1){
-                if (inc<=0xDF) {
-                    cSize=2;it=0;charInt=inc*0x100;}
-                else
-                {cSize=3;it=1;charInt=inc*0x10000;}
-                continue;
-            } else{
-                if (cSize>1){
-                    if (it){
-                        charInt+=inc*0x100;
-                        it--;
-                        continue;
-                    } else{
-                        charInt+=inc;
-                        cSize=1;
-                    }
-
-                } else{
-                    charInt=inc;
-                }
-            }
-
-            //go try to print
+        for (auto charInt: to_Draw){
             if (charInt==0x20){
                 xP+=4;continue;
             }
@@ -397,41 +365,19 @@ void DrawLogic::DrawStringOnLocalTexture(string in_String, char in_Color, point 
         hasToUpdate=true;
         ulong debut=static_cast<ulong>(start_point.GetY()*windowWidth);
         ulong xP=static_cast<ulong>(start_point.GetX());
-
         double bg[3],fg[3];
 
         fg[0]=globals::colors[in_Color].red/255.0;
         fg[1]=globals::colors[in_Color].green/255.0;
         fg[2]=globals::colors[in_Color].blue/255.0;
 
-        unsigned char inc(0);
-        char cSize(1),it(0);
         charrecord cBitmap;
-        int charInt(0),height(0),width(0),advance(0),offset(0);
+        int height(0),width(0),advance(0),offset(0);
         if (in_String.length()==0) return;
-        for (ulong tg(0);tg<in_String.length();tg++){
+        vInt to_Draw;
+        fontMan::StringToCode(in_String,to_Draw);
 
-            inc=static_cast<unsigned char>(in_String[tg]);
-            if (inc>0x7F&&cSize==1){
-                if (inc<=0xDF) {
-                    cSize=2;it=0;charInt=inc*0x100;}
-                else
-                {cSize=3;it=1;charInt=inc*0x10000;}
-                continue;
-            } else{
-                if (cSize>1){
-                    if (it){
-                        charInt+=inc*0x100;
-                        it--;
-                        continue;
-                    } else{
-                        charInt+=inc;
-                        cSize=1;
-                    }
-                } else{
-                    charInt=inc;
-                }
-            }
+        for (auto charInt: to_Draw){
 
             //go try to print
             if (charInt==0x20){
@@ -663,14 +609,7 @@ void DrawLogic::RenderContent(){
 }
 
 void DrawLogic::RenderElementsDirectGL(){
-    //In case I resolve the ViewPort for VR I'll do a viewport set
-    /*int wW,wH;
-    if (XPLMWindowIsInVR(myWindow)){
-        XPLMGetWindowGeometryVR(myWindow,&wW,&wH);
-    }
-    else {
-        XPLMGetScreenSize(&wW,&wH);
-    }*/
+
     XPLMBindTexture2d(textNum, 0);
         if (hasToUpdate){
             glTexSubImage2D(GL_TEXTURE_2D,
@@ -679,7 +618,7 @@ void DrawLogic::RenderElementsDirectGL(){
                         0,  // y-offset
                         windowWidth,
                         windowHeight,
-                        GL_RGBA,           // color of data we are seding
+                        GL_RGBA,           // color bytes of data we are sending
                         GL_UNSIGNED_BYTE,  // encoding of data we are sending
                         &textureZone);
             hasToUpdate=false;
@@ -690,7 +629,7 @@ void DrawLogic::RenderElementsDirectGL(){
             0,   // No lighting, equivalent to glDisable(GL_LIGHT0);
             0,   // No alpha testing, e.g glDisable(GL_ALPHA_TEST);
             1,   // Use alpha blending, e.g. glEnable(GL_BLEND);
-            0,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
+            1,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
             0);  // No depth write, e.g. glDepthMask(GL_FALSE);
 
         //Direct rendering with screen coords, works in VR
@@ -706,39 +645,12 @@ void DrawLogic::RenderElementsDirectGL(){
             glVertex2i(screenR, screenB);
         glEnd();
 
-  /*
-       //render with viewport
-       glViewport(screenL,screenB,wW,wH);
-       glColor3f(1, 1, 1);
-       glBegin(GL_QUADS);
-           glTexCoord2f(0, 0);
-           glVertex2i(0,0);
-           glTexCoord2f(0, 1);
-           glVertex2i(0, windowHeight);
-           glTexCoord2f(1, 1);
-           glVertex2i(windowWidth, windowHeight);
-           glTexCoord2f(1, 0);
-           glVertex2i(windowWidth,0);
-       glEnd();
- */
 }
 
 void DrawLogic::RenderElements(){
-    int wW,wH;
 
-        if (XPLMWindowIsInVR(myWindow)){
-            XPLMGetWindowGeometryVR(myWindow,&wW,&wH);
-            RenderElementsDirectGL();
-            return;
-        }
-        else {
-           wW=screenR-screenL;
-           wH=screenT-screenB;
-        }
-
-    glActiveTexture(GL_TEXTURE0);
-    XPLMBindTexture2d(textNum, 0);
-    if (hasToUpdate){
+    /*if (hasToUpdate){
+        XPLMBindTexture2d(textNum,0);
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,  // mipmap level
                         0,  // x-offset
@@ -749,24 +661,83 @@ void DrawLogic::RenderElements(){
                         GL_UNSIGNED_BYTE,
                         &textureZone);
         hasToUpdate=false;
-    }
+    }*/
 
-        glViewport(screenL,screenB,wW,wH);
+    int wW(0),wH(0);/*screenL(0),screenR(0),screenT(0),screenB(0);
+     XPLMGetWindowGeometry(myself->myWindow,&screenL,&screenT,&screenR,&screenB);*/
+
+        if (XPLMWindowIsInVR(myself->myWindow)){
+            XPLMGetWindowGeometryVR(myself->myWindow,&wW,&wH);
+            if (wW!=windowWidth||wH!=windowHeight){
+                windowWidth=wW;
+                windowHeight=wH;
+            }
+        }
+        else {
+           wW=screenR-screenL;
+           wH=screenT-screenB;
+           glPushAttrib(GL_VIEWPORT_BIT);
+           glViewport(screenL,screenB,windowWidth,windowHeight);
+        }
+
         XPLMSetGraphicsState(
             0,   // No fog, equivalent to glDisable(GL_FOG);
-            1,   // One texture, equivalent to glEnable(GL_TEXTURE_2D);
+            0,   // No texture
             0,   // No lighting, equivalent to glDisable(GL_LIGHT0);
             0,   // No alpha testing, e.g glDisable(GL_ALPHA_TEST);
             1,   // Use alpha blending, e.g. glEnable(GL_BLEND);
-            0,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
-            0);  // No depth write, e.g. glDepthMask(GL_FALSE);
+            1,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
+            0);
+        XPLMBindTexture2d(textNum,0);
 
         glUseProgram(shaderProgram);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
         glBindVertexArray(0);
+        glUseProgram(0);
+        if (!XPLMWindowIsInVR(myself->myWindow)) glPopAttrib();
+
+}
+
+float DrawLogic::UpdateDrawPad(int wW, int wH, int nleft, int nbottom, int nright, int ntop){
+    if (XPLMWindowIsInVR(myWindow)){
+        if (wW!=windowWidth||wH!=windowHeight){
+            XPLMSetWindowGeometryVR(myWindow,windowWidth,windowHeight);
+        }
+    }
+    if (screenL!=nleft||nbottom!=screenB)
+    {
+        myself->screenB=nbottom;
+        myself->screenL=nleft;
+        myself->screenR=nright;
+        myself->screenT=ntop;
+        if (nright-nleft!=windowWidth)
+            WriteDebug("inconsistency in WindowWidth for"+ GetId()+ "measured/required "+std::to_string(nright-nleft)+"/"+std::to_string(myself->windowWidth));
+        if (ntop-nbottom!=windowHeight) WriteDebug("inconsistency in WindowHeight  measured/required "+std::to_string(ntop-nbottom)+"/"+std::to_string(myself->windowHeight));
+        //compute screen coords for strings
+
+        for (auto &strg: (*myself->strings)){
+            strg.s_screenX=strg.s_location.GetX()+myself->screenL;
+            strg.s_screenY=strg.s_location.GetY()+myself->screenB;
+        }
+    }
+
+    if (hasToUpdate){
+        XPLMBindTexture2d(textNum,0);
+        glTexSubImage2D(GL_TEXTURE_2D,
+                        0,  // mipmap level
+                        0,  // x-offset
+                        0,  // y-offset
+                        windowWidth,
+                        windowHeight,
+                        GL_RGBA,           // color bytes of data we are sending
+                        GL_UNSIGNED_BYTE,  // encoding of data we are sending
+                        &(textureZone));
+        hasToUpdate=false;
+    }
+    return (-1);
+
 
 }
 
@@ -783,23 +754,22 @@ void DrawLogic::RenderCursor(){
 }
 
 void DrawLogic::SetCursorPosition(int x, int y){
-    myself->cursorX=x+myself->screenL;
-    myself->cursorY=y+myself->screenB;
+    myself->cursorX=1+x+myself->screenL;
+    myself->cursorY=-2+y+myself->screenB;
 }
 
 char* DrawLogic::ToC(const string &in_String){
-    ulong sz=in_String.size();sz++;
-    char * fromString=new char [sz];
-    if (in_String=="") {
-        *fromString='\0';
-        return fromString;
+    unsigned long long sz=in_String.size();sz++;//all this to only cast a std::string to a c-string without compiler warning
+    char * fromString=new char [sz];            //otherwise just do XPLMDebugString((char*)in_String.c_str());
+    if (in_String!="")
+    {
+        #if IBM
+        strncpy_s(fromString,sz,in_String.c_str(),sz);
+        #else
+        strcpy(fromString,in_String.c_str());
+        #endif
     }
-#if IBM
-strncpy_s(fromString,sz,in_String.c_str(),sz);
-#endif
-#if LIN
-strcpy(fromString,in_String.c_str());
-#endif
+    *fromString=*fromString+'\0';
 
     return fromString;
 }
@@ -820,24 +790,7 @@ void DrawLogic::ShowAllStrings(){
     }
 }
 
-void DrawLogic::SetScreenOrigin(int in_left, int in_bottom, int in_right, int in_top){
-    //update own coords
-    if (myself->screenL==in_left&&in_bottom==myself->screenB) return;
-    myself->screenB=in_bottom;
-    myself->screenL=in_left;
-    myself->screenR=in_right;
-    myself->screenT=in_top;
-    if (in_right-in_left!=myself->windowWidth) WriteDebug("inconsistency in WindowWidth for"+ myself->GetId()+ "measured/required "+std::to_string(in_right-in_left)+"/"+std::to_string(myself->windowWidth));
-    if (in_top-in_bottom!=myself->windowHeight) WriteDebug("inconsistency in WindowHeight  measured/required "+std::to_string(in_top-in_bottom)+"/"+std::to_string(myself->windowHeight));
-    //compute screen coords for strings
-
-    for (auto &strg: (*myself->strings)){
-        strg.s_screenX=strg.s_location.GetX()+myself->screenL;
-        strg.s_screenY=strg.s_location.GetY()+myself->screenB;
-    }
-}
-
-void DrawLogic::FlushContent(){
+void DrawLogic::FlushContent(){//Only for the modal windows, the others don't recreate their basic rects
     myself->rects->clear();
     myself->strings->clear();
     myself->numberOfDeletedStrings=0;

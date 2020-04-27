@@ -8,6 +8,7 @@
 #include "vrcommandfilter.h"
 #include "managemodalwindow.h"
 #include "opcenter.h"
+#include "temporarywindow.h"
 
 float Hotspots::targetX(0);
 float Hotspots::targetY(0);
@@ -291,7 +292,7 @@ else CmdTurn=CmdTurnRight;
     }
 }
 
-float Hotspots::MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refcon){
+float Hotspots::MoveMeToHotSpot(float ,float ,int ,void* ){
     float posX(0),posY(0),posZ(0),dX(0),dY(0),dZ(0);
      myself->LogPilotHead(posX,posY,posZ);
      //psi= XPLMGetDataf(pilotPsi);
@@ -381,8 +382,17 @@ float Hotspots::MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refco
 int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, void * ){
 
     if (!OpCenter::HasModalWindow()&&phaseMove==0&&in_phase==xplm_CommandBegin){
-            if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
+            if (!VRCReader::HasHotspots()) {
+                HandleErrorHotspotList();
+            }
             myself->LogPilotHead(targetX,targetY,targetZ);
+            if (!VRCReader::HasHotspots()){
+                VRCReader::CreateHotspot("Pilot View",targetX,targetY,targetZ,targetPsi,0,0);
+                VRCReader::SaveVRConfig();
+                temporaryWindow::ShowAlert("Valid vrconfig created with pilot view at current position",2);
+                ReloadCurrentAircraft();
+                return 0;
+            }
             if (myself->vrconfigEditor!=nullptr)
                 delete myself->vrconfigEditor;
             ManageModalWindow::MakeTopWindow();

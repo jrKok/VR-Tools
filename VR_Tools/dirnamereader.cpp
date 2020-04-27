@@ -1,4 +1,5 @@
 #include "dirnamereader.h"
+#include "drawlogic.h"
 
 
 dirNameReader::dirNameReader():List_Box_With_ScrB(),
@@ -89,12 +90,12 @@ void dirNameReader::ReadSelectedDir(){
        }
        if (name==ShortCutPlug){
            SetDirectory(sysDir+"/Resources/plugins/VR_Tools");
-           WriteDebug(actualPath);
+           DrawLogic::WriteDebug(actualPath);
            return;
       }
        if (name==ShortCutPlane){
            SetDirectory(FilePointer::GetCurrentPlaneDir());
-           WriteDebug(actualPath);
+           DrawLogic::WriteDebug(actualPath);
        }
     }else{
        parentPath=actualPath;

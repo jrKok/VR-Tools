@@ -47,7 +47,7 @@ public:
     virtual bool ProceedClick(int x, int y);
     virtual void ProceedClickCont(int x, int y);
     virtual void ProceedEndClick();
-    void Recalculate(int in_lft,int in_tp);
+    //void Recalculate(int in_lft,int in_tp);
     void MoveUpNLines(int uL);
     void MoveDnNLines(int dL);
     void MoveUpPage();
@@ -123,7 +123,6 @@ protected:
 
 
     int  MeasureString(string str);
-    void WriteDebug(string message);
 };
 
 #endif // LIST_BOX_WITH_SCRB_H

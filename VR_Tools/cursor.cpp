@@ -117,7 +117,7 @@ int  cursor::GetLengthOfUTFString(const string &inLine){
 }
 
 
-void cursor::SetIndxFirstPage(int indx){
+void cursor::SetFirstLineOnPage(int indx){
     indexFirstOnPage=indx;
     indexLastOnPage=indx+nbOfLines-1;
 }
@@ -242,7 +242,7 @@ void cursor::MoveCursorRight(){
     ulong maxPos=posLines[ln].size()-1;
     if (static_cast<ulong>(charPos)<maxPos){
         charPos++;
-        cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX-1;
+        cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX;
     }
     BeginCursorBlink();
 }
@@ -251,7 +251,7 @@ void cursor::MoveCursorLeft(){
     ulong ln=static_cast<ulong>(line);
     if (charPos>0){
         charPos--;
-        cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX-1;
+        cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX;
     }
     BeginCursorBlink();
 }
@@ -347,21 +347,21 @@ void cursor::MoveSelectionRight(){
           if (selectionEndCharPos<(limitEnd-1))
           {
               selectionEndCharPos++;
-              selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
+              selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX;
           }
        }else{
           if (selectionEndLine==selectionStartLine)
           {
               if (selectionStartCharPos<(selectionEndCharPos-1)){
                   selectionStartCharPos++;
-                  selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
+                  selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX;
               }
           }
           else{
               if (selectionStartCharPos<(limitStart-1))
               {
                   selectionStartCharPos++;
-                  selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
+                  selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX;
               }
           }
        }
@@ -374,7 +374,7 @@ void cursor::MoveSelectionLeft(){
           if (selectionStartCharPos>0)
           {
              selectionStartCharPos--;
-             selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX-1;
+             selectionStartCursorX=posLines[selectionStartLine][static_cast<ulong >(selectionStartCharPos)]+offX;
            }
        }
        else{
@@ -382,14 +382,14 @@ void cursor::MoveSelectionLeft(){
             if (selectionEndCharPos>(selectionStartCharPos+1))
             {
                 selectionEndCharPos--;
-                selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
+                selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX;
             }
          }
          else{
             if (selectionEndCharPos>0)
             {
                selectionEndCharPos--;
-               selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX-1;
+               selectionEndCursorX=posLines[selectionEndLine][static_cast<ulong >(selectionEndCharPos)]+offX;
             }
         }
      }
@@ -477,7 +477,7 @@ void cursor::SetCursorAt(int in_line, int in_pos){
     hasCursor=true;//if values were valid, make the cursor
     line=in_line;
     ulong uln=static_cast<ulong>(in_line),upos=static_cast<ulong>(in_pos);
-    cursorX=posLines[uln][upos]+offX-1;
+    cursorX=posLines[uln][upos]+offX;
     BeginCursorBlink();
 }
 

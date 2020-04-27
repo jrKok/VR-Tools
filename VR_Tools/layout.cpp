@@ -24,6 +24,7 @@ Layout::Layout(DrawLogic *newPad) :
   continueClick(false),buttonClick(false),autoReload(false),saveAuto(false),canUTF(true),autoReloadOnSize(true),
   useBackGround(true),
   flash(false),flashWhenChange(false),
+  must_print(true),
   clickresult(-1),vrWidth(0),vrHeight(0),
   upperMargin(40),
   lowerMargin(54),
@@ -277,55 +278,61 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
            tFileReader->SetBackGround(false);}
 }
 }
+
+void Layout::Update(){
+    if (myWindow){
+        myDrawPad->ToUpperLevel();
+        float curT=XPLMGetElapsedTime();
+        XPLMGetWindowGeometry(myWindow, &l, &t, &r, &b);
+        recalculate(curT);
+
+        if (showFPS){
+            if ((curT-fpsTag)>0.5f) {
+                fpsTag=curT;
+                currentFPS=1/(XPLMGetDataf(g_FPS));
+                string fps=std::to_string(currentFPS);
+                fps=fps.substr(0,5);
+                lFPS.setText("FPS : "+fps);
+                lFPS.PrintString();
+            }
+        }
+
+        float sunPtc = XPLMGetDataf(dref_SunPitch); //time of day ?
+        int actualD(0);
+        if ((sunPtc>-3)&&(sunPtc<5)) actualD=1;
+        if (sunPtc<=-3) actualD=2;
+        if (actualD!=dayPart)
+        {
+            dayPart=actualD;
+            if (useBackGround){
+                switch (dayPart){
+                case 0:{
+                    tFileReader->SetBckColor(Clr_PaperWhite);
+                    tFileReader->SetInkColor(Clr_BlackInk);
+                    break;}
+                case 1:{
+                    tFileReader->SetBckColor(Clr_PaperDusk);
+                    tFileReader->SetInkColor(Clr_BlackInk);
+                    break;}
+                case 2:{
+                    tFileReader->SetBckColor(Clr_Black);//night paper
+                    tFileReader->SetInkColor(Clr_Amber);
+                    break;}
+                }
+                must_print=true;
+            }
+        }
+        if (must_print) {
+            tFileReader->DisplayPage();
+            must_print=false;
+        }
+        myDrawPad->UpdateDrawPad(vrWidth,vrHeight,l,b,r,t);
+    }
+}
+
 void Layout::DrawTextW(XPLMWindowID g_textWindow){
     //intialize
     myDrawPad->ToUpperLevel();
-    float curT=XPLMGetElapsedTime();
-    XPLMGetWindowGeometry(g_textWindow, &l, &t, &r, &b);
-    recalculate(curT);
-    myDrawPad->SetScreenOrigin(l,b,r,t);
-
-    if (showFPS){
-        if ((curT-fpsTag)>0.5f) {
-            fpsTag=curT;
-            currentFPS=1/(XPLMGetDataf(g_FPS));
-            string fps=std::to_string(currentFPS);
-            fps=fps.substr(0,5);
-            lFPS.setText("FPS : "+fps);
-            lFPS.PrintString();
-        }
-    }
-
-    float sunPtc = XPLMGetDataf(dref_SunPitch); //time of day ?
-    int actualD(0);
-    if ((sunPtc>-3)&&(sunPtc<5)) actualD=1;
-    if (sunPtc<=-3) actualD=2;
-    if (actualD!=dayPart)
-    {
-        dayPart=actualD;
-        if (useBackGround){
-            switch (dayPart){
-            case 0:{
-                tFileReader->SetBckColor(Clr_PaperWhite);
-                tFileReader->SetInkColor(Clr_BlackInk);
-                tFileReader->PrintMyText();
-                tFileReader->DisplayPage();
-                break;}
-            case 1:{
-                tFileReader->SetBckColor(Clr_PaperDusk);
-                tFileReader->SetInkColor(Clr_BlackInk);
-                tFileReader->PrintMyText();
-                tFileReader->DisplayPage();
-                break;}
-            case 2:{
-                tFileReader->SetBckColor(Clr_Black);//night paper
-                tFileReader->SetInkColor(Clr_Amber);
-                tFileReader->PrintMyText();
-                tFileReader->DisplayPage();
-                break;}
-            }
-        }
-    }
     DrawLogic::RenderContent();
 }
 
@@ -615,7 +622,7 @@ void Layout::ClosegWindow(){
     textPointX=0;textPointY=0;
     t=0;b=0;l=0;r=0;
     colWidth=30;idxSelected=-1;nButtons=0;
-    myDrawPad->FlushContent();
+    myDrawPad->CloseWindow();
     //I keep charHeight,textHeight and textWidth,
 }
 
@@ -635,7 +642,8 @@ string Layout::GetDirName(){
 
 void Layout::SetWindowHandle(XPLMWindowID thisW){
     myWindow=thisW;
-    myDrawPad->SetWindowH(thisW);
+    myDrawPad->ToUpperLevel();
+    myDrawPad->SetWindowHandle(thisW);
     XPLMGetWindowGeometry(myWindow, &l, &t, &r, &b);
     if (isWindowInVR())
     XPLMGetWindowGeometryVR(myWindow,&vrWidth,&vrHeight);

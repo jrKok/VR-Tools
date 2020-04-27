@@ -338,7 +338,7 @@ int VrViews::GetActionLaunched(){
 }
 
 void VrViews::DrawMyself(XPLMWindowID, void *){
-    ManageModalWindow::ConstrainGeometry();
+    ManageModalWindow::MakeTopWindow();
     DrawLogic::RenderContent();
     myself->cursor.DrawCursor();
 }

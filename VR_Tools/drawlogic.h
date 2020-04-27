@@ -21,7 +21,17 @@
  * Thus mouse click detection is done with screen coordinates only.
  *
  * The texture itself is a one dimensional array of ints. It contains 4*maxWidth*maxHeight chars for rgba
- * encoding of the gl_texture.
+ * encoding of the gl_texture. The one dimensional character ensures contiguity of bytes in array, at least
+ * it will be easier to check.
+ *
+ * Rendering will be done in modern openGL or direct GL if something is incompatible with modern
+ *
+ * Classes making windows for Drawlogic :
+ * - ShowDir
+ * - Layout
+ * - subclass LayoutWithEdit
+ * - manageModalWindows (see manageModalWindows for list of classes using that one)
+ *
  */
 
 
@@ -46,7 +56,7 @@
     #include <cstring>
     #include <cstdint>
 #else
-    #include <gl/glew.h>
+    #include <glew.h>
     //#include <gl/GL.h>
 #endif
 
@@ -64,12 +74,12 @@ public:
 
     //Initializers
        static bool  MakeGLContext();
-              void  checkCompileErrors(unsigned int shader, std::string type);
  static DrawLogic*  GetCurrentPad();
               void  Initiate();
               void  ToUpperLevel();
               void  SetNewSize(int in_Width, int in_Height);
-              void  SetWindowH(XPLMWindowID in_WH);
+              void  SetWindowHandle(XPLMWindowID in_WH);
+              void  CloseWindow();
 
     //Texture Functions
        void  FillAll(char in_Color);
@@ -121,13 +131,14 @@ static void  PrintStringOnLocalT(const int in_Element);
     string       GetId();
    static string GetSId();
 
-   //Adjustements, Data coherence
+   //Adjustements, Data coherence, synchronisations
     static char* ToC(const string &in_String);
     static void  FlushContent();
-    static void  SetScreenOrigin(int in_left,int in_bottom,int in_right,int in_top);
     static void  SetBackGroundColor(char in_Color);
+    float        UpdateDrawPad(int wW, int wH, int nleft, int nbottom, int nright, int ntop);//Flightloop routine for updating texture to GPU, updating geometry
 
     //Debugging functions
+           void  checkCompileErrors(unsigned int shader, std::string type);//to check for compiler errors
     static void  StringAssesment();
            void  PrintStringAssessment();
            void  PrintRectanglesAssessment();
@@ -142,6 +153,7 @@ private:
     map<ulong,rectangles*> *rects;
     vector<StringToDraw> *strings;
     std::array<textureColor,MaxWWidth*MaxWHeight> textureZone;
+    float vertexAttribs[16];
     char backGroundColor;
     int textNum;
     int currentRectNumber;

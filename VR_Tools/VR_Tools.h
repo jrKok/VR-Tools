@@ -1,36 +1,19 @@
 #ifndef SHOW_FPS_TEST_H
 /*
- * Change log : put the "filter" command under VR Tools hierarchy
- *
- * Next :
- * make a stack for text files, to navigate easily from one file to another
- *
- *
- * future developments :
- *
- *version 1.3
- *
- *
- *
- *  - key shortcuts for text : RWY,ILS, CRS, HDG, BRG, VOR,NDB, ALT, qnh, hPa, WPT, FRQ, Comm,
- *    switch to,holding,flight level ... (2 chars or 1 spec Key)
- *
- *
- * version 1.3.4 :
- *
- *
- * move commands
- * menu entry
- * make helper dialogs for control keys
- * bug corrections
- * every custom command is now under the "VR Tools" entry in the custom command list
-
  *
  * version 1.3.5
+
+ * make a bigger font
+ * redecorate layout and layoutwedit windows
+ * try to see if move commands can be accelerated in 11.50
+ * try to find a private dataref for log.txt
+ *
  *  linux
- *  stack text files (keep stack in a json)
- *  modern openGL
- *  texture keyboard (could be done earlier)
+ * make international keyboards (french, german, dutch, swedish, norsk, dansk, italian, espagnol, then greek, russion for 1.3.6)
+ *  * try to make a background image for layout and layout with edit
+ * try to implement graphic representation of advanced options (low priority)
+   bring DRef window under drawlogic
+ *  stack text files (keep stack in a simple text file)
  *  change logic for simultaneous keypresses
  *  create a "new file" command (for edit)
  *

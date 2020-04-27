@@ -20,7 +20,7 @@ temporaryWindow::temporaryWindow()
 
 void temporaryWindow::DrawMyself(XPLMWindowID in_window_id, void *){
     //measures time
-    ManageModalWindow::ConstrainGeometry();
+    ManageModalWindow::MakeTopWindow();
     float tm=XPLMGetElapsedTime();
     DrawLogic::RenderContent();
     if ((tm-timeStamp)>duration){

@@ -102,10 +102,16 @@ string VRCReader::GetVRConfigFileName() {
          vrcFile.close();
       //check first 3 lines and validate
          bool isVrValid(true);
-         if (!stringOps::contains(vrconfigFile[0],"A")) isVrValid=false;
-         if (!stringOps::contains(vrconfigFile[1],"1100")) isVrValid=false;
-         if (!stringOps::contains(vrconfigFile[2],"VRCONFIG")) isVrValid=false;
-      //if not validated, return false
+         if (vrconfigFile.size()>=3){
+             if (!stringOps::contains(vrconfigFile[0],"A")) isVrValid=false;
+             if (!stringOps::contains(vrconfigFile[1],"1100")) isVrValid=false;
+             if (!stringOps::contains(vrconfigFile[2],"VRCONFIG")) isVrValid=false;
+         }
+         else {
+             isVrValid=false;
+             //if not validated, return false
+             DrawLogic::WriteDebug(vrConfigFileName+" is not a valid vrconfig file");
+         }
          return isVrValid;
      }
      else{
@@ -128,6 +134,12 @@ string VRCReader::GetVRConfigFileName() {
              }
              itr++;
          }
+     }
+     else{
+         //if has VRConfig
+         //the file is not valid
+         //then make backup
+         //and generate a valid vrconfig
      }
  }
 
@@ -245,7 +257,7 @@ float  VRCReader::NextFloat(string &in_left, string &in_right){
 void   VRCReader::SaveVRConfig() {
     path pO=vrConfigFileName;
     int hspN(0);
-    if (!HasVRConfig())
+    if (!HasVRConfig()||vrconfigFile.size()<=3)
         BuildVRConfig();
     else{
         path pBck=vrConfigBackup;

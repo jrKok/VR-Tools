@@ -1,6 +1,13 @@
 #ifndef OPCENTER_H
 #define OPCENTER_H
 
+/*OpCenter is the operational center for VR Tools.
+ * It launches almost all the servers for the different parts
+ * of the plugin. It creates the environment, the plugin menu, the windows.
+ *  It might even serve the dataref viewer in the future.
+ * It receives mouseclicks and redirects them towards their destinations.
+ * */
+
 //#include "VR_Tools_global.h"
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
@@ -30,12 +37,13 @@ class OpCenter
 {
 public:
     OpCenter();
-    ~OpCenter();
-    int  SetupCenter();
-    void LaunchOperations();
-    void HaltOperations();
-    void SuspendOperations();
-    int  ResumeOperations();
+   ~OpCenter();
+    int      SetupCenter();
+    void     LaunchOperations();
+    void     HaltOperations();
+    void     SuspendOperations();
+    int      ResumeOperations();
+static float DisplayLoop(float, float, int, void*); //Loop to signal all open window managers to trigger update of draw params
 
     /*Forward declarations */
  static   void  drawText(XPLMWindowID, void *);
@@ -65,6 +73,8 @@ static    bool  IsLaunched;
 
 private:
 static OpCenter * pointerToMe;
+static XPLMCreateFlightLoop_t DLoop;
+static XPLMFlightLoopID DLoopId;
 static XPLMWindowID	g_textWindow,g_FileWindow;
 static bool is_In_Edit_Mode;
 static Layout *wLayout;

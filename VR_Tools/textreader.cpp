@@ -1,4 +1,5 @@
 #include "textreader.h"
+#include "drawlogic.h"
 
 TextReader::TextReader(): List_Box_With_ScrB(false),
     freqADF(0),
@@ -38,7 +39,7 @@ bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
         fT=last_write_time(filePath);
         keepsize=std::experimental::filesystem::file_size(filePath);
     }else{
-        List_Box_With_ScrB::WriteDebug("Couldn't open file "+fileName);
+        DrawLogic::WriteDebug("Couldn't open file "+fileName);
         fileExists=false;
         fileName="";}
     return fileExists;

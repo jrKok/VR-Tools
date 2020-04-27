@@ -18,8 +18,8 @@ void TextEdit::InitialiseEdit(){
     FilePointer::MakeBackups();
     tempFile=FilePointer::GetTempName();
     textFile.open(tempFile);
-    if (!textFile.is_open()) List_Box_With_ScrB::WriteDebug ("error in processing temporary file");
-    else List_Box_With_ScrB::WriteDebug("Editing file "+tempFile);
+    if (!textFile.is_open()) DrawLogic::WriteDebug ("error in processing temporary file");
+    else DrawLogic::WriteDebug("Editing file "+tempFile);
     textFile.close();
     hasToCommit=false;
 }
@@ -44,10 +44,6 @@ bool TextEdit::Save(){
     Commit();
     FilePointer::SaveTemp();
     return true;
-}
-
-void TextEdit::Recalculate(int in_lft,int in_tp){
-    List_Box_With_ScrB::Recalculate(in_lft,in_tp);
 }
 
 
@@ -94,7 +90,7 @@ bool TextEdit::ProceedClick(int x, int y){
             if (box[ln].isHere(x,y)){
                 clickTime=XPLMGetElapsedTime();
                 currentIndxFP=indxFirstOnPg;
-                currentIndx=static_cast<int>(ln+idxF);
+                currentIndx=box[ln].GetIndex();
                 clickPosX=x;
                 clickPosY=y;
                 needToContClick=true;
@@ -159,17 +155,7 @@ void TextEdit::ProceedEndClick(){//Mouse Up
     if (dragLines) {
         cursor.EndOfDrag();
     }
-
-    //whatever happened reset Variables for clickprocessing, then discharge scrB
-    currentIndx=-1;
-    currentIndxFP=-1;
-    clickPosX=0;
-    clickPosY=0;
-    needToContClick=false;
-    dragLines=false;
-    delLines=false;
-    if (scrB.OngoingDrag()) scrB.EndDrag();
-    if (scrB.OngoingRepeat()) scrB.EndRepeat();
+    List_Box_With_ScrB::ProceedEndClick();
 }
 
 void TextEdit::DisplayPage(){
@@ -185,11 +171,12 @@ void TextEdit::DisplayPage(){
     //compute boundaries
         indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
         if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
+        cursor.SetFirstLineOnPage(indxFirstOnPg);
     //copy & fill the box for displaying the text lines
         for (ulong ln(0);ln<uPageHeight;ln++){
             if (idx<uNumberOLs){
                 box[ln].setText((*displayText)[idx]);
-                //box[ln].SetSelected(uSelectedLine==idx);
+                box[ln].SetIndex(static_cast<int>(idx));
                 if (cursor.HasCursor()) {
                     if (box[ln].GetIndex()==cursor.GetLine())
                         DrawLogic::SetCursorPosition(cursor.PosToX(),box[ln].GetTextY()+2);
@@ -210,12 +197,10 @@ void TextEdit::DisplayPage(){
             }
             idx++;
         }
-    cursor.SetIndxFirstPage(indxFirstOnPg);
 }
 
 void TextEdit::DrawCursor(){
 cursor.DrawCursor();
-
 }
 
 void TextEdit::MoveCursorUp(){
@@ -227,7 +212,6 @@ void TextEdit::MoveCursorUp(){
         cursor.MoveSelectionUp();
         if (cursor.GetSelectionStartLine()<indxFirstOnPg) MoveUpNLines(1);
     }
-
 }
 
 void TextEdit::MoveCursorDown(){
@@ -239,7 +223,6 @@ void TextEdit::MoveCursorDown(){
         cursor.MoveSelectionDown();
         if (cursor.GetSelectionEndLine()>=indxLastOnPg) MoveDnNLines(1);
     }
-
 }
 
 void TextEdit::MoveCursorRight(){
@@ -282,8 +265,6 @@ void TextEdit::DeleteWholeLine(int in_line){
     cursor.DeleteFromLines(in_line);
     totalNbL--;indxLastPage--;
 }
-
-
 
 void TextEdit::InsertTextInLine(int in_line,int charPos,string in_text){
     //low level function, puts text from paste or a char at the given position
@@ -428,7 +409,7 @@ void TextEdit::ReadLineAgain(int in_line){
             if ((cursorPos>=procSoFar) && (cursorPos<(procSoFar+leftStringsize))) {
                 newline=static_cast<int>(l);
                 newPos=cursorPos-procSoFar;
-                List_Box_With_ScrB::WriteDebug(" newPos in iteration = "+std::to_string(newPos));
+                DrawLogic::WriteDebug(" newPos in iteration = "+std::to_string(newPos));
 
             }
             procSoFar+=leftStringsize;
@@ -539,7 +520,6 @@ void TextEdit::Copy(){
             }
             localClip.PushText(copyString);
         }
-
 }
 
 void TextEdit::Paste(){
@@ -566,9 +546,9 @@ void TextEdit::Paste(){
             int cPos =cursor.GetPos();
             InsertTextInLine(cLine,cPos,toPaste);
             int insL=cursor.GetLengthOfUTFString(toPaste);
-            List_Box_With_ScrB::WriteDebug("Paste old pos "+std::to_string(cPos));
+            DrawLogic::WriteDebug("Paste old pos "+std::to_string(cPos));
             cPos+=insL;
-            List_Box_With_ScrB::WriteDebug("PAste new pos "+std::to_string(cPos));
+            DrawLogic::WriteDebug("PAste new pos "+std::to_string(cPos));
             cursor.AddPositionsToLine(insL);
             cursor.SetCursorAt(cLine,cPos);
             ReadLineAgain(cLine);
@@ -624,7 +604,6 @@ void TextEdit::Backspace(){
                ReadLineAgain(cLine-1);
                DisplayPage();
         }
-
        else{
 
            DeleteFromLine(cLine,cPos-1,cPos,true);

@@ -187,7 +187,7 @@ void DRefWindow::drawWReport(XPLMWindowID, void *){
     int l, t, r, b;
     XPLMGetWindowGeometry(idDrefWindow, &l, &t, &r, &b);
 
-   /* glColor3fv(DRefWindow::gray);
+    glColor3fv(DRefWindow::gray);
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     glBegin(GL_TRIANGLE_FAN);
     {
@@ -196,7 +196,7 @@ void DRefWindow::drawWReport(XPLMWindowID, void *){
         glVertex2i(r-1, b+1);
         glVertex2i(l+1, b+1);
     }
-    glEnd();*/
+    glEnd();
 
         XPLMDrawString(DRefWindow::cyan, l+10, t-16, (char *)s_qnh.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-28, (char *)s_winds.c_str(), nullptr, xplmFont_Proportional);

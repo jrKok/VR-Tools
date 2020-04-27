@@ -26,7 +26,7 @@
 #if LIN
     #include <GL/gl.h>
 #else
-    #include <gl/glew.h>
+    #include <glew.h>
    // #include <gl/GL.h>
 #endif
 

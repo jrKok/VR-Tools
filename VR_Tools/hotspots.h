@@ -33,7 +33,7 @@ void  Setup();
     static int   MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
     static float readValuesCallback(float elpSc,float elpTime,int countr,void* refcon);
     static void  PrepareToMove();
-    static float MoveMeToHotSpot(float elpSc,float elpTime,int countr,void* refcon);
+    static float MoveMeToHotSpot(float, float, int, void*); //flight loop callback
     static int   Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void *);
     static int   Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, void *);
     static void  MakeMoveComplete();

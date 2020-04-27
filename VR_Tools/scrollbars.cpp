@@ -29,7 +29,7 @@ ScrollBars::ScrollBars(bool modal):
     drag(false),
     repeatCmd(false),
     general(false),
-    core(0,0,0,0,Clr_Black,false),
+    core(0,0,0,0,Clr_Gray,false),
     lift(0,0,0,0,Clr_White,false),
     commandUp("scroll up",modal),
     commandDown("scroll down",modal)
@@ -58,12 +58,14 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
        commandUp.SetOrigin(offX, offY+totalheight-15);
        commandUp.SetDimensions(15,15);
        commandUp.setText("\xE2\x96\xB2");//UP pointing e296b2 try also e28fb6
+       commandUp.SetTextOffsets(4,4);
        commandUp.setButtonColor(Clr_LightGray);
        commandUp.setTextColor(Clr_BlackInk);
 
        commandDown.SetOrigin(offX,offY);
        commandDown.SetDimensions(15,15);
        commandDown.setText("\xE2\x96\xBC");//e296bc try also e28fb7
+       commandDown.SetTextOffsets(4,5);
        commandDown.setButtonColor(Clr_LightGray);
        commandDown.setTextColor(Clr_BlackInk);
 
@@ -223,7 +225,7 @@ bool ScrollBars::OngoingRepeat(){
 
 void ScrollBars::SetPosFirstLine(int firstLine){
     //Name FirstLine means first Line displayed, should not be greater than totalLines-page
-    //Lift bottom flucuates between core.top and (core.low)
+    //Lift bottom flucuates between topcore and lowcore
     //This function calculates position of lift WRT firstLine
     //with special positions of firstLine=0 and firstLine between possible position of last line and total number of lines
 
@@ -254,14 +256,12 @@ int ScrollBars::GetPosFirstLine(){
 }
 
 void ScrollBars::SetVisibility(bool iV){
-    if (isVisible!=iV){
-        general.setVisibility(iV);
-        core.setVisibility(iV);
-        lift.setVisibility(iV);
-        commandDown.setVisibility(iV);
-        commandUp.setVisibility(iV);
-        isVisible=iV;
-    }
+    general.setVisibility(iV);
+    core.setVisibility(iV);
+    lift.setVisibility(iV);
+    commandDown.setVisibility(iV);
+    commandUp.setVisibility(iV);
+    isVisible=iV;
     if (isVisible){
         core.UpdateMyTexture();
         lift.UpdateMyTexture();
@@ -269,6 +269,7 @@ void ScrollBars::SetVisibility(bool iV){
 }
 
 void ScrollBars::LineUpNLines(int nL){
+    DrawLogic::WriteDebug("scrollbars::line up lines");
     numberfirstLine-=nL;
     if (numberfirstLine<0) numberfirstLine=0;
     SetPosFirstLine(numberfirstLine);
@@ -279,9 +280,11 @@ void ScrollBars::LineDownNLines (int nL){
     if (numberfirstLine>limitLastLine) numberfirstLine=limitLastLine;
     SetPosFirstLine((numberfirstLine));
 }
+
 void ScrollBars::UpPage(){
     LineUpNLines(page);
 }
+
 void ScrollBars::DownPage(){
     LineDownNLines(page);
 }

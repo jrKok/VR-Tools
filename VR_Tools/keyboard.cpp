@@ -612,6 +612,7 @@ int  Keyboard::Physical_Key_Handler(char in_char,XPLMKeyFlags flag,char in_VKs,v
      string bckStr("");
      LayoutWithEdit * caller=reinterpret_cast<LayoutWithEdit*>(inRefcon);
      caller->SetTextToShow("VK code = "+std::to_string(in_VK));
+     caller->ReActivateWindow();
 
      if ((flag&XPLM_KEY_DOWN)&&!physicalKeyPressed){
          //initial press, no other key pressed

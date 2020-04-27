@@ -26,7 +26,6 @@ public:
     static void         PickUpDrawPad();
     static void         ResizeModalWindow(int width, int height);
     static void         DestroyModalWindow();
-    static void         SetScreenCoords(int left, int bottom,int right, int top);
     static void         PrintmyRectvisstatus();
     static XPLMWindowID GetCurrentWindowId();
     static void         MakeTopWindow();

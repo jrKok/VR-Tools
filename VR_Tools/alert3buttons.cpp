@@ -88,7 +88,7 @@ int  Alert3Buttons::GetAnswer(){
 }
 
 void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void *){
-    ManageModalWindow::ConstrainGeometry();
+    ManageModalWindow::MakeTopWindow();
     DrawLogic::RenderContent();
 }
 

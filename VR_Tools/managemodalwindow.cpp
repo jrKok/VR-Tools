@@ -62,7 +62,7 @@ XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID,
      params.top    = sBottom+myHeight+offsetY;
 
     myModalWindow = XPLMCreateWindowEx(&params);
-    myself->myDrawPad->SetWindowH(myModalWindow);
+    myself->myDrawPad->SetWindowHandle(myModalWindow);
     XPLMSetWindowPositioningMode(myModalWindow, vr_is_enabled>0?xplm_WindowVR:xplm_WindowPositionFree, -1);
     XPLMSetWindowResizingLimits(myModalWindow, myWidth, myHeight, myWidth+70, myHeight+30);
 
@@ -85,6 +85,7 @@ void ManageModalWindow::DestroyModalWindow(){
     myRect=nullptr;
     myModalWindow=nullptr;
     myself->myDrawPad->FlushContent();
+    myself->myDrawPad->CloseWindow();
     myWidth=0;
     myHeight=0;
 
@@ -105,29 +106,26 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
 }
 
 void ManageModalWindow::ConstrainGeometry(){
-    int top(0),right(0);
-    myself->myDrawPad->ToUpperLevel();
-    XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);  
-    if (XPLMWindowIsInVR(myModalWindow)==1){
-        int in_Width,in_Height;
-        XPLMGetWindowGeometryVR(myModalWindow, &in_Width, &in_Height);
-        if (in_Width!=myWidth||in_Height!=myHeight){
-            XPLMSetWindowGeometryVR(myModalWindow,myWidth,myHeight);
-            XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
+    if (myModalWindow){
+        int top(0),right(0);
+        myself->myDrawPad->ToUpperLevel();
+        int mw(0),mh(0);
+        XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
+        {
+            if (XPLMWindowIsInVR(myModalWindow)){
+                XPLMGetWindowGeometryVR(myModalWindow,&mw,&mh);
+            }
+            else {
+                if ((right-myLeft)>myWidth||(top-myBottom)>myHeight){
+                   XPLMSetWindowGeometry(myModalWindow,myLeft,myBottom+myHeight,myLeft+myWidth,myBottom);
+                   XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
+                   mw=right-myLeft;
+                   mh=top-myBottom;
+                }
+            }
         }
+        myself->myDrawPad->UpdateDrawPad(mw,mh,myLeft,myBottom,right,top);
     }
-     else{
-        if ((right-myLeft)>myWidth||(top-myBottom)>myHeight){
-           XPLMSetWindowGeometry(myModalWindow,myLeft,myBottom+myHeight,myLeft+myWidth,myBottom);
-           XPLMGetWindowGeometry(myModalWindow, &myLeft, &top, &right, &myBottom);
-        }
-    }
-    DrawLogic::SetScreenOrigin(myLeft,myBottom,right,top);
-}
-
-void ManageModalWindow::SetScreenCoords(int left, int bottom, int right, int top){
-
-    DrawLogic::SetScreenOrigin(left,bottom,right, top);
 }
 
 int ManageModalWindow::GetLeft(){

@@ -1,19 +1,21 @@
 #include "opcenter.h"
 
-OpCenter*          OpCenter::pointerToMe(nullptr);
-bool               OpCenter::g_in_vr(false);
-bool               OpCenter::is_In_Edit_Mode(false);
-bool               OpCenter::hasModalWindow(false);
-XPLMWindowID       OpCenter::g_textWindow(nullptr);
-XPLMWindowID       OpCenter::g_FileWindow(nullptr);
-Layout            *OpCenter::wLayout(nullptr);
-LayoutWithEdit    *OpCenter::wELayout(nullptr);
-Layout*            OpCenter::ptrLayout(nullptr);
-ShowDir           *OpCenter::dispDir(nullptr);
-ManageModalWindow *OpCenter::manageMW(nullptr);
-DRefWindow         OpCenter::drefW;
-VRCommandFilter    OpCenter::commandFilter;
-Hotspots           OpCenter::htsp;
+OpCenter*              OpCenter::pointerToMe(nullptr);
+bool                   OpCenter::g_in_vr(false);
+bool                   OpCenter::is_In_Edit_Mode(false);
+bool                   OpCenter::hasModalWindow(false);
+XPLMWindowID           OpCenter::g_textWindow(nullptr);
+XPLMWindowID           OpCenter::g_FileWindow(nullptr);
+Layout                *OpCenter::wLayout(nullptr);
+LayoutWithEdit        *OpCenter::wELayout(nullptr);
+Layout*                OpCenter::ptrLayout(nullptr);
+ShowDir               *OpCenter::dispDir(nullptr);
+ManageModalWindow     *OpCenter::manageMW(nullptr);
+DRefWindow             OpCenter::drefW;
+VRCommandFilter        OpCenter::commandFilter;
+Hotspots               OpCenter::htsp;
+XPLMCreateFlightLoop_t OpCenter::DLoop;
+XPLMFlightLoopID       OpCenter::DLoopId(nullptr);
 
 int        OpCenter::menuIdx(0);
 int        OpCenter::idxOfModeMenuItem(0);
@@ -70,7 +72,7 @@ int OpCenter::SetupCenter(){
 
     fontmanager.Initialise();
 
-    //Register numbered text commands
+;    //Register numbered text commands
     void * nb=new(int*);
     (*(int*)nb)=0;
     nb=new(int*);(*(int*)nb)=1;
@@ -132,6 +134,13 @@ void OpCenter::LaunchOperations(){
         }
     }
     ndp=nullptr;
+
+    DLoop.callbackFunc=DisplayLoop;
+    DLoop.structSize=sizeof (DLoop);
+    DLoop.refcon=nullptr;
+    DLoopId=XPLMCreateFlightLoop(&DLoop);
+
+    XPLMScheduleFlightLoop(DLoopId,-1,1);
 }
 
 void OpCenter::HaltOperations(){
@@ -160,6 +169,12 @@ int  OpCenter::ResumeOperations(){
     return 1;
 }
 
+float OpCenter::DisplayLoop(float, float, int, void*){
+    ptrLayout->Update();
+    dispDir->Update();
+    manageMW->ConstrainGeometry();
+    return -1;
+}
 /************************************************************************************/
 void  OpCenter::MakeMenus(){
     menuIdx= XPLMAppendMenuItem(XPLMFindPluginsMenu(), "VR Tools", nullptr, 0);
@@ -262,6 +277,7 @@ void  OpCenter::menuHandler(void*, void* inItemRef){
             break;}
         }
 }
+
 void  OpCenter::drawText(XPLMWindowID , void *){
     (*ptrLayout).DrawTextW(g_textWindow);
 }
@@ -293,14 +309,14 @@ int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseSta
             if (cmd==2){//load command has been pressed
             pointerToMe->MakeFileWindow();
             }
-            if (cmd==3){//edit command is toggled,first coding try : don't destroy window but reinitiate the layout,
-               //XPLMDestroyWindow(g_textWindow);
-                //(*ptrLayout).ClosegWindow();
-                //g_textWindow=nullptr;
+            if (cmd==3){//edit command don't destroy window but reinitiate the layout,
+
+                   ptrLayout->ClosegWindow();//Very important to stop DrawLogic's flightloop !
+
                 is_In_Edit_Mode=!is_In_Edit_Mode;
                 if (is_In_Edit_Mode){
                     ptrLayout=wELayout;
-                    wELayout->SetWindowHandle(g_textWindow);
+                    ptrLayout->SetWindowHandle(g_textWindow);
                     wELayout->initiate();
                     wELayout->CheckButtonsVisibility();
                     wELayout->BeginEdit();
@@ -356,6 +372,8 @@ int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStat
                 pointerToMe->MakeTextWindow();
                 XPLMDestroyWindow(g_FileWindow);
                 g_FileWindow=nullptr;
+                dispDir->CloseDirWindow();
+
             }
         break;
        }
@@ -440,10 +458,8 @@ void  OpCenter::MakeTextWindow(){
              params.structSize = sizeof(params);
              params.visible = 1;
              params.drawWindowFunc=drawText;
-             if ((*ptrLayout).GetResizeOption()){
-                params.decorateAsFloatingWindow=xplm_WindowDecorationNone;}
-             else{
-                  params.decorateAsFloatingWindow = xplm_WindowDecorationRoundRectangle;}
+             if (vr_is_enabled) params.decorateAsFloatingWindow = xplm_WindowDecorationSelfDecoratedResizable;
+             else               params.decorateAsFloatingWindow = xplm_WindowDecorationRoundRectangle;
              params.handleMouseClickFunc = handle_mouse_for_TextW;
              params.handleRightClickFunc = dummy_mouse_handler;
              params.handleMouseWheelFunc = dummy_wheel_handler;

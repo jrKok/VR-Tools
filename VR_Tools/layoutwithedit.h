@@ -19,6 +19,7 @@ public:
     void ReLabelButtons();
     void EndEdit();
     void ReActivateWindow();
+    void Update();
     //specific member functions for editing purposes
     void ToggleKeyboard();
     void SetSpecialKey(bool spec);

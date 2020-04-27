@@ -83,7 +83,7 @@ void fontMan::CharCodeToMap(char cSize, unsigned char in_code[]){
         charCode=charCode+inc;
     }
 
-    int err=FT_Load_Char(face,charCode,FT_LOAD_RENDER);
+    int err=FT_Load_Char(face,charCode,FT_LOAD_RENDER|FT_LOAD_FORCE_AUTOHINT);
     charrecord newChar;
     newChar.height=0;
     newChar.charcode=charCode;
@@ -96,7 +96,7 @@ void fontMan::CharCodeToMap(char cSize, unsigned char in_code[]){
         { size=144;
         }
         for (ulong tg(0);tg<size;tg++) newChar.bitmap[tg]=glyph->bitmap.buffer[tg];
-        LeftShift(newChar);
+        //LeftShift(newChar);
         newChar.yOffset=(glyph->metrics.horiBearingY>>6)-1;
         newChar.advance=(glyph->metrics.horiAdvance>>6);
     }

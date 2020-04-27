@@ -33,6 +33,7 @@ public:
     virtual bool resize();
             void resizeVRWindow();
     virtual bool newSize(int wth,int hgt);
+    virtual void Update();
             void RelocateButtons(int middle);
             void recalculate(float cT);
     virtual void FitToFile();
@@ -42,7 +43,7 @@ public:
              int bottomRectangle(int idx);
             void defineButtons();
             void MakeButton(bool visible,string in_Label,int width,int height,int oX, int oY);
-            virtual void findClick(int mX, int mY);
+    virtual void findClick(int mX, int mY);
     virtual void HandleMouseKeepDown(int mX,int mY);
     virtual int  HandleMouseUp(int mX,int mY);
     virtual void CheckButtonsVisibility();
@@ -93,6 +94,7 @@ vector<button_VR*> tButtons;
             bool  openAtStart,goToLastPage;
             bool  continueClick,buttonClick,autoReload,saveAuto,canUTF,autoReloadOnSize,useBackGround;
             bool  flash,flashWhenChange,noResize,fitSizeToFile,keepLastFile,keepSize,enableDelete,enableFreqs,showFPS;
+            bool  must_print;
             int   clickresult, splitLinePolicy;
             int   vrWidth,vrHeight,upperMargin,lowerMargin;
             int   dayPart;//0 : day, 1 : dusk, 2 : night

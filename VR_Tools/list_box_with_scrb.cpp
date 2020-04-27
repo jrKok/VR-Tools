@@ -1,5 +1,6 @@
 #include "list_box_with_scrb.h"
 #include "fontman.h"
+#include "drawlogic.h"
 
 List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      inkColor(Clr_BlackInk),
@@ -44,11 +45,6 @@ List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
 
 {
 
-}
-
-void List_Box_With_ScrB::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
 }
 
 List_Box_With_ScrB::~List_Box_With_ScrB(){
@@ -306,10 +302,10 @@ void List_Box_With_ScrB::ProceedEndClick(){//Mouse Up
     scrB.EndRepeat();
 }
 
-void List_Box_With_ScrB::Recalculate(int in_lft, int in_bt){
+/*void List_Box_With_ScrB::Recalculate(int in_lft, int in_bt){
     in_bottom=in_bt;
     in_left=in_lft;
-}
+}*/
 void List_Box_With_ScrB::MoveUpNLines(int uL){
     DisplayAtLineN(indxFirstOnPg-uL);
     DisplayPage();
@@ -378,6 +374,7 @@ void List_Box_With_ScrB::DisplayPage(){
     for (ulong ln(0);ln<uPageHeight;ln++){
         if (idx<uNumberOLs){
             box[ln].setText((*displayText)[idx]);
+            box[ln].SetIndex(static_cast<int>(idx));
             box[ln].SetSelected(uSelectedLine==idx);
             box[ln].PrintStringOnly();
         }
@@ -470,9 +467,14 @@ bool List_Box_With_ScrB::CanUndo(){
 
 void List_Box_With_ScrB::DeleteSelectedLine(){
     int lS=lineSelected;
-    if (hasSelection&&(lineSelected>=0)) {
-        DeleteLine(lineSelected);
-        if (lS<totalNbL-1) SelectLine(lS+1);
+    if (hasSelection&&(lS>=0)) {
+        DeleteLine(lS);
+        if ((*displayText)[static_cast<ulong>(lS)]!="")
+            SelectLine(lS);
+        else {
+            if (lS<totalNbL-1) SelectLine(lS+1);
+        }
+
     }
 }
 
