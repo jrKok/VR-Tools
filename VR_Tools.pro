@@ -23,6 +23,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+DEFINES +=XPLM302
 DEFINES +=XPLM301
 DEFINES +=XPLM300
 DEFINES +=XPLM210
@@ -45,11 +46,16 @@ LIBS += -lstdc++fs
 }
 
 win32{
+
  QMAKE_LFLAGS += /NODEFAULTLIB:LIBCMT
  QMAKE_CXXFLAGS += -wd4996
  QMAKE_CXXFLAGS_DEBUG = -Zi -MTd
  QMAKE_CXXFLAGS_RELEASE = -MT
+
 DEFINES +=APL=0 IBM=1 LIN=0
+DEFINES += GLEW_STATIC
+DEFINES += GLEW_BUILD
+DEFINES+= FREETYPE2_STATIC
 
 INCLUDEPATH += C:\SDK\CHeaders\XPLM\
 INCLUDEPATH += C:\SDK\CHeaders\Wrappers\
@@ -59,14 +65,11 @@ INCLUDEPATH += C:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\um
 
 INCLUDEPATH += C:\Users\jeroen\Documents\freetype-2.10.1\include
 
-DEFINES+=FREETYPE2_STATIC
-
-LIBS += "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\arm64\glew32.lib"
-LIBS += C:\Users\jeroen\Documents\freetype-2.10.1\include\freetype.lib
+LIBS += C:\Users\jeroen\Documents\VR_Tools\glew32s.lib
+LIBS += C:\Users\jeroen\Documents\VR_Tools\freetype.lib
 LIBS +=-LC:\SDK\Libraries\Win
 LIBS +=-lXPLM_64 -lXPWidgets_64
 LIBS +=-lOpengl32
-
 LIBS += User32.lib
 LIBS +=-lmsvcrt -lmsvcmrt
 }
