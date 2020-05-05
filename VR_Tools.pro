@@ -48,6 +48,7 @@ LIBS += -lstdc++fs
 win32{
 
  QMAKE_LFLAGS += /NODEFAULTLIB:LIBCMT
+ QMAKE_CXXFLAGS += /EHsc
  QMAKE_CXXFLAGS += -wd4996
  QMAKE_CXXFLAGS_DEBUG = -Zi -MTd
  QMAKE_CXXFLAGS_RELEASE = -MT
@@ -112,6 +113,8 @@ SOURCES += \
     advanced.cpp \
     hotspots.cpp \
     globals.cpp \
+    boxed_button.cpp \
+    filestack.cpp
 
 
 HEADERS += \
@@ -151,6 +154,8 @@ HEADERS += \
     advanced.h \
     hotspots.h \
     globals.h \
+    boxed_button.h \
+    filestack.h
 
 target.path= \plugsXP
 unix {
