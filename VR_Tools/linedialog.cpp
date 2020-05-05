@@ -146,15 +146,15 @@ int LineDialog::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int 
         {
             XPLMBringWindowToFront(in_window_id);
         }else{
-        if (myself->yesButton->isHere(x,y)){
+        if (myself->yesButton->IsHere(x,y)){
             mouseLocated=true;
             myself->answer=1;
         }
-        if (myself->noButton->isHere(x,y)){
+        if (myself->noButton->IsHere(x,y)){
             mouseLocated=true;
             myself->answer=2;
         }
-        if (myself->cancelButton->isHere(x,y)){
+        if (myself->cancelButton->IsHere(x,y)){
             mouseLocated=true;
             myself->answer=3;
         }
@@ -186,6 +186,7 @@ int LineDialog::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int 
 }
 
 void LineDialog::ProcessKeyPress(std::string keyName,std::string in_String){
+
     if (!specialKey&&(in_String!="")) {
         if (!keyb->IsControlKeyActive())
           {myself->InsertLetter(in_String);}

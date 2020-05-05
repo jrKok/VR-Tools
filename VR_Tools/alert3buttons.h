@@ -24,8 +24,8 @@ public:
     void MakeAlert(const string &yesStr, const string &noStr, const string &cancelStr, const string alertStr, std::function<void()> cBck);
     int  GetAnswer();
     static void Recalculate ();
-    static void DrawMyself(XPLMWindowID in_window_id, void *);
-    static int MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void * unused);
+    static void DrawMyself(XPLMWindowID, void *);
+    static int MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void *);
     void EndAlert();//deletes what needs to be, calls a callback provided by the caller
 private:
 

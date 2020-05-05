@@ -30,8 +30,9 @@ public:
     void   SetIndex(int idx);
     void   SetSelected(bool sel);
     void   SetVisibility(bool in_vis);
-    bool   GetVisibility();
+    void   SetFontSize(int fs);
 
+    bool   GetVisibility();
     int    GetTextX();
     int    GetTextY();
     int    GetTop();
@@ -43,9 +44,11 @@ public:
     int    GetHeight();
     int    GetStringSize();
     bool   GetSelected();
+    int    GetStringWidth();
 
 private:
     int        bbl,bbb,bbr,bbt;
+    int        font_Size;
     string     textOfLine;
     int        myStringNumber;
     int        width,height;

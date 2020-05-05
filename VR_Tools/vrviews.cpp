@@ -1,5 +1,6 @@
 #include "vrviews.h"
 #include "managemodalwindow.h"
+#include "fontman.h"
 
 #include "vrcommandfilter.h"
 
@@ -18,7 +19,7 @@ XPLMCommandRef VrViews::CmdForward(nullptr);
 XPLMCommandRef VrViews::CmdBackward(nullptr);
 
 VrViews::VrViews():List_Box_With_ScrB (true),
-    generalR("VrViews general",false),
+
     CommandLaunched(nullptr),
     callBack(),
     yesButton(nullptr),
@@ -110,7 +111,9 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     myself=this;
     userLine=in_String;
     width=in_width;
+    std::function<void()> upd=std::bind(&VrViews::Update,this);
     myXPWindow=ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LighterGray,width,height);
+    ManageModalWindow::AddUpdatefunction(upd);
     answer=0;
     left=0;
     top=0;
@@ -144,8 +147,8 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     cursor.Initiate(&forCursor,10,posEditLine+10,20,1);
 
     //compute width vs textline
-    float strwidth=XPLMMeasureString(xplmFont_Proportional,alertStr.c_str(),static_cast<int>(alertStr.size()));
-    textWidth=static_cast<int>(strwidth)+textOffsetX+textOffsetX;
+    int strwidth=fontMan::MeasureString(alertStr);
+    textWidth=strwidth+textOffsetX+textOffsetX;
     if (textWidth>width) {
         width=textWidth;
         pos=(width-((buttonwidth+20)*4))/2;
@@ -154,6 +157,8 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
         textOffsetX=(width-textWidth)/2;
         pos=(width-((buttonwidth+20)*4))/2;
     }
+
+    keyb->Relocate(width/2-keyb->MyWidth()/2,posKeyb);
 
     ManageModalWindow::ResizeModalWindow(width,height);
     point p;
@@ -358,79 +363,79 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_
             mouseLocated=false;
             myself->ProceedClick(x,y);
             if (!myself->needToContClick){
-                if (myself->yesButton->isHere(x,y)){
+                if (myself->yesButton->IsHere(x,y)){
                     mouseLocated=true;
                     myself->answer=1;
                     myself->clicked=myself->yesButton;
                 }
-                if (myself->noButton->isHere(x,y)){
+                if (myself->noButton->IsHere(x,y)){
                     mouseLocated=true;
                     myself->answer=2;
                     myself->clicked=myself->noButton;
                 }
-                if (myself->cancelButton->isHere(x,y)){
+                if (myself->cancelButton->IsHere(x,y)){
                     mouseLocated=true;
                     myself->answer=3;
                     myself->clicked=myself->cancelButton;
                 }
 
-                if (myself->advancedButton->isHere(x,y)){
+                if (myself->advancedButton->IsHere(x,y)){
                     mouseLocated=true;
                     myself->answer=4;
                     myself->clicked=myself->advancedButton;
                 }
 
-                if (myself->relogButton->isHere(x,y)){
+                if (myself->relogButton->IsHere(x,y)){
                     myself->LaunchAction(action_Relog);
                     myself->clicked=myself->relogButton;
                 }
 
-                if (myself->upButton->isHere(x,y)){
+                if (myself->upButton->IsHere(x,y)){
                     myself->LaunchAction(action_Up);
                     myself->clicked=myself->upButton;
 
                 }
-                if (myself->downButton->isHere(x,y)){
+                if (myself->downButton->IsHere(x,y)){
                     myself->LaunchAction(action_Down);
                     myself->clicked=myself->downButton;
                 }
-                if (myself->renameButton->isHere(x,y)){
+                if (myself->renameButton->IsHere(x,y)){
                     myself->LaunchAction(action_Rename);
                     myself->clicked=myself->renameButton;
                 }
-                if (myself->createButton->isHere(x,y)){
+                if (myself->createButton->IsHere(x,y)){
                     myself->LaunchAction(action_Create);
                     myself->clicked=myself->createButton;
                 }
-                if (myself->repositionButton->isHere(x,y)){
+                if (myself->repositionButton->IsHere(x,y)){
                     myself->LaunchAction(action_Reposition);
                     myself->clicked=myself->repositionButton;
                 }
-                if (myself->deleteButton->isHere(x,y)){
+                if (myself->deleteButton->IsHere(x,y)){
                     myself->LaunchAction(action_Delete);
                     myself->clicked=myself->deleteButton;
                 }
-                if (myself->vaftButton->isHere(x,y)){
+                if (myself->vaftButton->IsHere(x,y)){
                     myself->LaunchAction(action_MoveAft);
                     myself->clicked=myself->vaftButton;
                 }
-                if (myself->vforwButton->isHere(x,y)){
+                if (myself->vforwButton->IsHere(x,y)){
                     myself->LaunchAction(action_MoveFor);
                     myself->clicked=myself->vforwButton;
                 }
-                if (myself->vupButton->isHere(x,y)){
+                if (myself->vupButton->IsHere(x,y)){
                     myself->LaunchAction(action_MoveUp);
                     myself->clicked=myself->vupButton;
                 }
-                if (myself->vdownButton->isHere(x,y)){
+                if (myself->vdownButton->IsHere(x,y)){
                     myself->LaunchAction(action_MoveDown);
                     myself->clicked=myself->vdownButton;
                 }
-                if (myself->vrightButton->isHere(x,y)){
+                if (myself->vrightButton->IsHere(x,y)){
                     myself->LaunchAction(action_MoveRight);
                     myself->clicked=myself->vrightButton;
                 }
-                if (myself->vleftButton->isHere(x,y)){
+                if (myself->vleftButton->IsHere(x,y)){
                     myself->LaunchAction(action_MoveLeft);
                     myself->clicked=myself->vleftButton;
                 }
@@ -452,7 +457,7 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_
     }
 
     case xplm_MouseDrag:{
-
+ ManageModalWindow::MakeTopWindow();
         myself->ContinueKeyPress();
         myself->ProceedClickCont(x,y);
         if (myself->epochClick>0){
@@ -479,6 +484,7 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_
 }
 
 void VrViews::MouseToUp(){
+     ManageModalWindow::MakeTopWindow();
     myself->mouseUp=true;
     if (myself->mouseDrag) {
         myself->cursor.EndOfDrag();
@@ -835,4 +841,10 @@ void VrViews::ShowAll(){
 
     SetBckColor(Clr_White);
     SetInkColor(Clr_BlackInk);
+}
+
+void VrViews::Update(){
+    if (NeedsToDisplay()){
+        DisplayPage(true);
+    }
 }

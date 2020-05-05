@@ -25,12 +25,13 @@ void  globals::DefineColors(){
     DefineColor(Clr_LighterGray,0.725f,0.725f,0.770f);
     DefineColor(Clr_LightGray,0.820f,0.820f,0.820f);
     DefineColor(Clr_Gray,0.375f, 0.375f, 0.368f);
-    DefineColor(Clr_DarkGray,0.009f,0.009f,0.009f);
+    DefineColor(Clr_DarkGray,0.05f,0.100f,0.200f);
     DefineColor(Clr_Background,0.900f,0.900f,0.850f);
     DefineColor(Clr_BackgroundS,0.720f,0.720f,0.690f);
-    DefineColor(Clr_BckgrdW,0.150f,0.180f,0.250f);
+    DefineColor(Clr_BckgrdW,0.170f,0.180f,0.270f);
     DefineColor(Clr_InkSelect,0.9f,0.05f,0.4f);
     DefineColor(Clr_TextSelectBlue,0.600f,0.960f,1.0f);
+    DefineColor(Clr_SparkSilver,0.8471f,0.8471f,0.8471f);
 }
 
 void  globals::DefineColor(char in_Tab,float in_R, float in_G, float in_B){

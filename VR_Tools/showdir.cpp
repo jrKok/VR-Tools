@@ -1,9 +1,10 @@
 #include "showdir.h"
-
+#include "fontman.h"
 
 
 ShowDir::ShowDir(DrawLogic *newPad) :
     myDrawPad(newPad),
+    background(true),
     general(true),
     sliderBox(true),
     in_top(0),in_left(0),newT(0),newL(0),nR(0),nB(0),
@@ -61,15 +62,20 @@ void ShowDir::SetupDirWindow(int left, int top){
     myDrawPad->Initiate();
     FilePointer::FindCurrentPlaneDir();
     if (displayLines.size()==0){
-
-        for (int Cpt(0);Cpt<7;Cpt++)  MakeLine();
+        background.SetVisibility(true);
+        background.SetColor(Clr_DarkGray);
+        background.SetOrigin(0,0);
+        for (int Cpt(0);Cpt<8;Cpt++)  MakeLine();
         for (int b(0);b<5;b++) MakeButton();
-        XPLMGetFontDimensions(xplmFont_Proportional,nullptr,&charHeight,nullptr);
-        general.setVisibility(true);
-        general.setColor(Clr_Gray);
+        charHeight=fontMan::GetFontSize(0);
+        int orX(10),orY(10);
+        general.SetVisibility(true);
+        general.SetColor(Clr_Gray);
+        general.SetOrigin(orX,orY);
+
         DrawLogic::SetBackGroundColor(Clr_Gray);
-        dirN.Setup(hghDisp,300,10,50);
-        fileN.Setup(hghDisp,280,320,50);
+        dirN.Setup(hghDisp,320,10+orX,70+orY);
+        fileN.Setup(hghDisp,280,350+orX,70+orY);
         dirN.SetBckColor(Clr_PaperWhite);
         fileN.SetBckColor(Clr_PaperWhite);
         dirN.SetupDirectoryReader();
@@ -79,33 +85,30 @@ void ShowDir::SetupDirWindow(int left, int top){
 
         //windowTitle = 0,dirTitle=1, fileTitle=2,DirSelected=3,FileSelected=4,FilePicker=5,DirReader=6
 
-        int TitleSize=MeasureString(displayLines[dirTitle]->GetText());
-        int fileTitleSize=MeasureString(displayLines[fileTitle]->GetText());
+        int TitleSize=displayLines[dirTitle]->GetStringWidth();
+        int fileTitleSize=displayLines[fileTitle]->GetStringWidth();
         int dirSelectedSize=MeasureString("Directory Selected :");
         int fileSelectedSize=MeasureString("File Selected :");
-
-        general.SetOrigin(0,0);
-        general.SetDimensions(fileN.GetLeft()+330,40+hghDisp+80);
 
         //button_ok=0,button_Cancel=1,button_SelDir=2,button_All=3,button_txt=4
 
         buttons[button_ok]->SetDimensions(30,20);
-        buttons[button_ok]->SetOrigin(365,general.GetTop()-47);
+        buttons[button_ok]->SetOrigin(365+orX,orY+10);
         buttons[button_ok]->setText("OK");
         buttons[button_ok]->setVisibility(false);
 
         buttons[button_Cancel]->SetDimensions(40,20);
-        buttons[button_Cancel]->SetOrigin(290,buttons[button_ok]->GetBottom());
+        buttons[button_Cancel]->SetOrigin(290+orX,buttons[button_ok]->GetBottom());
         buttons[button_Cancel]->setText("Cancel");
         buttons[button_Cancel]->setVisibility(true);
 
         buttons[button_SelDir]->SetDimensions(40,20);
-        buttons[button_SelDir]->SetOrigin(120,buttons[button_ok]->GetBottom());
+        buttons[button_SelDir]->SetOrigin(120+orX,buttons[button_ok]->GetBottom());
         buttons[button_SelDir]->setText("Select");
         buttons[button_SelDir]->setVisibility(false);
 
         buttons[button_All]->SetDimensions(30,20);
-        buttons[button_All]->SetOrigin(290,general.GetTop()-21);
+        buttons[button_All]->SetOrigin(290+orX,fileN.GetTop()+47);
         buttons[button_All]->setText("*.*");
         buttons[button_All]->setVisibility(true);
 
@@ -115,65 +118,72 @@ void ShowDir::SetupDirWindow(int left, int top){
         buttons[button_txt]->setVisibility(false);
 
         sliderBox.SetOrigin(buttons[button_All]->GetLeft()-1,buttons[button_All]->GetBottom()-1);
-        sliderBox.SetDimensions(65,22);
-        sliderBox.setColor(Clr_White);
-        sliderBox.setVisibility(true);
+        sliderBox.SetDimensions(67,22);
+        sliderBox.SetColor(Clr_White);
+        sliderBox.SetVisibility(true);
 
-        general.SetOrigin(0,0);
-        general.SetDimensions(fileN.GetLeft()+330,buttons[button_ok]->GetTop()+60);
+        general.SetDimensions(fileN.GetRight()+80,sliderBox.GetTop()+40);
+        background.SetDimensions(general.GetWidth()+2*orX,general.GetHeight()+2*orY);
 
-        displayLines[windowTitle]->setText("Text files (.txt) in : .."+dirN.GetActualDirName());
-        displayLines[windowTitle]->SetDimensions(320,charHeight+2);
-        displayLines[windowTitle]->SetOrigin(sliderBox.GetRight()+2,sliderBox.GetBottom()+2);
-        displayLines[windowTitle]->SetBackGroundColor(general.GetColor());
+        displayLines[Title]->setText("Choose a File to Open");
+        displayLines[Title]->SetFontSize(1);
+        int titleW=displayLines[Title]->GetStringWidth();
+        displayLines[Title]->SetDimensions(titleW,15);
+        displayLines[Title]->SetOrigin((background.GetWidth()/2-titleW/2),general.GetTop()-20);
+        displayLines[Title]->SetBackGroundColor(general.GetColor());
+
+        displayLines[extension]->setText("Text files (.txt) in : .."+dirN.GetActualDirName());
+        displayLines[extension]->SetDimensions(320,charHeight+2);
+        displayLines[extension]->SetOrigin(sliderBox.GetRight()+2,sliderBox.GetBottom()+2);
+        displayLines[extension]->SetBackGroundColor(general.GetColor());
 
         displayLines[dirTitle]->setText("Choose a directory :");
         displayLines[dirTitle]->SetDimensions(TitleSize,charHeight+2);
-        displayLines[dirTitle]->SetOrigin(10,fileN.GetTop()+charHeight+2);
+        displayLines[dirTitle]->SetOrigin(dirN.GetLeft(),dirN.GetTop()+10);
         displayLines[dirTitle]->SetBackGroundColor(general.GetColor());
 
         displayLines[fileTitle]->setText("Click the file to display :");
         displayLines[fileTitle]->SetDimensions(fileTitleSize,charHeight+2);
-        displayLines[fileTitle]->SetOrigin(320,fileN.GetTop()+charHeight+2);
+        displayLines[fileTitle]->SetOrigin(fileN.GetLeft(),fileN.GetTop()+10);
         displayLines[fileTitle]->SetBackGroundColor(general.GetColor());
 
         displayLines[DirSelected]->setText("Directory Selected :");
         displayLines[DirSelected]->SetDimensions(dirSelectedSize,charHeight+2);
-        displayLines[DirSelected]->SetOrigin(10,30);
+        displayLines[DirSelected]->SetOrigin(dirN.GetLeft(),dirN.GetBottom()-charHeight-4);
         displayLines[DirSelected]->SetBackGroundColor(general.GetColor());
+
+        displayLines[DirReader]->setText("");
+        displayLines[DirReader]->SetDimensions(dirN.GetWidth()+10,charHeight+2);
+        displayLines[DirReader]->SetTextColor(Clr_BlackInk);
+        displayLines[DirReader]->SetOrigin(dirN.GetLeft(),displayLines[DirSelected]->GetBottom()-15);
+        displayLines[DirReader]->SetTextXY(1,2);
+        displayLines[DirReader]->SetBackGroundColor(Clr_PaperWhite);
 
         displayLines[FileSelected]->setText("File Selected :");
         displayLines[FileSelected]->SetTextColor(Clr_White);
         displayLines[FileSelected]->SetDimensions(fileSelectedSize,charHeight+2);
-        displayLines[FileSelected]->SetOrigin(320,displayLines[DirSelected]->GetBottom());
+        displayLines[FileSelected]->SetOrigin(fileN.GetLeft(),displayLines[DirSelected]->GetBottom());
         displayLines[FileSelected]->SetBackGroundColor(general.GetColor());
 
         displayLines[FilePicker]->setText("");
-        displayLines[FilePicker]->SetDimensions(fileN.GetWidth(),charHeight+4);
+        displayLines[FilePicker]->SetDimensions(fileN.GetWidth()+20,charHeight+2);
         displayLines[FilePicker]->SetTextColor(Clr_BlackInk);
-        displayLines[FilePicker]->SetOrigin(fileN.GetLeft(),5);
+        displayLines[FilePicker]->SetOrigin(displayLines[FileSelected]->GetLeft()+3,displayLines[FileSelected]->GetBottom()-15);
         displayLines[FilePicker]->SetTextXY(2,2);
         displayLines[FilePicker]->SetBackGroundColor(Clr_PaperWhite);
-
-        displayLines[DirReader]->setText("");
-        displayLines[DirReader]->SetDimensions(dirN.GetWidth(),charHeight+4);
-        displayLines[DirReader]->SetTextColor(Clr_BlackInk);
-        displayLines[DirReader]->SetOrigin(dirN.GetLeft(),displayLines[FilePicker]->GetBottom());
-        displayLines[DirReader]->SetTextXY(1,2);
-        displayLines[DirReader]->SetBackGroundColor(Clr_PaperWhite);
 
         displayLines[DirReader]->PrintString();
         displayLines[FilePicker]->PrintString();
     }
     else{      
-        wWidth=general.GetWidth();
-        wHeight=general.GetHeight();
+        wWidth=background.GetWidth();
+        wHeight=background.GetHeight();
     }
 }
 
 void ShowDir::ActivateWindow(){
-    wWidth=general.GetWidth();
-    wHeight=general.GetHeight();
+    wWidth=background.GetWidth();
+    wHeight=background.GetHeight();
     myDrawPad->SetNewSize(wWidth,wHeight);
     dirN.ShowAll();
     fileN.ShowAll();
@@ -197,35 +207,44 @@ void ShowDir::Update(){
         myDrawPad->ToUpperLevel();
         XPLMGetWindowGeometry(myWindow, &newL, &newT, &nR, &nB);
         int wW(0),wH(0);
-        if ((newT-nB)!=wHeight|(nR-newL)!=wWidth){
+        if (XPLMWindowIsInVR(myWindow)){
+            XPLMGetWindowGeometryVR(myWindow,&wW,&wH);
+        }
+        else {
+            wW=nR-newL;
+            wH=newT-nB;
+        }
+        if ((wH!=wHeight)|(wW!=wWidth)){
             if (XPLMWindowIsInVR(myWindow)){
-                newT=nB+wHeight;
-                nR=newL+wWidth;
                 XPLMSetWindowGeometryVR(myWindow,wWidth,wHeight);
             }
             else{
                 newT=nB+wHeight;
                 nR=newL+wWidth;
                 XPLMSetWindowGeometry(myWindow,newL,newT,nR,nB);
+                XPLMGetWindowGeometry(myWindow, &newL, &newT, &nR, &nB);
             }
         }
+        if (dirN.NeedsToDisplay()) {dirN.DisplayPage(true);}
+        if (fileN.NeedsToDisplay()) fileN.DisplayPage(true);
         myDrawPad->UpdateDrawPad(wWidth,wHeight,newL,nB,nR,newT);
     }
 }
-void ShowDir::DrawDirWindow(XPLMWindowID g_FileWindow){
-    myDrawPad->ToUpperLevel();
 
+void ShowDir::DrawDirWindow(XPLMWindowID){
+    myDrawPad->ToUpperLevel();
     myDrawPad->RenderElements();
 }
 
 int  ShowDir::processMouseDn(int x,int y){
+    myDrawPad->ToUpperLevel();
     int cx(x-newL),cy(y-nB);
     buttonPressed=-1;
     SectionPressed=-1;
     if (dirN.ProceedClick(cx,cy))  {SectionPressed=DirReader; return DirReader;}
     if (fileN.ProceedClick(cx,cy)) {SectionPressed=FilePicker; return FilePicker;}
     for (ulong b(0);b<5;b++) {
-        if (buttons[b]->isHere(cx,cy)) {
+        if (buttons[b]->IsHere(cx,cy)) {
             buttonPressed=static_cast<int>(b);
         }
     }
@@ -233,6 +252,7 @@ int  ShowDir::processMouseDn(int x,int y){
 }
 
 void ShowDir::processMouseDrag(int x,int y){
+    myDrawPad->ToUpperLevel();
     int cx(x-newL),cy(y-nB);
 
     if (SectionPressed==DirReader){
@@ -247,7 +267,7 @@ void ShowDir::processMouseDrag(int x,int y){
 }
 
 int  ShowDir::processMouseUp(int,int){
-
+myDrawPad->ToUpperLevel();
     int retVal=-1;
     if (buttonPressed>-1) {
         retVal=buttonPressed;
@@ -333,14 +353,12 @@ void ShowDir::UpdateDirInfo(){
     string info("");
     info = (fileN.GetTxtOption()?"Text files (.txt) in ":"All files (*.*) in ");
     info = info+dirN.GetActualDirName();
-    displayLines[windowTitle]->setText(info);
-    displayLines[windowTitle]->PrintString();
+    displayLines[extension]->setText(info);
+    displayLines[extension]->PrintString();
 }
 
 int  ShowDir::MeasureString(string in_String){
-    float mySize=XPLMMeasureString(xplmFont_Proportional,DrawLogic::ToC(in_String),static_cast<int>(in_String.size()));
-    int retSize=static_cast<int>(mySize);
-    return retSize;
+    return fontMan::MeasureString(in_String);
 }
 
 int  ShowDir::GetRight(){return general.GetRight();}

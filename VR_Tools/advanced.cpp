@@ -66,19 +66,19 @@ void advanced::MakeAdvancedDialog(Hotspot htsp, std::function<void()> cBck){
 
     rectButtons.SetDimensions(wWidth,163);
     rectButtons.SetOrigin(0,0);
-    rectButtons.setColor(Clr_LighterGray);
+    rectButtons.SetColor(Clr_LighterGray);
 
     rectParam.SetDimensions(wWidth,95);
     rectParam.SetOrigin(0,rectButtons.GetTop());
-    rectParam.setColor(Clr_LightGray);
+    rectParam.SetColor(Clr_LightGray);
 
     rectBox.SetDimensions(wWidth,140);
     rectBox.SetOrigin(0,rectParam.GetTop());
-    rectBox.setColor(Clr_LighterGray);
+    rectBox.SetColor(Clr_LighterGray);
 
     rectSit.SetDimensions(wWidth,52);
     rectSit.SetOrigin(0,rectBox.GetTop());
-    rectSit.setColor(Clr_LightGray);
+    rectSit.SetColor(Clr_LightGray);
 
 
 //T for text
@@ -222,7 +222,7 @@ void advanced::PrintLines(){
     pitchL.PrintString();
     tiltL.PrintString();
 }
-void advanced::DrawMyself(XPLMWindowID in_window_id, void *){
+void advanced::DrawMyself(XPLMWindowID, void *){
 
     ManageModalWindow::ConstrainGeometry();
     DrawLogic::RenderContent();
@@ -238,7 +238,7 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
         myself->epochClick=0;
 
         for (auto bt:myself->actionButtons){
-            if (bt->button->isHere(x,y)){
+            if (bt->button->IsHere(x,y)){
                 selAct=bt->ActionName;
                 selectedB=bt->number;
                 bt->button->Press();

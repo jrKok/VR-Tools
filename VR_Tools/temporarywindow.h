@@ -21,7 +21,7 @@ class temporaryWindow
 {
 public:
     temporaryWindow();
-    static void DrawMyself(XPLMWindowID in_window_id, void *);
+    static void DrawMyself(XPLMWindowID, void *);
     static void ShowAlert(string in_String,float time_to_show);
     static void StopAlert();
 private:

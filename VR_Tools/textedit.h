@@ -21,7 +21,7 @@ public:
     void ProceedClickCont(int x, int y);
     void ProceedEndClick();
     bool ReadFileToBuff();
-    void DisplayPage();
+    void DisplayPage(bool ntd=false);
     void DrawCursor();
     void UpdateBox(int thisLine);
     void MoveCursorUp();

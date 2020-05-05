@@ -87,12 +87,13 @@ int  Alert3Buttons::GetAnswer(){
  return answer;
 }
 
-void Alert3Buttons::DrawMyself(XPLMWindowID in_window_id, void *){
+void Alert3Buttons::DrawMyself(XPLMWindowID, void *){
     ManageModalWindow::MakeTopWindow();
     DrawLogic::RenderContent();
 }
 
-int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void * unused){
+int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int is_down, void *){
+     ManageModalWindow::MakeTopWindow();
     int x(ix-ManageModalWindow::GetLeft()),y(iy-ManageModalWindow::GetBottom());
     switch (is_down){
     case xplm_MouseDown:{
@@ -100,15 +101,15 @@ int Alert3Buttons::MouseHandler(XPLMWindowID in_window_id, int ix, int iy, int i
         {
             ManageModalWindow::MakeTopWindow();
         }else{
-        if (myself->yesButton->isHere(x,y)){
+        if (myself->yesButton->IsHere(x,y)){
             mouseLocated=true;
             myself->answer=1;
         }
-        if (myself->noButton->isHere(x,y)){
+        if (myself->noButton->IsHere(x,y)){
             mouseLocated=true;
             myself->answer=2;
         }
-        if (myself->cancelButton->isHere(x,y)){
+        if (myself->cancelButton->IsHere(x,y)){
             mouseLocated=true;
             myself->answer=3;
         }

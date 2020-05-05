@@ -9,6 +9,7 @@
  int                ManageModalWindow::myBottom(0);
  rectangles        *ManageModalWindow::myRect(nullptr);
  ManageModalWindow *ManageModalWindow::myself(nullptr);
+ std::function<void()> ManageModalWindow::updatefct(nullptr);
 
 
 ManageModalWindow::ManageModalWindow(DrawLogic *dp)
@@ -69,8 +70,8 @@ XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID,
     myRect=new rectangles("modalW generalR",false);
     myself->myDrawPad->AddAsFirstRectangle(myRect);
     myRect->SetDimensions(width,height);
-    myRect->setColor(myColor);
-    myRect->setVisibility(true);
+    myRect->SetColor(myColor);
+    myRect->SetVisibility(true);
     return myModalWindow;
 }
 
@@ -88,6 +89,7 @@ void ManageModalWindow::DestroyModalWindow(){
     myself->myDrawPad->CloseWindow();
     myWidth=0;
     myHeight=0;
+    updatefct=nullptr;
 
 }
 void ManageModalWindow::ResizeModalWindow(int width, int height){
@@ -103,6 +105,11 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
 
     myRect->SetDimensions(width,height);
     myself->myDrawPad->SetNewSize(width,height);
+}
+
+void ManageModalWindow::AddUpdatefunction(std::function<void()> in_update){
+    DrawLogic::WriteDebug("ManageModalwindow got update fct");
+    updatefct=in_update;
 }
 
 void ManageModalWindow::ConstrainGeometry(){
@@ -125,6 +132,7 @@ void ManageModalWindow::ConstrainGeometry(){
             }
         }
         myself->myDrawPad->UpdateDrawPad(mw,mh,myLeft,myBottom,right,top);
+        if (updatefct!=nullptr) updatefct();
     }
 }
 
@@ -154,7 +162,7 @@ void ManageModalWindow::ReactivateDrawPad(){
 }
 
 void ManageModalWindow::HideMyRect(){
-    myRect->setVisibility(false);
+    myRect->SetVisibility(false);
 }
 
 void ManageModalWindow::DebugRects(){

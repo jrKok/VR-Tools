@@ -19,7 +19,7 @@ void VRCommandFilter::init(){
     filterEnabled=false;
     CommandFilter = XPLMCreateCommand("VR_Tools/Custom/Filter_Stick_Commands","Filter Stick");
     //Register Filter command Handler, will create other commands
-    XPLMRegisterCommandHandler(CommandFilter,MyFilterCommandHandler,1,(void *)0); //to apply to the button handling the filtering like a "ctrl" key
+    XPLMRegisterCommandHandler(CommandFilter,MyFilterCommandHandler,1,reinterpret_cast<void*>(0)); //to apply to the button handling the filtering like a "ctrl" key
     g_vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
 }
 
@@ -29,7 +29,6 @@ void VRCommandFilter::UndoFiltering(){
         if (lg>0){
         for (std::size_t I(0);I<lg;I++){
             XPLMUnregisterCommandHandler(Commands[I],MyBlockFilterCommandHandler,1,refCons[I]);
-            delete refCons[I];//I hope that is enough to avoid memory leaks
         }
         Commands.clear();
         state.clear();
@@ -75,7 +74,7 @@ bool VRCommandFilter::SetupFiltering(){
 
 
 
-int VRCommandFilter::MyFilterCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){//activated when a button for custom command for filtering is pressed
+int VRCommandFilter::MyFilterCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, void *){//activated when a button for custom command for filtering is pressed
     switch (inPhase)
     {
     case xplm_CommandBegin:
@@ -99,7 +98,7 @@ int VRCommandFilter::MyFilterCommandHandler(XPLMCommandRef inCommand, XPLMComman
     return 0;//in every case its my command and i've handled it
 }
 
-int VRCommandFilter::MyBlockFilterCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){
+int VRCommandFilter::MyBlockFilterCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, void *inRefcon){
     //Handels built-in commands selected by the filtering function
     int refconToInt=*(static_cast<int*>(inRefcon));
     unsigned long long refVal=static_cast<unsigned long long>(refconToInt);

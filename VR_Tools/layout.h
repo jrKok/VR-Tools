@@ -10,7 +10,7 @@
 #include "XPLMUtilities.h"
 #include "textreader.h"
 #include "rectangles.h"
-#include "button_vr.h"
+#include "boxed_button.h"
 #include "textline.h"
 #include "VR_Tools_global.h"
 #include "linedialog.h"
@@ -19,6 +19,30 @@
 
 using std::vector;
 using std::string;
+
+enum{B_Open=0,
+     B_Refresh=1,
+     B_Stream=2,
+     B_Toggle=3,
+     B_UTF8=4,
+     B_Undo=5,
+     B_Edit=6,
+     B_Save=7,
+     B_Next_File=8,
+     B_Prev_File=9,
+     B_NAV1 = 10,
+     B_NAV2 = 11,
+     B_COM1 = 12,
+     B_COM2 = 13,
+     B_ADF1 = 14,
+     B_ADF2 = 15,
+     B_Show_All=16,
+     B_Hide=17,
+     B_NextLine=18,
+     B_PrevLine=19,
+     B_FirstLine=20,
+
+     };
 
 class TextReader;
 
@@ -37,12 +61,10 @@ public:
             void RelocateButtons(int middle);
             void recalculate(float cT);
     virtual void FitToFile();
-             int rightRectangle(int idx);
-             int leftRectangle(int idx);
-             int topRectangle(int idx);
-             int bottomRectangle(int idx);
             void defineButtons();
-            void MakeButton(bool visible,string in_Label,int width,int height,int oX, int oY);
+            void MakeButton(int btnCmd,bool visible,string in_Label,int width,int height,int oX, int oY);
+            void MakeBoxedButton(int number, bool visible,string in_Label,int width,int height,int oX, int oY,int fontSize);
+            void MakeHeader(std::string in_String);
     virtual void findClick(int mX, int mY);
     virtual void HandleMouseKeepDown(int mX,int mY);
     virtual int  HandleMouseUp(int mX,int mY);
@@ -50,10 +72,11 @@ public:
     virtual void ClosegWindow();
     virtual void LaunchCommand(int refCommand);
     virtual string GetFileName();
+            void UpdateFrequencies();
             string GetDirName();
             void SetWindowHandle(XPLMWindowID thisW);
             bool isWindowInVR();
-    virtual void DrawTextW(XPLMWindowID g_textWindow);
+    virtual void DrawTextW(XPLMWindowID);
             bool OpenWindowAtStart();
             void DoFlash();
             bool GetResizeOption();
@@ -76,11 +99,11 @@ protected:
  int               t,b,l,r;//input from draw instruction mostly
                int textHeight,textWidth,colWidth,idxSelected,nButtons;
              float reloadPeriod;
-        rectangles generalR;
+        rectangles generalR,titleR,decoR;
        TextReader *tFileReader;
 
-vector<button_VR*> tButtons;
-
+std::map<int,button_VR*>    tButtons;
+std::map<int,Boxed_Button*> tBButtons;
 
       XPLMDataRef nav1on,nav2on,com1on,com2on,adf1on,adf2on;
       XPLMDataRef nav1freq,nav2freq,com1freq,com2freq,adf1freq,adf2freq,com1freqk,com2freqk;
@@ -88,7 +111,7 @@ vector<button_VR*> tButtons;
    XPLMCommandRef screenShot;
      XPLMWindowID myWindow;
 
-         TextLine fNav,fCom,fAdf,lFPS;
+         TextLine fNav,fCom,fAdf,lFPS,lTitle;
            string charSep;
             float epoch,fpsTag;
             bool  openAtStart,goToLastPage;
@@ -96,7 +119,7 @@ vector<button_VR*> tButtons;
             bool  flash,flashWhenChange,noResize,fitSizeToFile,keepLastFile,keepSize,enableDelete,enableFreqs,showFPS;
             bool  must_print;
             int   clickresult, splitLinePolicy;
-            int   vrWidth,vrHeight,upperMargin,lowerMargin;
+            int   bottom,upperMargin,lowerMargin;
             int   dayPart;//0 : day, 1 : dusk, 2 : night
             float currentFPS;
             float beginFlash;

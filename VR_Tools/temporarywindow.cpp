@@ -18,7 +18,7 @@ temporaryWindow::temporaryWindow()
 
 }
 
-void temporaryWindow::DrawMyself(XPLMWindowID in_window_id, void *){
+void temporaryWindow::DrawMyself(XPLMWindowID, void *){
     //measures time
     ManageModalWindow::MakeTopWindow();
     float tm=XPLMGetElapsedTime();

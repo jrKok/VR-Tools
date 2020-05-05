@@ -280,7 +280,7 @@ void Keyboard::Relocate (int newX, int newY){
 
 bool  Keyboard::ReadLine(int cx, int cy, lineOfKeys in_line, bool &special, std::string &keyName, std::string &keyVal){
     for (auto k: in_line) {
-        if (k->isHere(cx,cy)){
+        if (k->IsHere(cx,cy)){
             keyVal=ReadKey(k,special,keyName);
             activeKey=k->GetMyPointer();
             return true;
@@ -303,15 +303,15 @@ bool Keyboard::PressKey(int cx, int cy, bool &special, string &keyName, string &
      * shift undoes caps lock if pressed while caps lock is on*/
     keyName="";
     keyVal="";
-    bool isInKeyB=allKeyboard.isHere(cx,cy);
+    bool isInKeyB=allKeyboard.IsHere(cx,cy);
     if (isInKeyB){
     string retS("");
 
-    if (rL1.isHere(cx,cy)) ReadLine(cx,cy,kL1,special,keyName,keyVal);
-    if (rL2.isHere(cx,cy)) ReadLine(cx,cy,kL2,special,keyName,keyVal);
-    if (rL3.isHere(cx,cy)) ReadLine(cx,cy,kL3,special,keyName,keyVal);
-    if (rL4.isHere(cx,cy)) ReadLine(cx,cy,kL4,special,keyName,keyVal);
-    if (rL5.isHere(cx,cy)) ReadLine(cx,cy,kL5,special,keyName,keyVal);
+    if (rL1.IsHere(cx,cy)) ReadLine(cx,cy,kL1,special,keyName,keyVal);
+    if (rL2.IsHere(cx,cy)) ReadLine(cx,cy,kL2,special,keyName,keyVal);
+    if (rL3.IsHere(cx,cy)) ReadLine(cx,cy,kL3,special,keyName,keyVal);
+    if (rL4.IsHere(cx,cy)) ReadLine(cx,cy,kL4,special,keyName,keyVal);
+    if (rL5.IsHere(cx,cy)) ReadLine(cx,cy,kL5,special,keyName,keyVal);
 
     if (activeKey!=nullptr){
         activeKey->Press();
@@ -733,9 +733,9 @@ void Keyboard::SetVisibility(bool vis){
 }
 
 void Keyboard::ShowDebugKeys(){
-for (auto k: kL1)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
-for (auto k: kL2)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
-for (auto k: kL3)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
-for (auto k: kL4)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
-for (auto k: kL5)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",k->GetDrawNumber());
+for (auto k: kL1)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",static_cast<int>(k->GetDrawNumber()));
+for (auto k: kL2)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",static_cast<int>(k->GetDrawNumber()));
+for (auto k: kL3)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",static_cast<int>(k->GetDrawNumber()));
+for (auto k: kL4)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",static_cast<int>(k->GetDrawNumber()));
+for (auto k: kL5)  DrawLogic::WriteDebug("key "+k->GetKeyName()+" "+k->GetDebugName()+" drawNumber ",static_cast<int>(k->GetDrawNumber()));
 }

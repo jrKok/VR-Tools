@@ -20,8 +20,9 @@ public:
 
     bool   OpenFile(); //sets textFile and FileExists
     void   PointToFile();
-    std::string GetFileName();
-    std::string GetDirName();
+    string GetFileName();
+    string GetDirName();
+    string GetStemFileName();
     virtual bool   ReadFileToBuff(); //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength
     bool   HasNav();
     bool   HasCom();
@@ -34,15 +35,16 @@ public:
     void   CheckForFrequencies();
     void   WriteDebug(std::string message);
     void   SetNeedsUTF(bool utf);
-    std::string GetNavStr();
-    std::string GetComStr();
-    std::string GetADFStr();
+    string GetCurrentFileName();
+    string GetNavStr();
+    string GetComStr();
+    string GetADFStr();
 
 
 protected:
-    std::string fileName;
-    std::string strBuffADF,strBuffNav,strBuffCom;
-    std::string digits;
+    string fileName;
+    string strBuffADF,strBuffNav,strBuffCom;
+    string digits;
     std::fstream textFile;
     bool fileExists,needsUTF8;
     bool hasNav,hasCom,hasADF;

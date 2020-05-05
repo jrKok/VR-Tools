@@ -208,7 +208,7 @@ void DRefWindow::drawWReport(XPLMWindowID, void *){
 }
 
 
-int DRefWindow::MyDRefCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void *inRefcon){
+int DRefWindow::MyDRefCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, void *inRefcon){
     switch (inPhase)
     {
     case xplm_CommandBegin :

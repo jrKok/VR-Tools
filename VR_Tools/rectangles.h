@@ -21,13 +21,13 @@ public:
               bool in_visibility);
 
   virtual     ~rectangles();
-  virtual void setVisibility(bool in_Visibility);
+  virtual void SetVisibility(bool in_Visibility);
   virtual void SetOrigin(int in_x,int in_y);
   virtual void Shift(int dx,int dy);
 
-    void setColor(char in_Color);
-    bool isHere(int,int);
-    void resetMe();
+    void SetColor(char in_Color);
+    bool IsHere(int,int);
+    void ResetMe();
     void WriteDebug(std::string message);
     void SetDimensions(int in_width, int in_height);
     void SetAngles(int in_left, int in_bottom, int in_right, int in_top);

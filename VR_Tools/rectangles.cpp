@@ -123,24 +123,24 @@ void rectangles::WriteDebug(std::string message){
 }
 
 
-bool rectangles::isHere(int x, int y){
+bool rectangles::IsHere(int x, int y){
     if ((x>=left)&&(x<=right)&&(y<=top)&&(y>=bottom)&&isVisible) return true;
     else return false;
 }
 
-void rectangles::resetMe(){
+void rectangles::ResetMe(){
     top=0;left=0;bottom=0;right=0;height=0;width=0;
-    setVisibility(false);
+    SetVisibility(false);
 }
 
-void rectangles::setColor(char in_Color){
+void rectangles::SetColor(char in_Color){
     if (isDrawable){
         my_currentColor=in_Color;
         DrawLogic::UpdateRectangle(drawNumber);
     }
 }
 
-void rectangles::setVisibility(bool in_Visibility){
+void rectangles::SetVisibility(bool in_Visibility){
     if ((in_Visibility!=isVisible)&isDrawable ){
         isVisible=in_Visibility;
         if(isVisible) DrawLogic::UpdateRectangle(drawNumber);

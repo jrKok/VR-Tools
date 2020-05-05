@@ -56,7 +56,7 @@ void cursor::Initiate(const vString *inLines,int offsetXLine, int offsetYLine,in
     offX=offsetXLine;//will have to be updated when recalculate occurs in reader
     offY=offsetYLine;//id
     lineHeight=lnHeight;
-    nbOfLines=inLines->size();
+    nbOfLines=static_cast<int>(inLines->size());
     nbBoxLines=boxlines;
 
     for (string line:(*inLines)){//examine each line
@@ -66,7 +66,7 @@ void cursor::Initiate(const vString *inLines,int offsetXLine, int offsetYLine,in
 }
 
 void cursor::MakeLinePos(const string &thisline){
-    fontMan::GetPositions(thisline,chPos);
+    fontMan::GetPositions(thisline,chPos,0);
 }
 
 void cursor::MakeLinePosAgain(const ulong line,const string &thisline){

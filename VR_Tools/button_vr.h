@@ -16,10 +16,12 @@ class button_VR:public rectangles
 public:
     button_VR(bool modal=false);
     button_VR(string label,bool modal=false);
+    ~button_VR();
 
 virtual void setVisibility(bool vis);
 virtual void SetOrigin(int in_x, int in_y);
 virtual void Shift(int dx,int dy);
+virtual void ReDrawButton();
     void AddText();
     void LocateText();
     void SetTextOffsets(int oX,int oY);
@@ -29,8 +31,10 @@ virtual void Shift(int dx,int dy);
     void setText(const std::string &);
     void setTextFixedSize(const std::string &in_String);
     void setTextColor(char to_Clr);
-    void setSymbolColor(char to_Clr);
     void setButtonColor(char to_Clr);
+    void setStateColor (char to_Clr);
+    void setSelectedColor(char to_Clr);
+    void setActivatedColor(char to_Clr);
     void resetMe();
     void Press();
     void Release();
@@ -38,7 +42,7 @@ virtual void Shift(int dx,int dy);
     void SetToWarningColor();
     void SetToStateColor();
     void SetOffsetY(int in_oY);
-    void ReDrawButton();
+    void SetFontSize(int in_S);
 
     char GetStringColorCode();
 
@@ -50,7 +54,7 @@ protected:
     std::vector<point> symbol;
     bool isModalB;
     int  offsetTextX, offsetTextY,numberPoints;
-    int symbolNumber,stringNumber;
+    int symbolNumber,stringNumber,font_Size;
     point stringLocation;
 
 };

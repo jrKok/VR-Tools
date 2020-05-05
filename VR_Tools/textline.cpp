@@ -1,11 +1,13 @@
 #include "textline.h"
 #include "drawlogic.h"
+#include "fontman.h"
 
 TextLine::TextLine() :
     bbl(0),
     bbb(0),
     bbr(0),
     bbt(0),
+    font_Size(0),
     textOfLine(""),
     width(0),
     height(12),
@@ -29,6 +31,7 @@ TextLine::TextLine(bool modal) :
     bbb(0),
     bbr(0),
     bbt(0),
+    font_Size(0),
     textOfLine(""),
     width(0),
     height(12),
@@ -44,7 +47,7 @@ TextLine::TextLine(bool modal) :
 {
     point pt;
     pt.SetCoords(0,0);
-    myStringNumber=DrawLogic::AddString("",textColor,backGroundcol,pt);
+    myStringNumber=DrawLogic::AddString("",textColor,backGroundcol,pt,font_Size);
 }
 
 void TextLine::DeleteLine(){
@@ -93,7 +96,6 @@ bool TextLine::isHere(int x_in, int y_in){
 void TextLine::SetTextColor(char in_clr){
      textColor=in_clr;
      DrawLogic::ChangeColorString(myStringNumber,in_clr);
-     PrintString();
 }
 
 void TextLine::SetBackGroundColor(char in_clr){
@@ -149,6 +151,11 @@ void  TextLine::SetVisibility(bool in_vis){
     if (isVisible) PrintString();
     }
 
+void  TextLine::SetFontSize(int fs){
+    font_Size=fs;
+    DrawLogic::ChangeFontSize(myStringNumber,font_Size);
+}
+
 bool  TextLine::GetVisibility(){return isVisible;}
 int   TextLine::GetTextX(){return textX;}
 int   TextLine::GetTextY(){ return textY;}
@@ -161,3 +168,4 @@ int   TextLine::GetWidth(){return width;}
 int   TextLine::GetHeight(){return height;}
 int   TextLine::GetStringSize(){return mySize;}
 bool  TextLine::GetSelected(){return isSelected;}
+int   TextLine::GetStringWidth(){return fontMan::MeasureString(textOfLine,font_Size);}

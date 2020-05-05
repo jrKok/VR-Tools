@@ -44,7 +44,7 @@ public:
 
     static void	 drawDRef(XPLMWindowID in_window_id, void * in_refcon);
     static void  drawWReport(XPLMWindowID in_window_id, void * in_refcon);
-    static int   MyDRefCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
+    static int   MyDRefCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, void * inRefcon);
     static float UpdateValue(float, float, int, void*);
 
 

@@ -100,6 +100,7 @@ int OpCenter::SetupCenter(){
 void OpCenter::LaunchOperations(){
     DrawLogic::MakeGLContext();
     DrawLogic::WriteDebug("OpCenter Launchoperations : made GLContext");
+
     DrawLogic *ndp=new DrawLogic();//ndp = New DrawPad
     ndp->Initiate();
     ndp->SetId("Layout");
@@ -175,7 +176,9 @@ float OpCenter::DisplayLoop(float, float, int, void*){
     manageMW->ConstrainGeometry();
     return -1;
 }
+
 /************************************************************************************/
+
 void  OpCenter::MakeMenus(){
     menuIdx= XPLMAppendMenuItem(XPLMFindPluginsMenu(), "VR Tools", nullptr, 0);
     menuId= XPLMCreateMenu("VR Tools",XPLMFindPluginsMenu(),menuIdx,menuHandler,nullptr);
@@ -278,6 +281,67 @@ void  OpCenter::menuHandler(void*, void* inItemRef){
         }
 }
 
+int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef,
+                                             XPLMCommandPhase   inPhase,
+                                             void               *inRefcon)
+{
+    int cmdIssued=*((int*)inRefcon);
+    switch(cmdIssued){
+    case 1:{
+        //toggle Text Window Command
+            switch (inPhase)
+            {
+                case xplm_CommandBegin :
+                    {
+                    if (g_textWindow==nullptr){
+                        pointerToMe->MakeTextWindow();
+                        }
+                    else
+                        {if (XPLMGetWindowIsVisible(g_textWindow)==0)
+                            {XPLMSetWindowIsVisible(g_textWindow,1);
+                            (*ptrLayout).CheckButtonsVisibility();}
+                         else{
+                            XPLMSetWindowIsVisible(g_textWindow,0);
+                   /*an .ini option will tell if toggling means destroying window or hiding it
+                     XPLMDestroyWindow(g_textWindow);
+                     (*ptrLayout).ClosegWindow();
+                     g_textWindow=nullptr;*/
+                        }
+                       }
+                    }
+                    break;
+                case xplm_CommandContinue :
+                    break;
+                case xplm_CommandEnd :
+                    break;
+            }
+            break;
+           }
+    case 2:{ // Select First Line in the display
+        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_FirstLine);
+        break;}
+
+    case 3:{ //Next Line
+        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_NextLine);
+    }
+        break;
+    case 4:{ //Previous Line
+        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_PrevLine);
+    }
+        break;
+    case 5:{ //Delete Line
+        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_Toggle);
+    }
+        break;
+    case 6:{ //Reload File ie restore display
+       if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_Refresh);
+    }
+        break;
+    }
+
+    return 0;//no one else needs to handle this
+}
+
 void  OpCenter::drawText(XPLMWindowID , void *){
     (*ptrLayout).DrawTextW(g_textWindow);
 }
@@ -306,7 +370,12 @@ int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseSta
 
         case xplm_MouseUp: {
             int cmd=(*ptrLayout).HandleMouseUp(x,y);
-            if (cmd==2){//load command has been pressed
+            if (cmd==1){
+                if (XPLMGetWindowIsVisible(g_textWindow)){
+                    XPLMSetWindowIsVisible(g_textWindow,0);
+                }
+            }
+            if (cmd==2){//"open" command has been pressed
             pointerToMe->MakeFileWindow();
             }
             if (cmd==3){//edit command don't destroy window but reinitiate the layout,
@@ -373,7 +442,6 @@ int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStat
                 XPLMDestroyWindow(g_FileWindow);
                 g_FileWindow=nullptr;
                 dispDir->CloseDirWindow();
-
             }
         break;
        }
@@ -381,70 +449,7 @@ int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStat
   return 1;//mouse events handled here
 }
 
-
-
-void  OpCenter::handle_physical_keyboard(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus){ return;}
-
-
-int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef     inCommand,
-                                             XPLMCommandPhase   inPhase,
-                                             void               *inRefcon)
-{
-    int cmdIssued=*((int*)inRefcon);
-    switch(cmdIssued){
-    case 1:{//toggle Text Window
-            switch (inPhase)
-            {
-                case xplm_CommandBegin : //opens or closes the textreader, creates or destroys the window
-                    {
-                    if (g_textWindow==nullptr){//Toggle window in and out of existence
-                        pointerToMe->MakeTextWindow();
-                        }
-                    else
-                        {if (XPLMGetWindowIsVisible(g_textWindow)==0)
-                            {XPLMSetWindowIsVisible(g_textWindow,1);
-                            (*ptrLayout).CheckButtonsVisibility();}
-                         else{
-                            XPLMSetWindowIsVisible(g_textWindow,0);
-                   /*an .ini option will tell if toggling means destroying window or hiding it
-                     XPLMDestroyWindow(g_textWindow);
-                     (*ptrLayout).ClosegWindow();
-                     g_textWindow=nullptr;*/
-                        }
-                       }
-                    }
-                    break;
-                case xplm_CommandContinue :
-                    break;
-                case xplm_CommandEnd :
-                    break;
-            }
-            break;
-           }
-    case 2:{ // Select First Line in the display
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_FirstLine);
-        break;}
-
-    case 3:{ //Next Line
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_NextLine);
-    }
-        break;
-    case 4:{ //Previous Line
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_PrevLine);
-    }
-        break;
-    case 5:{ //Delete Line
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_Toggle_Line);
-    }
-        break;
-    case 6:{ //Reload File ie restore display
-       if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_Reload);
-    }
-        break;
-    }
-
-    return 0;//no one else needs to handle this
-}
+void  OpCenter::handle_physical_keyboard(XPLMWindowID,char,XPLMKeyFlags,char,void*,int){ return;}
 
 void  OpCenter::MakeTextWindow(){
 
@@ -515,10 +520,10 @@ void  OpCenter::MakeFileWindow(){
        XPLMSetWindowPositioningMode(g_FileWindow, g_in_vr?xplm_WindowVR:xplm_WindowPositionFree, -1);
        XPLMSetWindowTitle(g_FileWindow,"Choose Directory and File");
        XPLMSetWindowResizingLimits(g_FileWindow, dispDir->GetWidth(), dispDir->GetHeight(),dispDir->GetWidth()+150, dispDir->GetHeight()+150); // Limit resizing our window
+       ptrLayout->ClosegWindow();
        XPLMDestroyWindow(g_textWindow);
        dispDir->SetWindowId(g_FileWindow);
        dispDir->ActivateWindow();
-            //****(*ptrLayout).ClosegWindow();
        g_textWindow=nullptr;
 
     }
@@ -540,7 +545,7 @@ bool OpCenter::HasModalWindow(){
 
 /********** Dummys ******************/
 
-int	  OpCenter::dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon) { return 0; }
-XPLMCursorStatus OpCenter::dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon) { return xplm_CursorDefault; }
-int	  OpCenter::dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon) { return 0; }
-void  OpCenter::dummy_key_handler(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus){}
+int	  OpCenter::dummy_mouse_handler(XPLMWindowID, int, int, int, void *) { return 0; }
+XPLMCursorStatus OpCenter::dummy_cursor_status_handler(XPLMWindowID, int, int, void *) { return xplm_CursorDefault; }
+int	  OpCenter::dummy_wheel_handler(XPLMWindowID, int, int, int, int, void *) { return 0; }
+void  OpCenter::dummy_key_handler(XPLMWindowID,char,XPLMKeyFlags,char,void*,int){}

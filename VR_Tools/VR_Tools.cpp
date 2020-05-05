@@ -50,7 +50,8 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, int msg, void * inParam){
     }
 
     if (msg==XPLM_MSG_PLANE_LOADED){
-        int idx=(int)(inParam);
+        //int idx=(int)(inParam);
+        int idx=reinterpret_cast<int>(inParam);
 
         if (idx==0){
             VRCReader::GetVRConfigFileName();

@@ -24,10 +24,9 @@ public:
     static std::vector<void*> refCons; //used by filter commands
     static XPLMCommandRef CommandFilter;
     static XPLMDataRef g_vr_dref;
-    static int  MyFilterCommandHandler   (XPLMCommandRef inCommand, //This one receives the custom command
-                                          XPLMCommandPhase   inPhase,
-                                          void *             inRefcon);
-    static int  MyBlockFilterCommandHandler (XPLMCommandRef     inCommand,//This one intercepts the commands of the registered stick commands
+    static int  MyFilterCommandHandler   (XPLMCommandRef, //This one receives the custom command
+                                          XPLMCommandPhase   inPhase, void *);
+    static int  MyBlockFilterCommandHandler (XPLMCommandRef, //This one intercepts the commands of the registered stick commands
                                              XPLMCommandPhase   inPhase,
                                              void *             inRefcon);
     static bool SetupFiltering();

@@ -4,7 +4,8 @@ bool fontMan::FreeTypeStarted(false);
 bool fontMan::FreeTypeError(false);
 FT_Library fontMan::library(nullptr);
 FT_Face    fontMan::face(nullptr);
-map<int,charrecord> *fontMan::chars(new map<int,charrecord>);
+map<int,charrecord> *fontMan::chars (new map<int,charrecord>);
+map<int,charrecord> *fontMan::bigger_chars (new map<int,charrecord>);
 
 fontMan::fontMan() :
     count(0)
@@ -26,39 +27,47 @@ void fontMan::Initialise(){
                          0,
                          &face );
         if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType New Face returned error ",er);FreeTypeError=true;}
-        //er= FT_Set_Char_Size(face,0,10*64,96,96);
-        er= FT_Set_Pixel_Sizes(face,11,11);
-        unsigned char pass[3];
-        //ASCII codes
-        for (unsigned char c(0);c<=0x7F;c++){
+        BuildFontMap(11,chars);
+        BuildFontMap(14,bigger_chars);
 
-            pass[0]=c;
-            CharCodeToMap(1,pass);
-        }
-        //UTF_8 2 byte codes
-        for (unsigned char c1(0xC2);c1<=0xDF;c1++){
-            for (unsigned char c(0x80);c<=0xBF;c++){
-                pass[1]=c1;
-                pass[0]=c;
-                CharCodeToMap(2,pass);
-            }
-        }
-        //UTF-8 3 byte codes
-        for (unsigned char c2(0xE0);c2<=0xEF;c2++){
-            for (unsigned char c1(0x80);c1<=0xBF;c1++){
-                for (unsigned char c(0x80);c<=0xBF;c++)
-                {
-                    pass[2]=c2;
-                    pass[1]=c1;
-                    pass[0]=c;
-                    CharCodeToMap(3,pass);
-                }
-            }
-        }
     }
 }
 
-void fontMan::CharCodeToMap(char cSize, unsigned char in_code[]){
+void fontMan::BuildFontMap(unsigned int size, map<int, charrecord> * to_map){
+
+    int er= FT_Set_Pixel_Sizes(face,size,size);
+    if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType Set Pixel Sizes returned error for size : ",er,size);FreeTypeError=true;}
+    unsigned char pass[3];
+    //ASCII codes
+    for (unsigned char c(0);c<=0x7F;c++){
+
+        pass[0]=c;
+        CharCodeToMap(1,pass,to_map);
+    }
+    //UTF_8 2 byte codes
+    for (unsigned char c1(0xC2);c1<=0xDF;c1++){
+        for (unsigned char c(0x80);c<=0xBF;c++){
+            pass[1]=c1;
+            pass[0]=c;
+            CharCodeToMap(2,pass,to_map);
+        }
+    }
+    //UTF-8 3 byte codes
+    for (unsigned char c2(0xE0);c2<=0xEF;c2++){
+        for (unsigned char c1(0x80);c1<=0xBF;c1++){
+            for (unsigned char c(0x80);c<=0xBF;c++)
+            {
+                pass[2]=c2;
+                pass[1]=c1;
+                pass[0]=c;
+                CharCodeToMap(3,pass,to_map);
+            }
+        }
+    }
+
+}
+
+void fontMan::CharCodeToMap(char cSize, unsigned char in_code[], map<int,charrecord> * to_map){
     FT_ULong charCode(0);
     int charTag(0);
     if (cSize==1) {charCode=in_code[0];charTag=in_code[0];}
@@ -96,64 +105,43 @@ void fontMan::CharCodeToMap(char cSize, unsigned char in_code[]){
         { size=144;
         }
         for (ulong tg(0);tg<size;tg++) newChar.bitmap[tg]=glyph->bitmap.buffer[tg];
-        //LeftShift(newChar);
         newChar.yOffset=(glyph->metrics.horiBearingY>>6)-1;
         newChar.advance=(glyph->metrics.horiAdvance>>6);
     }
     else newChar.bitmap[0]=0;
-    chars->insert(std::make_pair(charTag,newChar));
+    to_map->insert(std::make_pair(charTag,newChar));
 
 }
 
-charrecord fontMan::GetCharFromMap(int in_UTF, int &out_width, int &out_height, int &out_offset,int &out_advance){
+charrecord fontMan::GetCharFromMap(int in_UTF, int &out_width, int &out_height, int &out_offset, int &out_advance, int fontSize){
+    map<int,charrecord> * charMap_toSearch;
+    if (fontSize==0) {
+        charMap_toSearch=chars;
+    }
+    else{
+        charMap_toSearch=bigger_chars;
+    }
     charrecord rec;
     rec.height=0;
-    rec.width=0;
+     rec.width=0;
     out_height=0;
-    out_width=0;
-    if ((*chars).find(in_UTF)==(*chars).end())
+     out_width=0;
+    if ((*charMap_toSearch).find(in_UTF)==(*charMap_toSearch).end())
     {
         DrawLogic::WriteDebug("fontMan GetCharFromMap : didn't find "+std::to_string(in_UTF));
         return rec;
     }
-    rec=(*chars)[in_UTF];
-    if (in_UTF==0x20) {out_width=4;rec.width=4;}
-    if (in_UTF==0x09) {out_width=12;rec.width=12;}
-    out_width=static_cast<int>(rec.width);
-    out_height=static_cast<int>(rec.height);
+    rec=(*charMap_toSearch)[in_UTF];
+     if (in_UTF==0x20) {out_width=4 ;rec.width=4;}
+     if (in_UTF==0x09) {out_width=12;rec.width=12;}
+      out_width=static_cast<int>(rec.width);
+     out_height=static_cast<int>(rec.height);
     out_advance=static_cast<int>(rec.advance);
-    out_offset=static_cast<int>(rec.yOffset);
+     out_offset=static_cast<int>(rec.yOffset);
     return rec;
 }
 
-void fontMan::LeftShift(charrecord &toworkon){
-    bool leftColnotBlack(false);
-    unsigned int allPix=toworkon.width*toworkon.height;
-    for (unsigned int col(0);col<allPix;col+=toworkon.width){
-        leftColnotBlack=leftColnotBlack|toworkon.bitmap[col];
-    }
-
-    bool rightColnotBlack(false);
-    for (unsigned int col(toworkon.width-1);col<allPix;col+=toworkon.width){
-        rightColnotBlack=rightColnotBlack|toworkon.bitmap[col];
-    }
-
-    if (!leftColnotBlack&rightColnotBlack)
-    {   count++;
-        unsigned char temp[144];
-        for (int idx(0);idx<144;idx++) temp[idx]=toworkon.bitmap[idx];
-        for (unsigned int row(0);row<toworkon.height;row++){
-            for (unsigned int pix(row*toworkon.width);pix<(toworkon.width-1);pix++){
-                toworkon.bitmap[pix]=temp[pix+1];
-            }
-            toworkon.bitmap[row*toworkon.width+toworkon.width-1]=0;
-        }
-    }
-
-    return;
-}
-
-int fontMan::MeasureString(const string &in_String){
+int fontMan::MeasureString(const string &in_String, int fontSize){
 
    int length(0);
    int height(0),width(0),advance(0),offset(0);
@@ -171,7 +159,7 @@ int fontMan::MeasureString(const string &in_String){
        if (charInt==9){
            length+=12;continue;
        }
-       fontMan::GetCharFromMap(charInt,width,height,offset,advance);
+       fontMan::GetCharFromMap(charInt,width,height,offset,advance,fontSize);
        if (height){
            length+=advance;
        }
@@ -179,7 +167,14 @@ int fontMan::MeasureString(const string &in_String){
    return length;
 }
 
-void fontMan::GetPositions(const string &in_String,vInt &out_pos){
+int fontMan::GetFontSize(int in_S){
+    if (in_S==0) return 11;
+    else {
+        return 13;
+    }
+}
+
+void fontMan::GetPositions(const string &in_String, vInt &out_pos, int fontSize){
     out_pos.clear();
     int length(0);
     out_pos.push_back(length);
@@ -203,7 +198,7 @@ void fontMan::GetPositions(const string &in_String,vInt &out_pos){
             out_pos.push_back(length);
             continue;
         }
-        fontMan::GetCharFromMap(charInt,width,height,offset,advance);
+        fontMan::GetCharFromMap(charInt,width,height,offset,advance,fontSize);
         if (width){
             length+=advance;
             out_pos.push_back(length);
@@ -259,7 +254,7 @@ void fontMan::StringToCode(const string &in_String, vInt &out_codes){
                 charInt=inc;
             }
         }
-        if (charInt==0x09|charInt>=0x20){
+        if ((charInt==0x09)|(charInt>=0x20)){
             out_codes.push_back(charInt);
         }
     }

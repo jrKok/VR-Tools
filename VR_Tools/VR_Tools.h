@@ -3,17 +3,30 @@
  *
  * version 1.3.5
 
- * make a bigger font
- * redecorate layout and layoutwedit windows
+ * redecorate layout and layoutwedit windows :
+ *   relocate buttons the new ones also
+ *   make next/previous buttons for layout stack, close and hide button for above's zone
+ *   that is button for hide kneeboard, hide paper only (show decoration and next/previous/load button)
+ * decorate kneeboard with upper banner with file name
+ * implement file stack
+ * decorate kneeboard with texts
+ *
  * try to see if move commands can be accelerated in 11.50
  * try to find a private dataref for log.txt
  *
- *  linux
+ *  compile on linux
+ *
+ * send out for tests
+ * bug fixes
+ * publish
+ *
+ * version 1.3.6
+ *
+ * bug fixes
  * make international keyboards (french, german, dutch, swedish, norsk, dansk, italian, espagnol, then greek, russion for 1.3.6)
  *  * try to make a background image for layout and layout with edit
  * try to implement graphic representation of advanced options (low priority)
    bring DRef window under drawlogic
- *  stack text files (keep stack in a simple text file)
  *  change logic for simultaneous keypresses
  *  create a "new file" command (for edit)
  *

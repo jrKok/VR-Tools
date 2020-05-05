@@ -117,3 +117,8 @@ string FilePointer::GetBackupName(){
     return currentBackup;
 }
 
+string FilePointer::GetCurrentNameSansExt(){
+    path p=currentFileName;
+    string toRet=p.stem().string();
+    return toRet;
+}

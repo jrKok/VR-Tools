@@ -50,16 +50,16 @@ static float DisplayLoop(float, float, int, void*); //Loop to signal all open wi
  static   void  drawFileWindow(XPLMWindowID in_window_id, void *);
  static   int   handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *);
  static   int   handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void *);
- static   void  handle_physical_keyboard(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus);
+ static   void  handle_physical_keyboard(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
 
- static  int	dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down, void * in_refcon);
- static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon);
+ static  int	dummy_mouse_handler(XPLMWindowID, int, int, int, void *);
+ static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID, int, int, void *);
  static   int	dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon);
- static   void  dummy_key_handler(XPLMWindowID in_window_id,char in_key,XPLMKeyFlags in_flag,char in_VK,void* refcon,int is_losing_focus);
+ static   void  dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
 
  static   void  menuHandler(void*, void* inItemRef);
 
- static   int   MyTextReaderCommandHandler  (XPLMCommandRef     inCommand,
+ static   int   MyTextReaderCommandHandler  (XPLMCommandRef,
                                              XPLMCommandPhase   inPhase,
                                              void               *inRefcon);//toggle the text window
           void  MakeTextWindow();

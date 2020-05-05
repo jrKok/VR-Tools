@@ -368,7 +368,7 @@ int  IniSettings::FindOption(string optionName){
     leftH.push_back(optionName);
     rightH.push_back("");
     comment.push_back("");
-    return (leftH.size()-1);
+    return (static_cast<int>(leftH.size())-1);
 }
 
 

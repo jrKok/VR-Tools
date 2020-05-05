@@ -48,7 +48,7 @@ public:
     void MakeModalButton(string name, string actionName, ulong myNumber, int width, int height, int offsetX, int offsetY);
     void MakeLine(TextLine &in_Line, int in_x, int in_y, int in_width, int in_height, string in_text);
     void PrintLines();
-    static void DrawMyself(XPLMWindowID in_window_id, void * in_refcon);
+    static void DrawMyself(XPLMWindowID, void * in_refcon);
     static int MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_down, void * unused);
     void SelectLine(TextLine *in_line,int x,float *in_param);
     void ProcessKeyPress(bool special,string keyName,string in_String);

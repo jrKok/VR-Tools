@@ -1,5 +1,6 @@
 #include "stringops.h"
 #include "drawlogic.h"
+#include "fontman.h"
 
 string stringOps::digits("0123456789");
 string stringOps::numSigns("+.-");
@@ -40,10 +41,11 @@ string stringOps::cleanOut(const string inString,const string inToClean){
 
 string stringOps::bestLeft(string &inString,int MaxL){
     string left("");
+    ulong uMax=static_cast<ulong>(MaxL);
     if (MaxL>0)
     {
-      left=inString.substr(0,MaxL);//do a brutal split at MaxL
-      inString=inString.substr(MaxL);
+      left=inString.substr(0,uMax);//do a brutal split at MaxL
+      inString=inString.substr(uMax);
       size_t posSpc=left.find_last_of(" ");//try to split at last space found
       if (posSpc!=string::npos){
           inString=left.substr(posSpc+1)+inString; // if possible do the split not including the space itself.
@@ -56,7 +58,7 @@ string stringOps::bestLeft(string &inString,int MaxL){
 string stringOps::bestLeftSize(string &inString, int in_sz){// used for Best Split At Space
     string left("");
     if (in_sz>0){
-      int MaxL=findLengthForSize(inString,in_sz);
+      ulong MaxL=static_cast<ulong>(findLengthForSize(inString,in_sz));
       left=inString.substr(0,MaxL);//do a brutal split at MaxL
       inString=inString.substr(MaxL);
       size_t posSpc=left.find_last_of(" ");//try to split at last space found
@@ -72,7 +74,7 @@ string stringOps::splitAtSize(string &inString, int in_sz){//used for truncate a
     //the caller has to ensure that inString is superior to in_sz
     string left("");
     if (in_sz>0){
-       ulong MaxL=findLengthForSize(inString,in_sz);
+       ulong MaxL=static_cast<ulong>(findLengthForSize(inString,in_sz));
        left=inString.substr(0,MaxL);//do a brutal split at MaxL
        inString=inString.substr(MaxL);
     }
@@ -85,7 +87,7 @@ string stringOps::splitRightAtSize(string &inString, int in_sz){
         ulong lgth=inString.length();
         for (ulong it(lgth);it>0;it--){
             right=inString.substr(it,(lgth-it));
-            if ((int)XPLMMeasureString(xplmFont_Proportional,(char*)right.c_str(),right.size())>=in_sz){
+            if (fontMan::MeasureString(right)>=in_sz){
                 right=inString.substr(it+1,(lgth-it));
             break;
             }
@@ -106,9 +108,7 @@ int stringOps::findLengthForSize (string inString,int in_sz){
 }
 
 int stringOps::StringSize(string in_str){
-    int retVal;
-    retVal=static_cast<int>(XPLMMeasureString(xplmFont_Proportional,(char*)in_str.c_str(),in_str.size()));
-    return retVal;
+    return fontMan::MeasureString(in_str);
 }
 
 string stringOps::ToUTF8(string ansiSTR){
@@ -164,7 +164,6 @@ string stringOps::DecodeInstruction(string in_instr, string &out_right,string &c
                 right=right.substr(firstQt+1,(secondQt-firstQt-1));
             }
         }
-
     }
     //no text in quotes, first split of any comments
     if (found){
@@ -225,8 +224,6 @@ bool stringOps::IsANumber(string to_test){
                 return false;
             }
         }
-
-
     }
     else return (false);
 }

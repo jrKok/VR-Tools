@@ -48,14 +48,18 @@ bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
 std::string TextReader::GetFileName(){
     if (fileExists){
         return FilePointer::GetCurrentFileName();}
-   else return(std::string ("File not found "+fileName));
+   else return(string ("File not found "+fileName));
+}
+
+std::string TextReader::GetStemFileName(){//returns the file Name without Extension
+    return FilePointer::GetCurrentNameSansExt();
 }
 
 std::string TextReader::GetDirName(){
     if (fileExists){
         return FilePointer::GetCurrentDirName();
         }
-    else return(std::string ("Directory not found "+FilePointer::GetCurrentDirName()));
+    else return(string ("Directory not found "+FilePointer::GetCurrentDirName()));
 }
 
 bool TextReader::ReadFileToBuff(){ //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength

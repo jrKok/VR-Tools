@@ -94,21 +94,21 @@ void ScrollBars::Setup(int height,int totLines, int firstLine, int linesInPage,i
 }
 
 bool ScrollBars::IsCommandForMe(int x, int y, int & retVal){
-    if (general.isHere(x,y)){
-        if (commandUp.isHere(x,y)) {
+    if (general.IsHere(x,y)){
+        if (commandUp.IsHere(x,y)) {
             retVal=LineUp;
             LineUpNLines (1);
             BeginRepeat(B_Line_Up);
             return true;
         }
-        if (commandDown.isHere(x,y)){
+        if (commandDown.IsHere(x,y)){
             retVal=LineDown;
             LineDownNLines(1);
             BeginRepeat(B_Line_Down);
             return true;
         }
-        if (core.isHere(x,y)){
-            if (lift.isHere(x,y)){
+        if (core.IsHere(x,y)){
+            if (lift.IsHere(x,y)){
                 retVal=numberfirstLine;
                 BeginDrag(y);
                 return true;
@@ -256,9 +256,9 @@ int ScrollBars::GetPosFirstLine(){
 }
 
 void ScrollBars::SetVisibility(bool iV){
-    general.setVisibility(iV);
-    core.setVisibility(iV);
-    lift.setVisibility(iV);
+    general.SetVisibility(iV);
+    core.SetVisibility(iV);
+    lift.SetVisibility(iV);
     commandDown.setVisibility(iV);
     commandUp.setVisibility(iV);
     isVisible=iV;
@@ -269,7 +269,6 @@ void ScrollBars::SetVisibility(bool iV){
 }
 
 void ScrollBars::LineUpNLines(int nL){
-    DrawLogic::WriteDebug("scrollbars::line up lines");
     numberfirstLine-=nL;
     if (numberfirstLine<0) numberfirstLine=0;
     SetPosFirstLine(numberfirstLine);

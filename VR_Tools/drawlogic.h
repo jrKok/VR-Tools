@@ -92,8 +92,8 @@ static void  PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_colo
 
 static void  PrintString(const int in_Element);
 static void  PrintStringOnLocalT(const int in_Element);
-       void  DrawStringOnTexture(string in_String,char in_Color,char bckCol, point start_point);
-       void  DrawStringOnLocalTexture(string in_String, char in_Color, point start_point);
+       void  DrawStringOnTexture(string in_String,char in_Color,char bckCol, point start_point, int fontSize=0);
+       void  DrawStringOnLocalTexture(string in_String, char in_Color, point start_point, int fontSize=0);
        void  RelocateStrings();
 
 
@@ -104,12 +104,14 @@ static void  PrintStringOnLocalT(const int in_Element);
     static void    UpdateRectangle(ulong tag_Rect);
     static void    ReleaseRectangle(ulong tag_Rect);
     static void    HideRectangle(ulong tag_Rect);
+    static void    SwapRectangle(ulong tag_Rect1, ulong tag_Rect2);
 
     //string vector management
-    static int   AddString(const string &in_String, const char in_Color,const char bckgrdcol, point where);
+    static int   AddString(const string &in_String, const char in_Color,const char bckgrdcol, point where,int fontsize=0);
     void         EraseStrings();
     static ulong IndexOfString(const int &in_Element);
     static void  ChangeString(const int in_Element, const string &to_String);
+    static void  ChangeFontSize(const int in_Element, int new_size);
     static void  ChangeColorString(const int in_Element,const char &to_Color);
     static void  ChangeBckGrdColorString (const int in_Element,const char &to_Color);
     static void  DeleteString(const int in_Element);
@@ -135,7 +137,7 @@ static void  PrintStringOnLocalT(const int in_Element);
     static char* ToC(const string &in_String);
     static void  FlushContent();
     static void  SetBackGroundColor(char in_Color);
-    float        UpdateDrawPad(int wW, int wH, int nleft, int nbottom, int nright, int ntop);//Flightloop routine for updating texture to GPU, updating geometry
+    void UpdateDrawPad(int wW, int wH, int nleft, int nbottom, int nright, int ntop);//routine for updating texture to GPU, updating geometry
 
     //Debugging functions
            void  checkCompileErrors(unsigned int shader, std::string type);//to check for compiler errors
@@ -173,7 +175,7 @@ private:
     string ident;
     int    cursorX,cursorY;
     float  black[3];
-    char   cursor[2];
+    char   cursor[4];
 };
 
 #endif // DRAWLOGIC_H

@@ -33,6 +33,7 @@ List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      canUndo(false),
      filterClick(true),
      canDelete(true),
+     needDisplay(false),
      drawBackground(true),
      isModal(modal),
      scrB(modal),
@@ -54,7 +55,7 @@ List_Box_With_ScrB::~List_Box_With_ScrB(){
 
 void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY){
 
-    textOnly.setVisibility(drawBackground);
+    textOnly.SetVisibility(drawBackground);
     grlOffsetX=in_offsetX;
     grlOffsetY=in_offsetY;
     heightPx=hght;if (heightPx<120) heightPx=120;if (heightPx>900) heightPx=900;
@@ -73,7 +74,6 @@ void List_Box_With_ScrB::SetupforText(){
      for (int lg(0);lg<pageHeightInL;lg++){
          AddLineToDisplayBox(lg);
      }
-
     totalNbL=static_cast<int>(displayText->size());
     if (totalNbL==0){
         scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
@@ -171,9 +171,10 @@ void List_Box_With_ScrB::AddLine(string in_Line){
 }
 
 void List_Box_With_ScrB::SetBackGround(bool opt){
+    needDisplay=true;
     if (textOnly.IsVisible()!=opt)
     {
-        textOnly.setVisibility(opt);
+        textOnly.SetVisibility(opt);
         if (opt)
         {
             for (auto &bx:box)
@@ -185,25 +186,27 @@ void List_Box_With_ScrB::SetBackGround(bool opt){
 }
 
 void List_Box_With_ScrB::SetBckColor (char in_Color){
-    textOnly.setColor(in_Color);
+    textOnly.SetColor(in_Color);
     for (auto &bx:box)
     {
         bx.SetBackGroundColor(in_Color);
     }
+    needDisplay=true;
 }
 
 void List_Box_With_ScrB::SetInkColor (char in_Color){
+    needDisplay=true;
     inkColor=in_Color;
     textOnly.UpdateMyTexture();
     for (auto &bx:box)
     {
         if (bx.GetSelected()){
             bx.SetTextColor(Clr_InkSelect);
-            bx.PrintStringOnly();
+            //bx.PrintStringOnly();
         }
         else{
             bx.SetTextColor(in_Color);
-            bx.PrintStringOnly();
+            //bx.PrintStringOnly();
         }
     }
 }
@@ -211,7 +214,7 @@ void List_Box_With_ScrB::SetInkColor (char in_Color){
 bool List_Box_With_ScrB::ProceedClick(int x, int y){
 
     //find location
-    if (general.isHere(x,y)){
+    if (general.IsHere(x,y)){
         //which element
         int retV(0);
         if (scrB.IsCommandForMe(x,y,retV)){//scrollBox ?
@@ -344,7 +347,7 @@ void List_Box_With_ScrB::DisplayAtLineN(int in_ln){//doesn't synchronize with sc
     if (in_ln<0) indxFirstOnPg=0;
     if (in_ln>indxLastPage) indxFirstOnPg=indxLastPage;
     indxLastOnPg=indxFirstOnPg+pageHeightInL;
-    if (lineSelected<indxLastOnPg|lineSelected>=indxLastOnPg){
+    if ((lineSelected<indxLastOnPg)|(lineSelected>=indxLastOnPg)){
         lineSelected=-1;
         hasSelection=false;
     }
@@ -360,28 +363,34 @@ void List_Box_With_ScrB::GoToLastPage(){
     GoToLineN(indxLastPage);
 }
 
-void List_Box_With_ScrB::DisplayPage(){
+void List_Box_With_ScrB::DisplayPage(bool htd){
 //cast all variables
-    textOnly.UpdateMyTexture();
-    ulong idx=static_cast<ulong>(indxFirstOnPg),
-            uPageHeight=static_cast<ulong>(pageHeightInL),
-            uSelectedLine=static_cast<ulong>(lineSelected),
-            uNumberOLs=static_cast<ulong>(totalNbL);
-//compute boundaries
     indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
-    if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
-//copy & fill the box for displaying the text lines
-    for (ulong ln(0);ln<uPageHeight;ln++){
-        if (idx<uNumberOLs){
-            box[ln].setText((*displayText)[idx]);
-            box[ln].SetIndex(static_cast<int>(idx));
-            box[ln].SetSelected(uSelectedLine==idx);
-            box[ln].PrintStringOnly();
+    if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL;
+    needDisplay=true;
+    if (htd){
+        textOnly.UpdateMyTexture();
+        ulong idx=static_cast<ulong>(indxFirstOnPg),
+                uPageHeight=static_cast<ulong>(pageHeightInL),
+                uSelectedLine=static_cast<ulong>(lineSelected),
+                uNumberOLs=static_cast<ulong>(totalNbL);
+        //compute boundaries
+
+        //copy & fill the box for displaying the text lines
+
+        for (ulong ln(0);ln<uPageHeight;ln++){
+            if (idx<uNumberOLs){
+                box[ln].setText((*displayText)[idx]);
+                box[ln].SetIndex(static_cast<int>(idx));
+                box[ln].SetSelected(uSelectedLine==idx);
+                box[ln].PrintStringOnly();
+            }
+            else {
+                box[ln].setText("");
+            }
+            idx++;
         }
-        else {
-            box[ln].setText("");
-        }
-        idx++;
+        needDisplay=false;
     }
 }
 
@@ -579,7 +588,7 @@ void List_Box_With_ScrB::clearText(){
 } //has to adjust scrB also
 
 int List_Box_With_ScrB::MeasureString(string str){
-    return (fontMan::MeasureString(str));
+    return (fontMan::MeasureString(str,0));
 }
 
 void List_Box_With_ScrB::SetSplitPolicy(int splitP){
@@ -606,4 +615,8 @@ void List_Box_With_ScrB::PrintMyText(){
 
 char List_Box_With_ScrB::GetScrollBarsColorCode(){
     return scrB.GetColorCodeFromSymbol();
+}
+
+bool List_Box_With_ScrB::NeedsToDisplay(){
+    return needDisplay;
 }

@@ -19,6 +19,7 @@ public:
 static string   DirSeparator;
 static void     SetCurrentFileName(string in_Name);
 static string   GetCurrentFileName();
+static string   GetCurrentNameSansExt();
 static void     SetCurrentDirName(string in_Dir);
 static string   GetCurrentDirName();
 static void     FindCurrentPlaneDir();

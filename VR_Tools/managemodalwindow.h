@@ -35,6 +35,7 @@ public:
     static  int         GetBottom();
     static void         HideMyRect();
     static void         DebugRects();
+    static void         AddUpdatefunction(std::function<void()> in_update);
 
 private:
     static rectangles        * myRect;
@@ -48,6 +49,7 @@ private:
     static void              dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
     static float             UpdateValue(float elpSc,float elpTime,int countr,void* refcon);
            DrawLogic         *myDrawPad;
+    static std::function<void()> updatefct;
 };
 
 #endif // MANAGEMODALWINDOW_H

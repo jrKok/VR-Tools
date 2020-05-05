@@ -33,7 +33,7 @@ public:
     bool newSize(int wth,int hgt);
     void FitToFile();
     void recalculate();
-    void DrawTextW(XPLMWindowID g_textWindow);
+    void DrawTextW(XPLMWindowID);
     void DrawNoResize(XPLMWindowID g_textWindow);
     void findClick(int mX, int mY);
     void HandleMouseKeepDown(int mX,int mY);
@@ -52,7 +52,7 @@ public:
 
 
 private:
-
+    rectangles keybR;
     Keyboard keyb;
     bool showKeyb,keyPressed,specialKey,utfKey,editMode,hasToSave,physK;
     char firstChar,secondChar;

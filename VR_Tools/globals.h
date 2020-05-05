@@ -67,6 +67,7 @@ struct StringToDraw
     bool   s_visible;
     bool   is_deleted;
     char   s_BckGrdColor;
+    int    s_fontSize;
 };
 
 

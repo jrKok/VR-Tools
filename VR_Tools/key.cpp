@@ -30,9 +30,10 @@ void Key::DefineKey(char c1, char c2, bool utf, bool spec, string showVal, strin
     keyAltString=altVal;
     keyAbbrString=abbrVal;
     keyAbbrName=abbrName;
+    font_Size=0;
     setText(showVal);
     DrawLogic::ChangeColorString(stringNumber,Clr_White);
-    setColor(Clr_LightBlue);
+    SetColor(Clr_LightBlue);
     line=ln;
     column=cl;
     DrawLogic::SetVisibilityString(stringNumber,true);

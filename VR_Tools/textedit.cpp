@@ -77,10 +77,10 @@ bool TextEdit::ReadFileToBuff(){
 bool TextEdit::ProceedClick(int x, int y){
 
     //find location
-    if (general.isHere(x,y)){
+    if (general.IsHere(x,y)){
         //which element
         int retV(0);
-        ulong pgHgt=static_cast<ulong>(pageHeightInL),idxF=static_cast<ulong>(indxFirstOnPg);
+        ulong pgHgt=static_cast<ulong>(pageHeightInL);
         if (scrB.IsCommandForMe(x,y,retV)){//scrollBox ?
             DisplayAtLineN(scrB.GetPosFirstLine());
             needToContClick=true;//filterClick=false;//remove filter click when bug corrected
@@ -155,24 +155,33 @@ void TextEdit::ProceedEndClick(){//Mouse Up
     if (dragLines) {
         cursor.EndOfDrag();
     }
-    List_Box_With_ScrB::ProceedEndClick();
+    currentIndx=-1;
+    currentIndxFP=-1;
+    clickPosX=0;
+    clickPosY=0;
+    needToContClick=false;
+    scrB.EndDrag();
+    scrB.EndRepeat();
 }
 
-void TextEdit::DisplayPage(){
+void TextEdit::DisplayPage(bool ntd){
     //Paint background
+    indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
+    if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
+    cursor.SetFirstLineOnPage(indxFirstOnPg);
+    needDisplay=true;
+    if (ntd){
         textOnly.UpdateMyTexture();
-    //DrawSelectionRectangle
+        //DrawSelectionRectangle
 
-    //cast Variables to usable types
+        //cast Variables to usable types
         ulong idx=static_cast<ulong>(indxFirstOnPg),
                 uPageHeight=static_cast<ulong>(pageHeightInL),
                 //uSelectedLine=static_cast<ulong>(lineSelected),
                 uNumberOLs=static_cast<ulong>(totalNbL);
-    //compute boundaries
-        indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
-        if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
-        cursor.SetFirstLineOnPage(indxFirstOnPg);
-    //copy & fill the box for displaying the text lines
+        //compute boundaries
+
+        //copy & fill the box for displaying the text lines
         for (ulong ln(0);ln<uPageHeight;ln++){
             if (idx<uNumberOLs){
                 box[ln].setText((*displayText)[idx]);
@@ -197,6 +206,8 @@ void TextEdit::DisplayPage(){
             }
             idx++;
         }
+        needDisplay=false;
+    }
 }
 
 void TextEdit::DrawCursor(){
@@ -305,7 +316,7 @@ string TextEdit::GetLineToBreak(int in_line,int &last_line,int &cursorPos){
     do{
         retString+=(*displayText)[l];
         if (l<cursorLine){
-            cursorPos+=retString.length();
+            cursorPos+=static_cast<int>(retString.length());
         }
         if (LF==(*displayText)[l].substr(((*displayText)[l].length()-1),1)) hardEnd=true;
         else l++;

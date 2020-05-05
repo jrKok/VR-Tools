@@ -95,13 +95,13 @@ public:
     void DisableEdit();
     bool IsEditDisabled();
     void MouseToUp();
+    void Update();
 
     //functionality : move to, rename, create, up, down, delete, save
 private:
 
     void LaunchMoveCommand();
 
-    rectangles generalR;
     static XPLMCommandRef CmdRight,CmdLeft,CmdUp,CmdDown,CmdForward,CmdBackward;
     XPLMCommandRef CommandLaunched;
     std::function<void()> callBack;
