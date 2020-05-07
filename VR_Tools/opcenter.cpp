@@ -62,6 +62,7 @@ int OpCenter::SetupCenter(){
     IniSettings::GetIniParams();
     g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
     pointerToMe  = this;
+    files.Initiate();
 
     CommandText   = XPLMCreateCommand("VR_Tools/Custom/Toggle_Text_File","Toggle text");
     CmdFirstLine  = XPLMCreateCommand("VR_Tools/Custom/Text/Select_First_Line","Select First Line");
@@ -95,6 +96,7 @@ int OpCenter::SetupCenter(){
     DrawLogic::WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
     IsLaunched=true;
     return g_vr_dref != nullptr;
+
 }
 
 void OpCenter::LaunchOperations(){
@@ -370,31 +372,45 @@ int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseSta
 
         case xplm_MouseUp: {
             int cmd=(*ptrLayout).HandleMouseUp(x,y);
-            if (cmd==1){
+            switch (cmd){
+              case 1 : // Hide Command
                 if (XPLMGetWindowIsVisible(g_textWindow)){
                     XPLMSetWindowIsVisible(g_textWindow,0);
                 }
-            }
-            if (cmd==2){//"open" command has been pressed
-            pointerToMe->MakeFileWindow();
-            }
-            if (cmd==3){//edit command don't destroy window but reinitiate the layout,
-
-                   ptrLayout->ClosegWindow();//Very important to stop DrawLogic's flightloop !
-
-                is_In_Edit_Mode=!is_In_Edit_Mode;
-                if (is_In_Edit_Mode){
-                    ptrLayout=wELayout;
-                    ptrLayout->SetWindowHandle(g_textWindow);
-                    wELayout->initiate();
-                    wELayout->CheckButtonsVisibility();
-                    wELayout->BeginEdit();
-                }else{
-                    ptrLayout=wLayout;
-                    ptrLayout->SetWindowHandle(g_textWindow);
+                break;
+              case 2 : // Open Command
+                pointerToMe->MakeFileWindow();
+                break;
+              case 3 : // Edit Command
+                ptrLayout->ClosegWindow();//Very important to stop DrawLogic's flightloop !
+               is_In_Edit_Mode=!is_In_Edit_Mode;
+               if (is_In_Edit_Mode){
+                  ptrLayout=wELayout;
+                  ptrLayout->SetWindowHandle(g_textWindow);
+                  wELayout->initiate();
+                  wELayout->CheckButtonsVisibility();
+                  wELayout->BeginEdit();
+               }else{
+                 ptrLayout=wLayout;
+                 ptrLayout->SetWindowHandle(g_textWindow);
+                 ptrLayout->initiate();
+                 ptrLayout->CheckButtonsVisibility();
+               }
+                break;
+              case 4 : // Next File Command
+                if (pointerToMe->files.HasStack()){
+                    FilePointer::SetCompleteFileName(pointerToMe->files.NextActive());
                     ptrLayout->initiate();
                     ptrLayout->CheckButtonsVisibility();
                 }
+                break;
+              case 5 : // Previous File Command
+                if (pointerToMe->files.HasStack()){
+                    FilePointer::SetCompleteFileName(pointerToMe->files.NextActive());
+                    ptrLayout->initiate();
+                    ptrLayout->CheckButtonsVisibility();
+                }
+                break;
             }
         break;}
 }
@@ -434,7 +450,10 @@ int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStat
                 XPLMDestroyWindow(g_FileWindow);
                 g_FileWindow=nullptr;
                 dispDir->CloseDirWindow();
-                if (IniSettings::GetOptLastFile()) pointerToMe->wLayout->KeepFile();
+                if (IniSettings::GetOptLastFile()) {
+                    pointerToMe->wLayout->KeepFile();
+                    pointerToMe->files.AddToStack(FilePointer::GetCurrentDirName()+"/"+FilePointer::GetCurrentFileName(),false);
+                }
                 pointerToMe->ReadNewFile();
             }
             if (cmd==1 ){//Cancel has been pressed
@@ -454,6 +473,7 @@ void  OpCenter::handle_physical_keyboard(XPLMWindowID,char,XPLMKeyFlags,char,voi
 void  OpCenter::MakeTextWindow(){
 
     if (g_textWindow==nullptr){
+        if (pointerToMe->files.HasStack()) FilePointer::SetCompleteFileName(pointerToMe->files.GetCurrentActive());
          const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
          g_in_vr = vr_is_enabled;
          int left,bottom,top,right;
@@ -494,6 +514,7 @@ void  OpCenter::MakeTextWindow(){
 
 void  OpCenter::MakeFileWindow(){
     if (g_FileWindow==nullptr){
+
        const int vr_enabled = XPLMGetDatai(g_vr_dref);
        g_in_vr = vr_enabled;
        int l,t,b,r;
@@ -525,6 +546,7 @@ void  OpCenter::MakeFileWindow(){
        dispDir->SetWindowId(g_FileWindow);
        dispDir->ActivateWindow();
        g_textWindow=nullptr;
+
 
     }
     else DrawLogic::WriteDebug("erronous call to MakeFileWindow");

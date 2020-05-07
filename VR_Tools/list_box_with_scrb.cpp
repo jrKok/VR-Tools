@@ -202,11 +202,9 @@ void List_Box_With_ScrB::SetInkColor (char in_Color){
     {
         if (bx.GetSelected()){
             bx.SetTextColor(Clr_InkSelect);
-            //bx.PrintStringOnly();
         }
         else{
             bx.SetTextColor(in_Color);
-            //bx.PrintStringOnly();
         }
     }
 }

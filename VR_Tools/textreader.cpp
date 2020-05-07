@@ -13,6 +13,7 @@ TextReader::TextReader(): List_Box_With_ScrB(false),
     textFile(),
     fileExists(false),
     needsUTF8(false),
+    streamOn(false),
     hasNav(false),hasCom(false),hasADF(false),
     fT(),
     filePath(),
@@ -72,16 +73,47 @@ if (fileName!=""){
           AddLine(inputL);
         return false;}}
   clearText();
-  stringOps ops;
+  //stringOps ops;
   std::string inputL;
+  filePos=0;
   while (getline(textFile,inputL)){
      AddLine(inputL);
+     filePos++;
      }
   textFile.close();  
-  //if (needsUTF8) convertToUTF8();
   SetupforText();}
   return true;
 }
+
+void TextReader::AppendToStream(){
+    //Check if file is bigger than before
+    auto currentSize=std::experimental::filesystem::file_size(filePath);
+    if (currentSize!=keepsize){
+        OpenFile();
+        if (!textFile.is_open()) return;
+        //Read from last entry point
+        string inputL;
+        for (int line(0);line<filePos;line++) getline(textFile,inputL);
+        while (getline(textFile,inputL)){
+            AddLine(inputL);
+            filePos++;
+        }
+        textFile.close();
+        indxLastPage=totalNbL-pageHeightInL;
+        if (indxLastPage<0) indxLastPage=0;
+        scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
+        if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
+        indxLastOnPg=indxFirstOnPg+pageHeightInL;
+        if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
+        delStr1="";
+        delStr2="";
+        lastLineDeleted=-1;
+        antepLineDeleted=-1;
+        keepsize=currentSize;
+    }
+    GoToLastPage();
+}
+
 
 bool TextReader::HasNav(){
     return hasNav;
@@ -145,6 +177,10 @@ void TextReader::ShowAll(){
 bool TextReader::Reload(){
 /*Reloads the file but keeps firstLineOnPage if possible
  * restores this position or if >lastLineOnPage will be reset to that value*/
+    if (streamOn){
+        AppendToStream();
+        return true;
+    }
     int posOfL=indxFirstOnPg;
     bool lastPage=false;
     if (indxFirstOnPg==indxLastPage) lastPage=true;
@@ -162,6 +198,10 @@ bool TextReader::Reload(){
 bool TextReader::ReloadIfSizeChanged(){
 /*Reloads the file but keeps firstLineOnPage if possible
  * restores this position or if >lastLineOnPage will be reset to that value*/
+    if (streamOn){
+        AppendToStream();
+        return true;
+    }
     bool changed(false);
     if (fileExists){
     auto currentSize=std::experimental::filesystem::file_size(filePath);
@@ -202,6 +242,13 @@ void TextReader::SetNeedsUTF(bool utf)
         convertToUTF8();
         DisplayPage();
 }
+}
+
+void   TextReader::SetStreamingMode(bool in_stream){
+    streamOn=in_stream;
+}
+bool   TextReader::GetStreamingMode(){
+    return streamOn;
 }
 
 std::string TextReader::GetNavStr(){

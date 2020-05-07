@@ -21,6 +21,13 @@ void FilePointer::SetCurrentFileName(string in_Name){
     currentFileName=in_Name;
 }
 
+void FilePointer::SetCompleteFileName(string in_String){
+    path p=in_String;
+    currentFileName=p.filename().string();
+    currentDirName=p.parent_path().string();
+
+}
+
 void   FilePointer::SetCurrentDirName(string in_Dir){
     if (in_Dir=="") {
         currentDirName="";

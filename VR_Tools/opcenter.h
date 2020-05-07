@@ -30,6 +30,7 @@
 #include "globals.h"
 #include "fontman.h"
 #include "managemodalwindow.h"
+#include "filestack.h"
 
 using std::string;
 
@@ -96,6 +97,8 @@ static bool g_in_vr,hasModalWindow;
        temporaryWindow tw;
        globals colordefs;
        fontMan fontmanager;
+       FileStack files;
+
 
 };
 

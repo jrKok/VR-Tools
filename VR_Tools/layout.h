@@ -72,6 +72,7 @@ public:
     virtual void ClosegWindow();
     virtual void LaunchCommand(int refCommand);
     virtual string GetFileName();
+            void StopStreaming();
             void UpdateFrequencies();
             string GetDirName();
             void SetWindowHandle(XPLMWindowID thisW);

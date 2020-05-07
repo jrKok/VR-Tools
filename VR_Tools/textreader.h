@@ -35,6 +35,9 @@ public:
     void   CheckForFrequencies();
     void   WriteDebug(std::string message);
     void   SetNeedsUTF(bool utf);
+    void   AppendToStream();
+    void   SetStreamingMode(bool in_stream);
+    bool   GetStreamingMode();
     string GetCurrentFileName();
     string GetNavStr();
     string GetComStr();
@@ -46,11 +49,12 @@ protected:
     string strBuffADF,strBuffNav,strBuffCom;
     string digits;
     std::fstream textFile;
-    bool fileExists,needsUTF8;
+    bool fileExists,needsUTF8,streamOn;
     bool hasNav,hasCom,hasADF;
     file_time_type fT;
     path filePath;
     std::uintmax_t keepsize;
+    int filePos;
 
 
 

@@ -182,12 +182,13 @@ void ShowDir::SetupDirWindow(int left, int top){
 }
 
 void ShowDir::ActivateWindow(){
+    myDrawPad->ToUpperLevel();
     wWidth=background.GetWidth();
     wHeight=background.GetHeight();
     myDrawPad->SetNewSize(wWidth,wHeight);
+    myDrawPad->SetWindowHandle(myWindow);
     dirN.ShowAll();
     fileN.ShowAll();
-    myDrawPad->SetWindowHandle(myWindow);
     DrawLogic::UpdateTexture();
     if (XPLMWindowIsInVR(myWindow)){
         newT=nB+wHeight;

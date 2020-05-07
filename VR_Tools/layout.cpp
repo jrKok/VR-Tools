@@ -144,7 +144,6 @@ bool Layout::initiate(){
             defineButtons();
             nButtons=static_cast<int>(tButtons.size());
             if (goToLastPage) tFileReader->GoToLastPage();
-            DrawLogic::WriteDebug("layout initiate going to generate text");
             myDrawPad->GenerateCurrentTexture();
             return true;
         }else {
@@ -390,11 +389,11 @@ void Layout::CheckButtonsVisibility(){
 
     tButtons[B_Save]->setVisibility(false);
     tButtons[B_Edit]->setVisibility(true);
-    tButtons[B_Next_File]->setVisibility(false);
-    tButtons[B_Prev_File]->setVisibility(false);
+    tButtons[B_Next_File]->setVisibility(true);
+    tButtons[B_Prev_File]->setVisibility(true);
 
     tButtons[B_Open]->setVisibility(true);
-    tButtons[B_Refresh]->setVisibility(!autoReload);
+    tButtons[B_Refresh]->setVisibility(true);
     tButtons[B_Stream]->setVisibility(true);
     tButtons[B_Undo]->setVisibility(tFileReader->CanUndo()&(!autoReload)&enableDelete);
     tButtons[B_UTF8]->setVisibility(!(tFileReader->HasSelection())&(!autoReload)&canUTF);
@@ -499,24 +498,16 @@ int Layout::HandleMouseUp(int,int){
         if (tBButtons.find(clickresult)!=tBButtons.end()) tBButtons[clickresult]->Release();
         continueClick=false;
         buttonClick=false;
-        if (clickresult==B_Open){
-            clickresult=-1;
-            retVal=2;
-            return retVal;
+        switch (clickresult) {
+        case B_Open:{retVal=2;break;}
+        case B_Edit:{retVal=3;break;}
+        case B_Hide:{retVal=1;break;}
+        case B_Next_File:{retVal=4;break;}
+        case B_Prev_File:{retVal=5;break;}
+        default: LaunchCommand(clickresult);
         }
-        if (clickresult==B_Edit){
-            clickresult=-1;
-            retVal=3;
-            return retVal;
-        }
-        if (clickresult==B_Hide){
-            clickresult=-1;
-            retVal=1;
-            return retVal;
-        }
-        else LaunchCommand(clickresult);
-        clickresult=-1;
     }
+    clickresult=-1;
     return retVal;
 }
 //The following can also be used by the plugin handlers to launch a custom command
@@ -524,54 +515,52 @@ int Layout::HandleMouseUp(int,int){
 //enumeration to be found in show_fps_test_global.h
 
 void Layout::LaunchCommand(int refCommand){
-
     switch(refCommand){
          case B_Refresh:{
+             StopStreaming();
              tFileReader->Reload();
-             //canUTF=true;
-         break;}
+             break;}
 
          case B_Undo:{
+             StopStreaming();
              tFileReader->UndoDelete();
              UpdateFrequencies();
-         break;}
+             break;}
 
          case B_Stream:{
-             autoReload=!autoReload;
-             if (autoReload) {
-                 //tButtons[B_Auto].setText("manual Reload");
+             if (autoReload) StopStreaming();
+             else{
+                 autoReload=true;
+                 tFileReader->SetStreamingMode(autoReload);
                  tButtons[B_Stream]->setSelect(true);
                  epoch=XPLMGetElapsedTime();
-             }else{
-                 //tButtons[B_Auto].setText("auto Reload");
-                 tButtons[B_Stream]->setSelect(false);
-             }
-         break;}
+              }
+              break;}
 
          case B_UTF8:{
              tFileReader->SetNeedsUTF(true);
-
              canUTF=false;
-         break;}
+             break;}
 
          case B_Toggle:{
              if (enableDelete)
              tFileReader->DeleteSelectedLine();
              UpdateFrequencies();
-         break;}
+             break;}
 
          case B_Show_All:{
+             StopStreaming();
              tFileReader->ShowAll();
              tFileReader->SetupforText();
-         break;}
+             break;}
 
          case B_NAV1:{
              XPLMSetDatai(nav1freq,tFileReader->freqNAV);
-         break;}
+             break;}
 
          case B_NAV2:{
              XPLMSetDatai(nav2freq,tFileReader->freqNAV);
-         break;}
+             break;}
 
          case B_COM1:{
              int frac(0);
@@ -583,7 +572,8 @@ void Layout::LaunchCommand(int refCommand){
                  frac+=valInt*10;
                  XPLMSetDatai(com1freqk,frac);
              }
-         break;}
+             break;}
+
          case B_COM2:{
              int frac(0);
              int valInt=static_cast<int>(tFileReader->freqCOM);
@@ -594,38 +584,50 @@ void Layout::LaunchCommand(int refCommand){
                  frac+=valInt*10;
                  XPLMSetDatai(com2freqk,frac);
              }
-         break;}
+             break;}
+
          case B_ADF1:{
              XPLMSetDatai(adf1freq,tFileReader->freqADF);
-         break;}
+             break;}
+
          case B_ADF2:{
              XPLMSetDatai(adf2freq,tFileReader->freqADF);
-         break;}
+             break;}
+
          case B_NextLine:{
              if (tFileReader->HasSelection()){
                 int slL=tFileReader->SelectedLineNumber();
                 tFileReader->MoveDnNLines(1);
                 tFileReader->SelectLine(slL+1);
-        }
-         break;}
+              }
+              break;}
+
          case B_PrevLine:{
              if (tFileReader->HasSelection()){
                 int slL=tFileReader->SelectedLineNumber();
                 tFileReader->MoveUpNLines(1);
                 tFileReader->SelectLine(slL-1);
              }
-         break;}
+             break;}
+
          case B_FirstLine:{
              tFileReader->SelectFirstLine();
-         break;  }
-         case B_Hide:{
-         break;
+             break;  }
     }
-}
     CheckButtonsVisibility();
 }
 
+void Layout::StopStreaming(){
+    if (autoReload){
+       tButtons[B_Stream]->setSelect(false);
+       autoReload=false;
+       tFileReader->SetStreamingMode(false);
+       tFileReader->Reload();
+    }
+}
+
 void Layout::ClosegWindow(){
+    myDrawPad->ToUpperLevel();
     tFileReader->closeReader();
     myWindow=nullptr;
     for (auto &bt:tButtons){
@@ -720,7 +722,7 @@ void Layout::RelocateButtons(int middle){
     tButtons[B_UTF8]->     SetOrigin(1,lowerMargin+2);
     tButtons[B_Undo]->     SetOrigin(5,middle-5);
     tButtons[B_Next_File]->SetOrigin(tButtons[B_Refresh]->GetRight()+5,tButtons[B_Refresh]->GetBottom());
-    tButtons[B_Prev_File]->SetOrigin(tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetRight());
+    tButtons[B_Prev_File]->SetOrigin(tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
     tBButtons[B_Hide]->    SetOrigin(1,titleR.GetBottom()+1);
 
     lFPS.SetOrigin(14,generalR.GetTop()-20);
@@ -768,7 +770,7 @@ void Layout::defineButtons(){
     MakeButton(B_Undo,true,"\xE2\x87\x9B",28,20,5,middle-7);
 
     MakeButton(B_Next_File,true,"Next",67,16,tButtons[B_Refresh]->GetRight()+5,tButtons[B_Refresh]->GetBottom());
-    MakeButton(B_Prev_File,true,"Prev",67,16,tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetRight());
+    MakeButton(B_Prev_File,true,"Prev",67,16,tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
 
     MakeButton(B_Show_All,true,"\xE2\x86\xBA",tButtons[B_Toggle]->GetWidth(),20,5,middle-30);
     MakeBoxedButton(B_Hide,true,"\xE2\x9A\xAB",18,18,1,titleR.GetBottom()+1,1);
