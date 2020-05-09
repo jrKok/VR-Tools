@@ -134,8 +134,8 @@ void rectangles::ResetMe(){
 }
 
 void rectangles::SetColor(char in_Color){
+    my_currentColor=in_Color;
     if (isDrawable){
-        my_currentColor=in_Color;
         DrawLogic::UpdateRectangle(drawNumber);
     }
 }

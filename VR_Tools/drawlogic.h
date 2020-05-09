@@ -86,6 +86,7 @@ public:
 static void  UpdateTexture();
        void  GenerateCurrentTexture(); //Draws all elements at once
 
+       void  DrawBox(int in_l,int in_b,int in_r,int in_t,char in_color);
 static void  PrintRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color); //static function to call the next
        void  DrawRectOnTexture(int in_l,int in_b,int in_r,int in_t,char in_color);
        void  WipeRectangle(const rectangles * const in_rect);
@@ -151,6 +152,7 @@ static void  PrintStringOnLocalT(const int in_Element);
     static bool  VerifyPointer(ulong tag, rectangles *in_rect);
 
 private:
+    static bool         verbose;
     static unsigned int shaderProgram,VAO,VBO,EBO;
     map<ulong,rectangles*> *rects;
     vector<StringToDraw> *strings;
@@ -176,6 +178,7 @@ private:
     int    cursorX,cursorY;
     float  black[3];
     char   cursor[4];
+
 };
 
 #endif // DRAWLOGIC_H

@@ -765,7 +765,6 @@ void VrViews::EraseSelection(){
         int startPos=cursor.GetSelectionStartCharPos();
         int endPos=cursor.GetSelectionEndCharPos();
         EraseFromLine(startPos,endPos);
-
     }
 }
 

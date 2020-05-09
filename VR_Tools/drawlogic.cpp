@@ -2,7 +2,8 @@
 #include "fontman.h"
 
 //Static variables initialisations
-DrawLogic *DrawLogic::myself(nullptr);
+bool         DrawLogic::verbose(false);
+DrawLogic   *DrawLogic::myself(nullptr);
 unsigned int DrawLogic::shaderProgram(0);
 unsigned int DrawLogic::VAO(0);
 unsigned int DrawLogic::VBO(0);
@@ -33,6 +34,7 @@ DrawLogic::DrawLogic():
      ident("DrawPad"),
      black{0.0,0.0,0.0},
      cursor{'\xE2','\x88','\xA3','\0'}
+
 {
     myself=this;
     XPLMGenerateTextureNumbers(&textNum, 1);
@@ -61,8 +63,10 @@ void DrawLogic::SetBackGroundColor(char in_Color){
 }
 
 void DrawLogic::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString(ToC(in_String));
+    if (verbose){
+        string in_String="VR Tools : " +message+"\n";
+        XPLMDebugString(ToC(in_String));
+    }
 }
 
 void DrawLogic::WriteDebug(string message,int i1){
@@ -237,6 +241,32 @@ void DrawLogic::FillAll(char in_Color){
 
 void DrawLogic::PrintRectOnTexture(int in_l, int in_b, int in_r, int in_t, char in_color){
     myself->DrawRectOnTexture(in_l, in_b, in_r, in_t,in_color);
+}
+
+void DrawLogic::DrawBox(int in_l, int in_b, int in_r, int in_t, char in_color){
+    if (windowWidth&&windowHeight)
+    {
+        ulong ul=static_cast<ulong>(in_l);
+        ulong ur=static_cast<ulong>(in_r);
+
+        textureColor rc;
+        rc.red  =globals::colors[in_color].red;
+        rc.green=globals::colors[in_color].green;
+        rc.blue =globals::colors[in_color].blue;
+        rc.alpha=globals::colors[in_color].alpha;
+        for (int line(in_b), idx(in_b*windowWidth);line<in_t;line++,idx+=windowWidth){
+            if ((line==in_b)||(line==in_t-1)){
+                for (ulong pos(static_cast<ulong>(idx)+ul),wd(ul);wd<ur;pos++,wd++){
+                    textureZone[pos]=rc;
+                }
+            }
+            else{
+                ulong uidx=static_cast<ulong>(idx);
+                textureZone[uidx+ul]=rc;
+                textureZone[uidx+ur-1]=rc;
+            }
+        }
+    }
 }
 
 void DrawLogic::DrawRectOnTexture(int in_l, int in_b, int in_r, int in_t, char in_color){

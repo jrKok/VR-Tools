@@ -34,7 +34,6 @@ List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      filterClick(true),
      canDelete(true),
      needDisplay(false),
-     drawBackground(true),
      isModal(modal),
      scrB(modal),
      general("lists general",false),
@@ -55,7 +54,7 @@ List_Box_With_ScrB::~List_Box_With_ScrB(){
 
 void List_Box_With_ScrB::Setup (int hght,int larg,int in_offsetX,int in_offsetY){
 
-    textOnly.SetVisibility(drawBackground);
+    textOnly.SetVisibility(true);
     grlOffsetX=in_offsetX;
     grlOffsetY=in_offsetY;
     heightPx=hght;if (heightPx<120) heightPx=120;if (heightPx>900) heightPx=900;
@@ -408,7 +407,6 @@ void List_Box_With_ScrB::SelectLine(int lnNb){
     hasSelection=false;
     lineSelected=-1;
     DisplayPage();
-
 }
 
 void List_Box_With_ScrB::SelectFirstLine(){
@@ -617,4 +615,10 @@ char List_Box_With_ScrB::GetScrollBarsColorCode(){
 
 bool List_Box_With_ScrB::NeedsToDisplay(){
     return needDisplay;
+}
+
+void List_Box_With_ScrB::HideMyself(){
+    DeleteDisplayBox();
+    textOnly.SetVisibility(false);
+    scrB.Setup(0,0,0,0,0,0);//force visibility false
 }

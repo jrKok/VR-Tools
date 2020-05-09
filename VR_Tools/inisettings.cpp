@@ -1,4 +1,5 @@
 #include "inisettings.h"
+#include "drawlogic.h"
 
 
    stringOps IniSettings::ops;
@@ -61,13 +62,7 @@ void IniSettings::GetIniParams()
             WriteIniFile();
         }
     }
-   WriteDebug ("Initialisation Parameters read from : "+completeName);
-}
-
-
-void IniSettings::WriteDebug(string message){
-    string in_String="VR Tools : " +message+"\n";
-    XPLMDebugString((char*)in_String.c_str());
+   DrawLogic::WriteDebug ("Initialisation Parameters read from : "+completeName);
 }
 
 void IniSettings::OrientFilePointer(){

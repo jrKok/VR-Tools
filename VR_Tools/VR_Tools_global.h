@@ -16,8 +16,8 @@
     using namespace  std::experimental::filesystem;
 #endif
 
-const int MaxWWidth(1500);
-const int MaxWHeight(900);
+const int MaxWWidth(1400);
+const int MaxWHeight(1200);
 
 
 enum {LineUp=1,LineDown=2,PageUp=3,PageDown=4,LiftClick=5};

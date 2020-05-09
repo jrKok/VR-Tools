@@ -16,6 +16,7 @@
 #include "linedialog.h"
 #include "vrcreader.h"
 #include "drawlogic.h"
+#include "background.h"
 
 using std::vector;
 using std::string;
@@ -41,7 +42,7 @@ enum{B_Open=0,
      B_NextLine=18,
      B_PrevLine=19,
      B_FirstLine=20,
-
+     B_Close=21
      };
 
 class TextReader;
@@ -56,6 +57,7 @@ public:
     virtual bool initiate();
     virtual bool resize();
             void resizeVRWindow();
+            void DrawBackground();
     virtual bool newSize(int wth,int hgt);
     virtual void Update();
             void RelocateButtons(int middle);
@@ -101,6 +103,7 @@ protected:
                int textHeight,textWidth,colWidth,idxSelected,nButtons;
              float reloadPeriod;
         rectangles generalR,titleR,decoR;
+        Background * bckg;
        TextReader *tFileReader;
 
 std::map<int,button_VR*>    tButtons;
@@ -115,10 +118,10 @@ std::map<int,Boxed_Button*> tBButtons;
          TextLine fNav,fCom,fAdf,lFPS,lTitle;
            string charSep;
             float epoch,fpsTag;
-            bool  openAtStart,goToLastPage;
+            bool  editMode,openAtStart,goToLastPage;
             bool  continueClick,buttonClick,autoReload,saveAuto,canUTF,autoReloadOnSize,useBackGround;
             bool  flash,flashWhenChange,noResize,fitSizeToFile,keepLastFile,keepSize,enableDelete,enableFreqs,showFPS;
-            bool  must_print;
+            bool  must_print,text_visible;
             int   clickresult, splitLinePolicy;
             int   bottom,upperMargin,lowerMargin;
             int   dayPart;//0 : day, 1 : dusk, 2 : night

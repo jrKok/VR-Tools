@@ -106,7 +106,6 @@ static    void WriteOption(string optionName, bool opt);
 static    void WriteOption(string optionName, string opt);
 static    int  FindOption(string optionName);
 
-static    void WriteDebug(string message);
 static    stringOps ops;
 static    string iniFileName,iniDirectory,completeName;
 static    std::fstream iniFile;

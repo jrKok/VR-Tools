@@ -17,17 +17,19 @@ Layout::Layout(DrawLogic *newPad) :
   generalR("layout's general",true),
   titleR("Ribbon",true),
   decoR("decor",true),
+  bckg(nullptr),
   tFileReader(new TextReader()),
   tButtons(),
   myWindow(nullptr),
   fNav(),fCom(),fAdf(),lFPS(),lTitle(),
   charSep(""),
   epoch(0),
-  openAtStart(false),goToLastPage(false),
+  editMode(false),openAtStart(false),goToLastPage(false),
   continueClick(false),buttonClick(false),autoReload(false),saveAuto(false),canUTF(true),autoReloadOnSize(true),
   useBackGround(true),
   flash(false),flashWhenChange(false),
   must_print(true),
+  text_visible(true),
   clickresult(-1),
   upperMargin(45),
   lowerMargin(60),
@@ -42,6 +44,10 @@ Layout::Layout(DrawLogic *newPad) :
 //Destructor
 
 Layout::~Layout(){
+    if (bckg){
+        delete bckg;
+        bckg=nullptr;
+    }
     delete tFileReader;
     if (tButtons.size()>0)
     {
@@ -135,7 +141,7 @@ bool Layout::initiate(){
             generalR.SetColor(Clr_DarkGray);
             DrawLogic::SetBackGroundColor(Clr_DarkGray);
         }
-        tFileReader->PointToFile();
+        tFileReader->PointToFile();;
         if (resize()){
             wLeft=150;
             wRight=wLeft+wWidth;
@@ -144,6 +150,7 @@ bool Layout::initiate(){
             defineButtons();
             nButtons=static_cast<int>(tButtons.size());
             if (goToLastPage) tFileReader->GoToLastPage();
+
             myDrawPad->GenerateCurrentTexture();
             return true;
         }else {
@@ -165,18 +172,20 @@ void Layout::HandleDialog(){
 
 bool Layout::resize(){//calculate offsets; areas of rectangles}
     dayPart=3;
+    text_visible=true;
     tFileReader->SetSplitPolicy(splitLinePolicy);
     if (textHeight<150) textHeight=150;
     tFileReader->Setup(textHeight,textWidth,colWidth,lowerMargin);
+
     if (tFileReader->ReadFileToBuff())
     {
         if (fitSizeToFile){
             int hgt=(charHeight+2)*tFileReader->GetNumberOfLines();
             int wdth=tFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
             if (wdth<295) wdth=295;
-            if (wdth>1500) wdth=1500;
+            if (wdth>(MaxWWidth-colWidth-10)) wdth=MaxWWidth-colWidth-10;
             if (hgt<150) hgt=150;
-            if (hgt>900) hgt=900;
+            if (hgt>(MaxWHeight-upperMargin-lowerMargin)) hgt=MaxWHeight-upperMargin-lowerMargin;
             if (textHeight!=hgt||textWidth!=wdth){
                 textHeight=hgt;
                 textWidth=wdth;
@@ -189,7 +198,6 @@ bool Layout::resize(){//calculate offsets; areas of rectangles}
         wHeight=textHeight+upperMargin+lowerMargin;
         generalR.SetDimensions(wWidth,wHeight);
         MakeHeader("");
-
         myDrawPad->SetNewSize(wWidth,wHeight);
         if (XPLMWindowIsInVR(myWindow)==1){
             if (myWindow!=nullptr) XPLMSetWindowGeometryVR(myWindow,wWidth,wHeight);}
@@ -219,9 +227,9 @@ void Layout::FitToFile(){
     int hgt=(charHeight+2)*tFileReader->GetNumberOfLines();
     int wdth=tFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
     if (wdth<295) wdth=295;
-    if (wdth>1500) wdth=1500;
+    if (wdth>(MaxWWidth-colWidth-10)) wdth=MaxWWidth-colWidth-10;
     if (hgt<150) hgt=150;
-    if (hgt>900) hgt=900;
+    if (hgt>(MaxWHeight-upperMargin-lowerMargin)) hgt=MaxWHeight-upperMargin-lowerMargin;
     textHeight=hgt;
     textWidth=wdth;
     tFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);
@@ -243,9 +251,9 @@ bool Layout::newSize(int wth,int hgt){//called by recalculate
         textWidth+=deltaW;
         textHeight+=deltaH;
         if (textWidth<295)  textWidth=295;
-        if (textWidth>1500) textWidth=1500;
+        if (textWidth>(MaxWWidth-colWidth-10)) textWidth=MaxWWidth-colWidth-10;
         if (textHeight<150) textHeight=150;
-        if (textHeight>900) textHeight=900;
+        if (textHeight>(MaxWHeight-upperMargin-lowerMargin)) textHeight=MaxWHeight-upperMargin-lowerMargin;
         resize();
 
         int middle=tFileReader->GetBottom()+(tFileReader->GetHeight()/2);
@@ -295,6 +303,10 @@ void Layout::recalculate(float cT){ //gets called at every draw callback so this
 void Layout::Update(){
     if (myWindow){
         myDrawPad->ToUpperLevel();
+        if (!text_visible){
+            bckg->KeepSize();
+            return;
+        }
         float curT=XPLMGetElapsedTime();
         XPLMGetWindowGeometry(myWindow, &l, &t, &r, &b);
         recalculate(curT);
@@ -385,41 +397,6 @@ void Layout::ToggleFPS(){
     myDrawPad->GenerateCurrentTexture();
 }
 
-void Layout::CheckButtonsVisibility(){
-
-    tButtons[B_Save]->setVisibility(false);
-    tButtons[B_Edit]->setVisibility(true);
-    tButtons[B_Next_File]->setVisibility(true);
-    tButtons[B_Prev_File]->setVisibility(true);
-
-    tButtons[B_Open]->setVisibility(true);
-    tButtons[B_Refresh]->setVisibility(true);
-    tButtons[B_Stream]->setVisibility(true);
-    tButtons[B_Undo]->setVisibility(tFileReader->CanUndo()&(!autoReload)&enableDelete);
-    tButtons[B_UTF8]->setVisibility(!(tFileReader->HasSelection())&(!autoReload)&canUTF);
-    tButtons[B_Toggle]->setVisibility(tFileReader->HasSelection()&(!autoReload)&(enableDelete));
-    tButtons[B_Show_All]->setVisibility(tFileReader->HasHiddenLine()&(!autoReload)&(enableDelete));
-
-    tButtons[B_NAV1]->setVisibility(tFileReader->HasNav()&XPLMGetDatai(nav1on)&enableFreqs);
-    tButtons[B_NAV2]->setVisibility(tFileReader->HasNav()&XPLMGetDatai(nav2on)&enableFreqs);
-    tButtons[B_COM1]->setVisibility(tFileReader->HasCom()&XPLMGetDatai(com1on)&enableFreqs);
-    tButtons[B_COM2]->setVisibility(tFileReader->HasCom()&XPLMGetDatai(com2on)&enableFreqs);
-    tButtons[B_ADF1]->setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf1on)&enableFreqs);
-    tButtons[B_ADF2]->setVisibility(tFileReader->HasADF()&XPLMGetDatai(adf2on)&enableFreqs);
-
-    fNav.SetVisibility(tFileReader->HasNav());
-    if (tFileReader->HasNav())fNav.PrintString();
-
-    fCom.SetVisibility(tFileReader->HasCom());
-    if (tFileReader->HasCom())fCom.PrintString();
-
-    fAdf.SetVisibility(tFileReader->HasADF());
-    if(tFileReader->HasADF()) fAdf.PrintString();
-
-    lFPS.SetVisibility(showFPS);
-    if (showFPS) lFPS.PrintString();
-}
-
 void Layout::UpdateFrequencies(){
     tFileReader->CheckForFrequencies();
     fNav.setText(tFileReader->GetNavStr());
@@ -446,7 +423,11 @@ void Layout::findClick(int mX, int mY){
     }
     saveAuto=autoReload;
     autoReload=false;
-
+    if (!text_visible) {
+        buttonClick=true;
+        clickresult=B_Refresh;
+        return;
+    }
     if (tFileReader->ProceedClick(cX,cY)){//Click in the text or scrB ?
         CheckButtonsVisibility();
         continueClick=true;
@@ -469,8 +450,6 @@ void Layout::findClick(int mX, int mY){
            return;
            }
     }
-
-
 }
 
 void Layout::HandleMouseKeepDown(int mX,int mY){
@@ -517,6 +496,14 @@ int Layout::HandleMouseUp(int,int){
 void Layout::LaunchCommand(int refCommand){
     switch(refCommand){
          case B_Refresh:{
+             if (!text_visible){
+                 text_visible=true;
+                 delete bckg;
+                 bckg=nullptr;
+                 resize();
+                 CheckButtonsVisibility();
+                 myDrawPad->GenerateCurrentTexture();
+             }
              StopStreaming();
              tFileReader->Reload();
              break;}
@@ -613,6 +600,20 @@ void Layout::LaunchCommand(int refCommand){
          case B_FirstLine:{
              tFileReader->SelectFirstLine();
              break;  }
+         case B_Close:{
+             text_visible=false;
+             tFileReader->HideMyself();
+             CheckButtonsVisibility();
+             decoR.SetVisibility(false);
+             titleR.SetVisibility(false);
+             bckg = new Background;
+             char ink(Clr_PaperWhite);
+             if (dayPart==1) ink=Clr_PaperDusk;
+             if (dayPart==2) ink=Clr_Amber;
+             bckg->MakeBackGround(myDrawPad,myWindow,ink);
+             bckg->GenerateMyTexture();
+             bckg->LoadTexture();
+             break; }
     }
     CheckButtonsVisibility();
 }
@@ -694,6 +695,44 @@ void Layout::KeepCurrentSize(){
     IniSettings::SetHeight(textHeight);
 }
 
+void Layout::CheckButtonsVisibility(){
+
+    tButtons[B_Save]->setVisibility(false);
+    tButtons[B_Edit]->setVisibility(text_visible);
+    tButtons[B_Next_File]->setVisibility(text_visible);
+    tButtons[B_Prev_File]->setVisibility(text_visible);
+
+    tButtons[B_Open]->setVisibility(text_visible);
+    tButtons[B_Refresh]->setVisibility(text_visible);
+    tButtons[B_Stream]->setVisibility(text_visible);
+    tButtons[B_Undo]->setVisibility(text_visible&&tFileReader->CanUndo()&&(!autoReload)&enableDelete);
+    tButtons[B_UTF8]->setVisibility(text_visible&&!(tFileReader->HasSelection())&&(!autoReload)&canUTF);
+    tButtons[B_Toggle]->setVisibility(text_visible&&tFileReader->HasSelection()&&(!autoReload)&(enableDelete));
+    tButtons[B_Show_All]->setVisibility(text_visible&&tFileReader->HasHiddenLine()&&(!autoReload)&(enableDelete));
+
+    tButtons[B_NAV1]->setVisibility(text_visible&&tFileReader->HasNav()&&XPLMGetDatai(nav1on)&&enableFreqs);
+    tButtons[B_NAV2]->setVisibility(text_visible&&tFileReader->HasNav()&&XPLMGetDatai(nav2on)&&enableFreqs);
+    tButtons[B_COM1]->setVisibility(text_visible&&tFileReader->HasCom()&&XPLMGetDatai(com1on)&&enableFreqs);
+    tButtons[B_COM2]->setVisibility(text_visible&&tFileReader->HasCom()&&XPLMGetDatai(com2on)&&enableFreqs);
+    tButtons[B_ADF1]->setVisibility(text_visible&&tFileReader->HasADF()&&XPLMGetDatai(adf1on)&&enableFreqs);
+    tButtons[B_ADF2]->setVisibility(text_visible&&tFileReader->HasADF()&&XPLMGetDatai(adf2on)&&enableFreqs);
+
+    tBButtons[B_Hide]->SetVisibility(text_visible);
+    tBButtons[B_Close]->SetVisibility(text_visible&&!editMode);
+
+    fNav.SetVisibility(text_visible&&tFileReader->HasNav());
+    if (tFileReader->HasNav()&&text_visible)fNav.PrintString();
+
+    fCom.SetVisibility(text_visible&&tFileReader->HasCom());
+    if (tFileReader->HasCom()&&text_visible)fCom.PrintString();
+
+    fAdf.SetVisibility(text_visible&&tFileReader->HasADF());
+    if(tFileReader->HasADF()&&text_visible) fAdf.PrintString();
+
+    lFPS.SetVisibility(showFPS);
+    if (showFPS) lFPS.PrintString();
+}
+
 void Layout::RelocateButtons(int middle){
 
     int buttonsPos=textWidth/2-106;
@@ -724,6 +763,7 @@ void Layout::RelocateButtons(int middle){
     tButtons[B_Next_File]->SetOrigin(tButtons[B_Refresh]->GetRight()+5,tButtons[B_Refresh]->GetBottom());
     tButtons[B_Prev_File]->SetOrigin(tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
     tBButtons[B_Hide]->    SetOrigin(1,titleR.GetBottom()+1);
+    tBButtons[B_Close]->   SetOrigin(wWidth-18,titleR.GetBottom()+1);
 
     lFPS.SetOrigin(14,generalR.GetTop()-20);
 
@@ -774,11 +814,16 @@ void Layout::defineButtons(){
 
     MakeButton(B_Show_All,true,"\xE2\x86\xBA",tButtons[B_Toggle]->GetWidth(),20,5,middle-30);
     MakeBoxedButton(B_Hide,true,"\xE2\x9A\xAB",18,18,1,titleR.GetBottom()+1,1);
+    MakeBoxedButton(B_Close,true,"X",18,18,wWidth-18,titleR.GetBottom()+1,1);
     tBButtons[B_Hide]->SetBoxColor(Clr_SparkSilver);
     tBButtons[B_Hide]->setStateColor(Clr_SparkSilver);
     tBButtons[B_Hide]->setTextColor(Clr_Red);
     tBButtons[B_Hide]->SetToStateColor();
 
+    tBButtons[B_Close]->SetBoxColor(Clr_SparkSilver);
+    tBButtons[B_Close]->setStateColor(Clr_SparkSilver);
+    tBButtons[B_Close]->setTextColor(Clr_Black);
+    tBButtons[B_Close]->SetToStateColor();
 
     fpsTag=XPLMGetElapsedTime();
     lFPS.SetOrigin(14,generalR.GetTop()-20);
@@ -814,9 +859,11 @@ void Layout::MakeHeader(string in_String){
     titleR.SetDimensions(wWidth,20);
     titleR.SetOrigin(0,lowerMargin+textHeight);
     titleR.SetColor(Clr_SparkSilver);
+    titleR.SetVisibility(true);
     string fileN=tFileReader->GetStemFileName();
-    decoR.SetDimensions(textWidth-15,3);
+    decoR.SetDimensions(textWidth-15,3); //decoR is the small white rectangle as large as the text window
     decoR.SetOrigin(colWidth,titleR.GetTop());
+    decoR.SetVisibility(true);
     fileN=in_String+fileN;
     int nameSize=fontMan::MeasureString(fileN,1);
     lTitle.setText(fileN);

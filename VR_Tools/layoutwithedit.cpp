@@ -12,7 +12,6 @@ LayoutWithEdit::LayoutWithEdit(DrawLogic *newPad): Layout(newPad),
     keyPressed(false),
     specialKey(false),
     utfKey(false),
-    editMode(true),
     hasToSave(false),
     physK(false),
     firstChar('\0'),
@@ -32,7 +31,7 @@ void LayoutWithEdit::ReActivateWindow(){
 }
 
 void LayoutWithEdit::StartEdit(){
-
+     editMode=true;
      ReActivateWindow();
      Begin();
      keyb.MakeKeyboard(colWidth,10);
@@ -117,9 +116,9 @@ bool LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
             int hgt=(charHeight+2)*tEdFileReader->GetNumberOfLines();
             int wdth=tEdFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
             if (wdth<260) wdth=260;
-            if (wdth>1500) wdth=1500;
+            if (wdth>(MaxWWidth-colWidth-10)) wdth=MaxWWidth-colWidth-10;
             if (hgt<150) hgt=150;
-            if (hgt>900) hgt=900;
+            if (hgt>(MaxWHeight-upperMargin-lowerMargin)) hgt=MaxWHeight-upperMargin-lowerMargin;
             if ((wdth<keyb.MyWidth())&&showKeyb) wdth=keyb.MyWidth();
             if (textHeight!=hgt||textWidth!=wdth){
                 textHeight=hgt;
@@ -163,9 +162,9 @@ bool LayoutWithEdit::newSize(int wth, int hgt){//called by recalculate
      textWidth=textWidth+deltaW;
      textHeight=textHeight+deltaH;
      if (textWidth<keyb.MyWidth()) textWidth=keyb.MyWidth();
-     if (textWidth>1500) textWidth=1500;
+     if (textWidth>(MaxWWidth-colWidth-10)) textWidth=MaxWWidth-colWidth-10;
      if (textHeight<150) textHeight=150;
-     if (textHeight>900) textHeight=900;
+     if (textHeight>(MaxWHeight-upperMargin-lowerMargin)) textHeight=MaxWHeight-upperMargin-lowerMargin;
      resize();
      int middle=tEdFileReader->GetOffSetY()+(tEdFileReader->GetHeight()/2);
      RelocateButtons(middle);
@@ -179,9 +178,9 @@ void LayoutWithEdit::FitToFile(){
     int hgt=(charHeight+2)*tEdFileReader->GetNumberOfLines();
     int wdth=tEdFileReader->GetMaxWidth()+25;//15 for the scroll box,10 for the text margins
     if (wdth<keyb.MyWidth()) wdth=keyb.MyWidth();
-    if (wdth>1500) wdth=1500;
+    if (wdth>(MaxWWidth-colWidth-10)) wdth=MaxWWidth-colWidth-10;
     if (hgt<150) hgt=150;
-    if (hgt>900) hgt=900;
+    if (hgt>(MaxWHeight-upperMargin-lowerMargin)) hgt=MaxWHeight-upperMargin-lowerMargin;
     textHeight=hgt;
     textWidth=wdth;
     tEdFileReader->Setup(textHeight,textWidth,colWidth,upperMargin);

@@ -54,7 +54,7 @@ public:
 private:
     rectangles keybR;
     Keyboard keyb;
-    bool showKeyb,keyPressed,specialKey,utfKey,editMode,hasToSave,physK;
+    bool showKeyb,keyPressed,specialKey,utfKey,hasToSave,physK;
     char firstChar,secondChar;
     std::string fName,textToShow;
     TextEdit* tEdFileReader;

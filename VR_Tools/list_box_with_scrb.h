@@ -100,6 +100,7 @@ public:
     char GetScrollBarsColorCode();
     virtual void DisplayPage(bool htd=false);
     bool NeedsToDisplay();
+    void HideMyself();
 
 protected:
     char inkColor;
@@ -113,7 +114,6 @@ protected:
     int clickPosX, clickPosY, currentIndx,currentIndxFP;//for dragging, currentIndx registers the line clicked when initiating drag
     int splitPolicy;
     bool hasHiddenLines,hasSelection,dragLines,delLines,needToContClick,canUndo,filterClick,canDelete,needDisplay;
-    bool drawBackground;
     bool isModal;
     ScrollBars scrB;
     rectangles general,textOnly;
