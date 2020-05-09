@@ -1,0 +1,66 @@
+CROSSWIND COMPONENT
+Rules of thumb 
+              speed of 
+              crosswind 
+              component 
+angle of wind 
+direction 
+to RWY hdg
+   15°               25%
+   30°               50%
+   45°               75%
+   60°              100%
+VHF COMM FREQUENCIES
+IAD(GUARD).....................121.500
+SAR....................................123.100
+GROUND...........................121.700
+FSS....................................122.750
+Air To Air (Fixed wing)..122.750
+Air To Air (Helicopter)...123.025
+CRUISING ALTITUDES (FEET)
+IFR within controlled airspace
+as assigned by ATC
+180° - 359°
+IFR :EVEN 
+ thousands
+VFR EVEN 
+ thousands
+  plus 500'
+  
+0°  - 179°
+IFR : ODD 
+   thousands
+VFR : ODD 
+   thousands
+     plus 500'  
+VFR above 3000' unless 
+otherwise autorized by ATC
+IFR outside controlled airspace
+All courses are magnetic
+TRANSPONDER CODES
+VFR.......................1200
+IFR as assigned by ATC
+Hijacked...............7500
+Comm failure.....7600
+EMERGENCY........7700
+PILOT REPORT
+Location
+Time
+Altitude/FL
+Sky cover
+Flight vis/wx
+Temp °C
+Wind
+Turbulence
+Icing
+Remarks
+POSITION REPORT ITEMS
+1. Aircraft ID
+2. Position
+3. Time
+4. Altitude or FL
+5. Type of Flight Plan
+6. ETA
+7. Name of succeeding 
+    reporting point
+8. Remarks
