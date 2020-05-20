@@ -11,9 +11,9 @@ The different tools enable :
        
        -  Angle of attack
        
-       -  Accelerations (components of the acceleration vector, mainly "g-force"
+       -  Accelerations (components of the acceleration vector, mainly "g-force")
        
-       -  simulated weather parameters (qnh, cloud base, wind direction&speed...)
+       -  simulated weather parameters (qnh, cloud base, wind direction&speed...) for current location
 
 2 - Filter out commands mapped to VR controlers to not have them triggered inadvertently
 
