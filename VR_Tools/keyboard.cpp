@@ -229,9 +229,9 @@ void Keyboard::MakeKeyboard(int oX, int oY, bool numpad){
     //read the file containing definitions of keys, one text line per keyboard line
     string fileName("");
     if (numpad){
-        fileName="Resources/plugins/VR_Tools/ressources/keyboards/numpad2.cfg";}
+        fileName="Resources/plugins/VR_Tools/resources/keyboards/numpad2.cfg";}
     else{
-        fileName="Resources/plugins/VR_Tools/ressources/keyboards/USKB.cfg";
+        fileName="Resources/plugins/VR_Tools/resources/keyboards/USKB.cfg";
     }    // in a next version, file name will come from ini, with a custom def possible
     std::fstream textFile;
     textFile.open(fileName,std::ifstream::in);

@@ -46,7 +46,7 @@ Layout::Layout(DrawLogic *newPad)  :
 
 //Constructor
 {
-    IniSettings::OrientFilePointer();
+
 }
 
 //Destructor
@@ -124,7 +124,6 @@ void Layout::Begin(){
     splitLinePolicy=   IniSettings::GetOptTrim();
     showFPS=           IniSettings::GetOptFPS();
     tFileReader->SetNeedsUTF(canUTF);
-    IniSettings::OrientFilePointer();
     wHeight=lowerMargin+textHeight+upperMargin;
     wWidth=textWidth+colWidth+10;
 
