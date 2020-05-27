@@ -9,11 +9,13 @@
 
 class Keyboard;
 class TextEdit;
+class OpCenter;
 
 class LayoutWithEdit : public Layout
 {
 public:
-    LayoutWithEdit(DrawLogic *newPad);
+    LayoutWithEdit(DrawLogic *newPad,OpCenter *opc );
+    ~LayoutWithEdit();
     void StartEdit();
     void BeginEdit();
     void ReLabelButtons();
@@ -49,15 +51,17 @@ public:
     void SetNewFile(std::string newFilePath);
     void ToggleFPS();
     void ClosegWindow();
+    void EndEditMode();
 
 
 private:
+    OpCenter *myCenter;
     rectangles keybR;
     Keyboard keyb;
     bool showKeyb,keyPressed,specialKey,utfKey,hasToSave,physK;
     char firstChar,secondChar;
     std::string fName,textToShow;
-    TextEdit* tEdFileReader;
+    std::unique_ptr<TextEdit> tEdFileReader;
     const char   tabchar;
     const string tabstring;
     Alert3Buttons quitWoSave;

@@ -12,18 +12,18 @@
  std::function<void()> ManageModalWindow::updatefct(nullptr);
 
 
-ManageModalWindow::ManageModalWindow(DrawLogic *dp)
-
+ManageModalWindow::ManageModalWindow(DrawLogic *dp,OpCenter *opc):
+    myCenter(opc),
+    myDrawPad(dp)
 {
 myself=this;
-myDrawPad=dp;
 }
 
 ManageModalWindow::~ManageModalWindow(){
+myDrawPad->ToUpperLevel();
+if (myModalWindow) DestroyModalWindow();
 if (myRect!=nullptr) delete myRect;
 myRect= nullptr;
-if (myDrawPad!=nullptr) delete myDrawPad;
-myDrawPad= nullptr;
 }
 
 
@@ -36,7 +36,7 @@ XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID,
     myself->myDrawPad->SetNewSize(width,height);
     myself->myDrawPad->SetId("Modal Window");
     myself->myDrawPad->SetBackGroundColor(myColor);
-    OpCenter::SetModalWindow(true);
+    myself->myCenter->SetModalWindow(true);
     myWidth=width;
     myHeight=height;
     int offsetX(40),offsetY(100);
@@ -80,7 +80,7 @@ void ManageModalWindow::MakeTopWindow(){
     //XPLMBringWindowToFront(myModalWindow);
 }
 void ManageModalWindow::DestroyModalWindow(){
-    OpCenter::SetModalWindow(false);
+    myself->myCenter->SetModalWindow(false);
     if (myModalWindow!=nullptr) XPLMDestroyWindow(myModalWindow);
     if (myRect!=nullptr) delete myRect;
     myRect=nullptr;
@@ -108,7 +108,6 @@ void ManageModalWindow::ResizeModalWindow(int width, int height){
 }
 
 void ManageModalWindow::AddUpdatefunction(std::function<void()> in_update){
-    DrawLogic::WriteDebug("ManageModalwindow got update fct");
     updatefct=in_update;
 }
 

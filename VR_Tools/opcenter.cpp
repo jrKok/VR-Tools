@@ -1,181 +1,217 @@
 #include "opcenter.h"
+#include "drawlogic.h"
+#include "layoutwithedit.h"
 
-OpCenter*              OpCenter::pointerToMe(nullptr);
-bool                   OpCenter::g_in_vr(false);
-bool                   OpCenter::is_In_Edit_Mode(false);
-bool                   OpCenter::hasModalWindow(false);
-XPLMWindowID           OpCenter::g_textWindow(nullptr);
-XPLMWindowID           OpCenter::g_FileWindow(nullptr);
-Layout                *OpCenter::wLayout(nullptr);
-LayoutWithEdit        *OpCenter::wELayout(nullptr);
-Layout*                OpCenter::ptrLayout(nullptr);
-ShowDir               *OpCenter::dispDir(nullptr);
-ManageModalWindow     *OpCenter::manageMW(nullptr);
-DRefWindow             OpCenter::drefW;
-VRCommandFilter        OpCenter::commandFilter;
-Hotspots               OpCenter::htsp;
-XPLMCreateFlightLoop_t OpCenter::DLoop;
-XPLMFlightLoopID       OpCenter::DLoopId(nullptr);
-
-int        OpCenter::menuIdx(0);
-int        OpCenter::idxOfModeMenuItem(0);
-int        OpCenter::itemAdjusted(0);
-int        OpCenter::itemFast(0);
-int        OpCenter::itemSlow(0);
-int        OpCenter::itemReload(0);
-XPLMMenuID OpCenter::menuId(nullptr);
-XPLMMenuID OpCenter::menuTextOpt(nullptr);
-XPLMMenuID OpCenter::menuHotspots(nullptr);
-bool       OpCenter::IsLaunched(false);
+OpCenter *OpCenter::myself(nullptr);
 
 OpCenter::OpCenter():
+    wLayout(nullptr),
+    wELayout(nullptr),
+    dispDir(nullptr),
+    manageMW(nullptr),
+    dpd{nullptr},
+    ptrLayout(nullptr),
+    DLoop(),
+    DLoopId(nullptr),
+    g_textWindow(nullptr),
+    g_FileWindow(nullptr),
+    is_In_Edit_Mode(false),
+    drefW(),
+    htsp(),
+    commandFilter(),
+    menuIdx(0),opt{0},
+    idxOfModeMenuItem(0),itemAdjusted(0),itemFast(0),itemSlow(0),itemReload(0),moveNext(0),movePrev(0),
+    iFPS(0),iAoA(0),iTAS(0),iIAS(0),iGS(0),iGF(0),iWeather(0),
+    menuId(nullptr),menuText(nullptr),menuTextOpt(nullptr),menuHotspots(nullptr),menuData(nullptr),menuShowData(nullptr),
+    g_in_vr(false),hasModalWindow(false),
+    has_been_setup(false), has_been_launched(false),
     g_vr_dref(nullptr),
-    CommandText(nullptr),
-    CmdFirstLine(nullptr),
-    CmdNextLine(nullptr),
-    CmdPrevLine(nullptr),
-    CmdDelLine(nullptr),
-    CmdReload(nullptr),
+    CommandText(nullptr),CmdFirstLine(nullptr),CmdNextLine(nullptr),CmdPrevLine(nullptr),CmdDelLine(nullptr),CmdReload(nullptr),
     ini(),
-    //drw(),
     tw(),
-    colordefs()
+    colordefs(),
+    fontmanager()
 {
-
 }
 
 OpCenter::~OpCenter(){
     fontmanager.EndFreeType();
-    delete (wLayout);
-    delete (wELayout);
-    if (dispDir!=nullptr) delete dispDir;
-    wLayout=nullptr;
-    wELayout=nullptr;
-    dispDir=nullptr;
-    ptrLayout=nullptr;
 }
 
 int OpCenter::SetupCenter(){
+        myself=this;
+        DrawLogic::WriteDebug("Go To GetIniParams");
+        colordefs.DefineColors();
+        IniSettings::GetIniParams();
+        g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
+        FilePointer::Initiate();
 
-    DrawLogic::WriteDebug("Go To GetIniParams");
-    colordefs.DefineColors();
-    IniSettings::GetIniParams();
-    g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
-    pointerToMe  = this;
-    files.Initiate();
+        CommandText   = XPLMCreateCommand("VR_Tools/Custom/Toggle_Text_File","Toggle text");
+        CmdFirstLine  = XPLMCreateCommand("VR_Tools/Custom/Text/Select_First_Line","Select First Line");
+        CmdNextLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Next_Line","Next Line");
+        CmdPrevLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Previous_Line","Previous Line");
+        CmdDelLine    = XPLMCreateCommand("VR_Tools/Custom/Text/Delete_Line","Hide Line");
+        CmdReload     = XPLMCreateCommand("VR_Tools/Custom/Text/Reload","Reload");
 
-    CommandText   = XPLMCreateCommand("VR_Tools/Custom/Toggle_Text_File","Toggle text");
-    CmdFirstLine  = XPLMCreateCommand("VR_Tools/Custom/Text/Select_First_Line","Select First Line");
-    CmdNextLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Next_Line","Next Line");
-    CmdPrevLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Previous_Line","Previous Line");
-    CmdDelLine    = XPLMCreateCommand("VR_Tools/Custom/Text/Delete_Line","Hide Line");
-    CmdReload     = XPLMCreateCommand("VR_Tools/Custom/Text/Reload","Reload");
+        fontmanager.Initialise();
 
-    fontmanager.Initialise();
+        //Register numbered text commands
+        void * nb=new(int*);
+        //(*(int*)nb)=0;
+        nb=new(int*);*(static_cast<int*>(nb))=1;
+        XPLMRegisterCommandHandler(CommandText,MyTextReaderCommandHandler,1,nb);
+        nb=new(int*);*(static_cast<int*>(nb))=2;
+        XPLMRegisterCommandHandler(CmdFirstLine,MyTextReaderCommandHandler,1,nb);
+        nb=new(int*);*(static_cast<int*>(nb))=3;
+        XPLMRegisterCommandHandler(CmdNextLine,MyTextReaderCommandHandler,1,nb);
+        nb=new(int*);*(static_cast<int*>(nb))=4;
+        XPLMRegisterCommandHandler(CmdPrevLine,MyTextReaderCommandHandler,1,nb);
+        nb=new(int*);*(static_cast<int*>(nb))=5;
+        XPLMRegisterCommandHandler(CmdDelLine,MyTextReaderCommandHandler,1,nb);
+        nb=new(int*);*(static_cast<int*>(nb))=6;
+        XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
+        drefW.Setup();
+        htsp =std::make_unique<Hotspots>();
+        htsp->Setup();
+        htsp->SetMyCenter(this);
+        MakeMenus();
+        commandFilter.init();
 
-;    //Register numbered text commands
-    void * nb=new(int*);
-    (*(int*)nb)=0;
-    nb=new(int*);(*(int*)nb)=1;
-    XPLMRegisterCommandHandler(CommandText,MyTextReaderCommandHandler,1,nb);
-    nb=new(int*);(*(int*)nb)=2;
-    XPLMRegisterCommandHandler(CmdFirstLine,MyTextReaderCommandHandler,1,nb);
-    nb=new(int*);(*(int*)nb)=3;
-    XPLMRegisterCommandHandler(CmdNextLine,MyTextReaderCommandHandler,1,nb);
-    nb=new(int*);(*(int*)nb)=4;
-    XPLMRegisterCommandHandler(CmdPrevLine,MyTextReaderCommandHandler,1,nb);
-    nb=new(int*);(*(int*)nb)=5;
-    XPLMRegisterCommandHandler(CmdDelLine,MyTextReaderCommandHandler,1,nb);
-    nb=new(int*);(*(int*)nb)=6;
-    XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
-    drefW.Setup();
-    htsp.Setup();
-    MakeMenus();
-    commandFilter.init();
+        DrawLogic::WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
+        IsLaunched=true;
+        myself->has_been_setup=true;
 
-    DrawLogic::WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
-    IsLaunched=true;
     return g_vr_dref != nullptr;
-
 }
 
 void OpCenter::LaunchOperations(){
-    DrawLogic::MakeGLContext();
-    DrawLogic::WriteDebug("OpCenter Launchoperations : made GLContext");
 
-    DrawLogic *ndp=new DrawLogic();//ndp = New DrawPad
-    ndp->Initiate();
-    ndp->SetId("Layout");
-    wLayout=new Layout(ndp);
+        DrawLogic::MakeGLContext();
+        DrawLogic::WriteDebug("OpCenter Launchoperations : made GLContext");
 
-    ndp=new DrawLogic();
-    ndp->Initiate();
-    ndp->SetId("LayoutWEdit");
-    wELayout=new LayoutWithEdit(ndp);
+        dpd[0]=std::make_unique<DrawLogic>();//ndp = New DrawPad
+        dpd[0]->Initiate();
+        dpd[0]->SetId("Layout");
+        wLayout=std::make_unique<Layout>(dpd[0].get());
 
-    ndp=new DrawLogic();
-    ndp->Initiate();
-    ndp->SetId("Directory");
-    dispDir=new ShowDir(ndp);
+        dpd[1]=std::make_unique<DrawLogic>();//ndp = New DrawPad
+        dpd[1]->Initiate();
+        dpd[1]->SetId("LayoutWEdit");
+        wELayout=std::make_unique<LayoutWithEdit>(dpd[1].get(),myself);
 
-    ndp=new DrawLogic();
-    ndp->Initiate();
-    ndp->SetId("ModalWindow");
-    manageMW=new ManageModalWindow(ndp);
+        dpd[2]=std::make_unique<DrawLogic>();//ndp = New DrawPad
+        dpd[2]->Initiate();
+        dpd[2]->SetId("Directory");
+        dispDir=std::make_unique<ShowDir>(dpd[2].get());
 
-    if (is_In_Edit_Mode){
-        ptrLayout=wELayout;
-    }else{
-        ptrLayout=wLayout;
-    }
+        dpd[3]=std::make_unique<DrawLogic>();//ndp = New DrawPad
+        dpd[3]->Initiate();
+        dpd[3]->SetId("ModalWindow");
+        manageMW=std::make_unique<ManageModalWindow>(dpd[3].get(),myself);
 
-    if (!g_textWindow ){
-        wLayout->Begin();
-        wELayout->StartEdit();//like Begin(), makes keyboard as well
-        if ((*ptrLayout).OpenWindowAtStart()) {
-            MakeTextWindow();
+        if (is_In_Edit_Mode){
+            LayoutWithEdit *ptLE=wELayout.get();
+            ptrLayout=ptLE;
+        }else{
+            ptrLayout=wLayout.get();
         }
-    }
-    ndp=nullptr;
 
-    DLoop.callbackFunc=DisplayLoop;
-    DLoop.structSize=sizeof (DLoop);
-    DLoop.refcon=nullptr;
-    DLoopId=XPLMCreateFlightLoop(&DLoop);
+        if (!g_textWindow ){
+            wLayout->Begin();
+            wELayout->StartEdit();//like Begin(); makes keyboard as well
+            if ((*ptrLayout).OpenWindowAtStart()) {
+                MakeTextWindow();
+            }
+        }
 
-    XPLMScheduleFlightLoop(DLoopId,-1,1);
+        DLoop.callbackFunc=DisplayLoop;
+        DLoop.structSize=sizeof (DLoop);
+        DLoop.refcon=nullptr;
+        DLoopId=XPLMCreateFlightLoop(&DLoop);
+
+        XPLMScheduleFlightLoop(DLoopId,-1,1);
+        has_been_launched=true;
+
 }
 
 void OpCenter::HaltOperations(){
-    commandFilter.UndoFiltering();
-    FilePointer::ReleaseBackups();
+    DrawLogic::WriteDebug("going to Halt Operations");
 
-    drefW.Unload();
+    if (has_been_setup){
+        FilePointer::ReleaseBackups();
+        drefW.Unload();
+        commandFilter.UndoFiltering();
+    }
+    if (has_been_launched){
+        XPLMDestroyFlightLoop(DLoopId);
+        has_been_launched=false;
+        DLoopId=nullptr;
+    }
+
+    htsp-> MakeMoveComplete();
+    htsp.reset();
 
     if (g_FileWindow!=nullptr){
         XPLMDestroyWindow(g_FileWindow);
         g_FileWindow=nullptr;
     }
+    if (g_textWindow!=nullptr){
+        XPLMDestroyWindow(g_textWindow);
+        g_textWindow=nullptr;
+    }
 
     if (dispDir!=nullptr){
-        delete dispDir;
+        dispDir.reset();
         dispDir=nullptr;
     }
 
+    if (wLayout!=nullptr){
+        wLayout.reset();
+        wLayout=nullptr;
+    }
+    if (wELayout!=nullptr){
+        wELayout.reset();
+        wELayout=nullptr;
+    }
+
+    if (manageMW!=nullptr){
+        manageMW.reset();
+        manageMW=nullptr;
+    }
+
+   dpd[0].reset();
+   dpd[1].reset();
+   dpd[2].reset();
+   dpd[3].reset();
+   DrawLogic::WriteDebug("all processes halted successfully");
+   has_been_launched=false;
 }
 
 void OpCenter::SuspendOperations(){
     commandFilter.UndoFiltering();
+    if (has_been_launched){
+        XPLMDestroyFlightLoop(DLoopId);
+        has_been_launched=false;
+        DLoopId=nullptr;
+    }
+    //HaltOperations();
 }
 
 int  OpCenter::ResumeOperations(){
+    //if (!has_been_setup) SetupCenter();
+    if (!has_been_launched) {
+        DLoopId=XPLMCreateFlightLoop(&DLoop);
+        XPLMScheduleFlightLoop(DLoopId,-1,1);
+        has_been_launched=true;
+    }
     return 1;
 }
 
 float OpCenter::DisplayLoop(float, float, int, void*){
-    ptrLayout->Update();
-    dispDir->Update();
-    manageMW->ConstrainGeometry();
+    myself->ptrLayout->Update();
+    myself->dispDir->Update();
+    myself->manageMW->ConstrainGeometry();
+    myself->drefW.UpdateValue();
     return -1;
 }
 
@@ -184,41 +220,67 @@ float OpCenter::DisplayLoop(float, float, int, void*){
 void  OpCenter::MakeMenus(){
     menuIdx= XPLMAppendMenuItem(XPLMFindPluginsMenu(), "VR Tools", nullptr, 0);
     menuId= XPLMCreateMenu("VR Tools",XPLMFindPluginsMenu(),menuIdx,menuHandler,nullptr);
-    XPLMAppendMenuItemWithCommand(menuId,"Toggle Text Window",CommandText);
-    XPLMAppendMenuSeparator(menuId);
-    int menuTD=XPLMAppendMenuItem(menuId,"Options for Text Display",nullptr,0);
-    int menuHS=XPLMAppendMenuItem(menuId,"Hotspots",nullptr,0);
-    menuTextOpt=XPLMCreateMenu("text F",menuId,menuTD,menuHandler,nullptr);
+    int menuTD=XPLMAppendMenuItem(menuId,"Text Files  ",nullptr,0);
+    int menuHS=XPLMAppendMenuItem(menuId,"Hotspots    ",nullptr,0);
+    int menuDT=XPLMAppendMenuItem(menuId,"Data Display",nullptr,0);
+        menuText=XPLMCreateMenu("text F  ",menuId,menuTD,menuHandler,nullptr);
     menuHotspots=XPLMCreateMenu("hotspots",menuId,menuHS,menuHandler,nullptr);
+        menuData=XPLMCreateMenu("dataM   ",menuId,menuDT,menuHandler,nullptr);
     //Menu text options
-       void * nb1=new(int*);(*(int*)nb1)=1;
-       XPLMAppendMenuItem(menuTextOpt,"Fit Window Size to File",nb1,0);
-       void * nb2=new(int*);(*(int*)nb2)=2;
-       XPLMAppendMenuItem(menuTextOpt,"Keep File",nb2,0);
-       void * nb3=new(int*);(*(int*)nb3)=3;
-       XPLMAppendMenuItem(menuTextOpt,"Keep Size",nb3,0);
-       void * nb4=new(int*);(*(int*)nb4)=4;
-       XPLMAppendMenuItem(menuTextOpt,"Show FPS in Text Window",nb4,0);
+       XPLMAppendMenuItemWithCommand(menuText,"Toggle Text Window",CommandText);
+           opt[0]=XPLMAppendMenuItem(menuText,"Options",nullptr,0);
+       menuTextOpt=XPLMCreateMenu("tOpt",menuText,opt[0],menuHandler,nullptr);
+          void * nb4=new(int*);*(static_cast<int*>(nb4))=4;
+          opt[1]=XPLMAppendMenuItem(menuTextOpt,"Show FPS in Title Bar",nb4,0);
+          XPLMAppendMenuSeparator(menuTextOpt);
+          void * nb1=new(int*);*(static_cast<int*>(nb1))=1;
+          opt[2]=XPLMAppendMenuItem(menuTextOpt,"Fit Window Size to File",nb1,0);
+          void * nb2=new(int*);*(static_cast<int*>(nb2))=2;
+          opt[3]=XPLMAppendMenuItem(menuTextOpt,"Keep File",nb2,0);
+          void * nb3=new(int*);*(static_cast<int*>(nb3))=3;
+          opt[4]=XPLMAppendMenuItem(menuTextOpt,"Keep Size",nb3,0);
+
     //Menu for Hotspots
        XPLMAppendMenuItemWithCommand(menuHotspots,"Hotspot Editor",Hotspots::CmdEditHotspot);
-       XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",Hotspots::CmdJumpNext);
-       XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",Hotspots::CmdJumpBack);
        XPLMAppendMenuSeparator(menuHotspots);
-       void * nb6=new(int*);(*(int*)nb6)=6;
+       void * nb6=new(int*);*(static_cast<int*>(nb6))=6;
        itemReload=XPLMAppendMenuItem(menuHotspots,"Reload Model if Hotspot modified",nb6,0);
        XPLMAppendMenuSeparator(menuHotspots);
+       moveNext=XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",Hotspots::CmdJumpNext);
+       movePrev=XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",Hotspots::CmdJumpBack);
+       XPLMAppendMenuSeparator(menuHotspots);
        int opt=IniSettings::GetSpeedMove();
-       void * nb8=new(int*);(*(int*)nb8)=8;
+       void * nb8=new(int*);*(static_cast<int*>(nb8))=8;
        itemAdjusted=XPLMAppendMenuItem(menuHotspots,"Adjusted Move",nb8,0);
-       void * nb9=new(int*);(*(int*)nb9)=9;
+       void * nb9=new(int*);*(static_cast<int*>(nb9))=9;
        itemSlow=XPLMAppendMenuItem(menuHotspots,"Slow Move",nb9,0);
-       void * nb10=new(int*);(*(int*)nb10)=10;
+       void * nb10=new(int*);*(static_cast<int*>(nb10))=10;
        itemFast=XPLMAppendMenuItem(menuHotspots,"Fast Move",nb10,0);
 
     //Options for dataref
-    XPLMAppendMenuSeparator(menuId);
-    void * nb5=new(int*);(*(int*)nb5)=5;
-    idxOfModeMenuItem=XPLMAppendMenuItem(menuId,"Change View Mode : Toggle",nb5,0);
+
+        void * nb5=new(int*);*(static_cast<int*>(nb5))=5;
+        idxOfModeMenuItem=XPLMAppendMenuItem(menuData,"show data permanently",nb5,0);
+        int menuSD=XPLMAppendMenuItem(menuData,"Show",nullptr,0);
+        menuShowData=XPLMCreateMenu("Show Data",menuData,menuSD,menuHandler,nullptr);
+           void *nnb;
+           nnb=new(int*);*(static_cast<int*>(nnb))=11;
+           iFPS=XPLMAppendMenuItem(menuShowData,"FPS",nnb,0);
+           nnb=new(int*);*(static_cast<int*>(nnb))=12;
+           iIAS=XPLMAppendMenuItem(menuShowData,"IAS",nnb,0);
+           nnb=new(int*);*(static_cast<int*>(nnb))=13;
+           iTAS=XPLMAppendMenuItem(menuShowData,"TAS",nnb,0);
+           nnb=new(int*);*(static_cast<int*>(nnb))=14;
+           iGS=XPLMAppendMenuItem(menuShowData,"Ground Speed",nnb,0);
+           nnb=new(int*);*(static_cast<int*>(nnb))=15;
+           iAoA=XPLMAppendMenuItem(menuShowData,"AoA",nnb,0);
+           nnb=new(int*);*(static_cast<int*>(nnb))=16;
+           iGF=XPLMAppendMenuItem(menuShowData,"gForces",nnb,0);
+           nnb=new(int*);*(static_cast<int*>(nnb))=17;
+           iWeather=XPLMAppendMenuItem(menuShowData,"weather",nnb,0);
+
+
+    SetEnableTextOptions();
     if (opt==1) XPLMCheckMenuItem(menuHotspots,itemAdjusted,xplm_Menu_Checked);
     if (opt==0) XPLMCheckMenuItem(menuHotspots,itemSlow,xplm_Menu_Checked);
     if (opt==2) XPLMCheckMenuItem(menuHotspots,itemFast,xplm_Menu_Checked);
@@ -227,67 +289,136 @@ void  OpCenter::MakeMenus(){
 
 }
 void  OpCenter::menuHandler(void*, void* inItemRef){
-    int menuItem=*((int*)inItemRef);
-        switch (menuItem){
-            case 1:{
-                (*ptrLayout).FitToFile();
+    int menuItem=*(static_cast<int*>(inItemRef));
+    switch (menuItem){
+        case 1:
+            if (myself->ptrLayout!=nullptr)
+                if (myself->ptrLayout->HasActiveWindow())
+                    myself->ptrLayout->FitToFile();
+            break;
+        case 2:
+            if (myself->ptrLayout!=nullptr)
+                if (myself->ptrLayout->HasActiveWindow())
+                    myself->ptrLayout->KeepFile();
+            break;
+        case 3:
+            if (myself->ptrLayout!=nullptr)
+                if (myself->ptrLayout->HasActiveWindow())
+                    myself->ptrLayout->KeepCurrentSize();
+            break;
+
+        case 4:{
+            if (myself->ptrLayout!=nullptr) {
+               if (myself->ptrLayout->HasActiveWindow())
+                   {myself->ptrLayout->ToggleFPS();}
+
             }
-                break;
-            case 2:{
-                (*ptrLayout).KeepFile();
-            }
-                break;
-            case 3:{
-                (*ptrLayout).KeepCurrentSize();
-                break;
-            }
-            case 4:{
-                (*ptrLayout).ToggleFPS();
-                break;
-            }
-            case 5:{
-                drefW.DisposeWindow();
-                drefW.ToggleShowMode();
-                XPLMSetMenuItemName(  menuId,idxOfModeMenuItem,
-                                      drefW.GetShowModeOnPress()?"Change View Mode : Toggle":"Change View Mode : On Press",0);
-                break;
-            }
-        case 6:{
+            break;}
+        case 5:
+            myself->drefW.DisposeWindow();
+            myself->drefW.ToggleShowMode();
+            XPLMCheckMenuItem(myself->menuData,myself->idxOfModeMenuItem,(myself->drefW.GetShowModeOnPress()?xplm_Menu_Unchecked:xplm_Menu_Checked));
+            break;
+        case 6:
             IniSettings::SetOptReloadModel(!IniSettings::GetOptReloadModel());
-            if (IniSettings::GetOptReloadModel()) XPLMCheckMenuItem(menuHotspots,itemReload,xplm_Menu_Checked);
-            else XPLMCheckMenuItem(menuHotspots,itemReload,xplm_Menu_Unchecked);
+            if (IniSettings::GetOptReloadModel())
+                XPLMCheckMenuItem(myself->menuHotspots,myself->itemReload,xplm_Menu_Checked);
+            else XPLMCheckMenuItem(myself->menuHotspots,myself->itemReload,xplm_Menu_Unchecked);
             IniSettings::WriteIniFile();
             break;
-        }
-        case 8:{
-            XPLMCheckMenuItem(menuHotspots,itemAdjusted,xplm_Menu_Checked);
-            XPLMCheckMenuItem(menuHotspots,itemSlow,xplm_Menu_Unchecked);
-            XPLMCheckMenuItem(menuHotspots,itemFast,xplm_Menu_Unchecked);
+
+        case 8:
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemAdjusted,xplm_Menu_Checked);
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemSlow,xplm_Menu_Unchecked);
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemFast,xplm_Menu_Unchecked);
             IniSettings::SetSpeedMove(1);
             IniSettings::WriteIniFile();
-            break;}
-        case 9:{
-            XPLMCheckMenuItem(menuHotspots,itemAdjusted,xplm_Menu_Unchecked);
-            XPLMCheckMenuItem(menuHotspots,itemSlow,xplm_Menu_Checked);
-            XPLMCheckMenuItem(menuHotspots,itemFast,xplm_Menu_Unchecked);
+            break;
+        case 9:
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemAdjusted,xplm_Menu_Unchecked);
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemSlow,xplm_Menu_Checked);
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemFast,xplm_Menu_Unchecked);
             IniSettings::SetSpeedMove(0);
             IniSettings::WriteIniFile();
-            break;}
-        case 10:{
-            XPLMCheckMenuItem(menuHotspots,itemAdjusted,xplm_Menu_Unchecked);
-            XPLMCheckMenuItem(menuHotspots,itemSlow,xplm_Menu_Unchecked);
-            XPLMCheckMenuItem(menuHotspots,itemFast,xplm_Menu_Checked);
+            break;
+        case 10:
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemAdjusted,xplm_Menu_Unchecked);
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemSlow,xplm_Menu_Unchecked);
+            XPLMCheckMenuItem(myself->menuHotspots,myself->itemFast,xplm_Menu_Checked);
             IniSettings::SetSpeedMove(2);
             IniSettings::WriteIniFile();
-            break;}
+            break;
+        case 11:
+            myself->TriggerDRefCommand(myself->drefW.GetFPSCommand());
+            break;
+        case 12:
+        myself->TriggerDRefCommand(myself->drefW.GetIASCommand());
+            break;
+        case 13:
+        myself->TriggerDRefCommand(myself->drefW.GetTASCommand());
+            break;
+        case 14:
+        myself->TriggerDRefCommand(myself->drefW.GetGSCommand());
+            break;
+        case 15:
+        myself->TriggerDRefCommand(myself->drefW.GetAoACommand());
+            break;
+        case 16:
+        myself->TriggerDRefCommand(myself->drefW.GetgForceCommand());
+            break;
+        case 17:
+        myself->TriggerDRefCommand(myself->drefW.GetWeatherCommand());
+            break;
         }
 }
+void  OpCenter::TriggerDRefCommand(XPLMCommandRef in_command){
+    if (drefW.GetShowModeOnPress()) drefW.ToggleShowMode();
+    XPLMCheckMenuItem(menuData,idxOfModeMenuItem,drefW.GetShowModeOnPress()?xplm_Menu_Unchecked:xplm_Menu_Checked);
+    XPLMCommandOnce(in_command);
+    SetCheckDataShow();
+}
 
+void OpCenter::SetCheckDataShow(){
+    int currentData=drefW.GetWhatToShow();
+    XPLMCheckMenuItem(menuShowData,iFPS,currentData==1?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuShowData,iIAS,currentData==2?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuShowData,iTAS,currentData==3?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuShowData,iGS,currentData==4?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuShowData,iGF,currentData==7?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuShowData,iAoA,currentData==6?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuShowData,iWeather,currentData==8?xplm_Menu_Checked:xplm_Menu_Unchecked);
+}
+
+void OpCenter::SetEnableHSMoves(bool has_hotspots){
+    XPLMEnableMenuItem(menuHotspots,itemAdjusted,has_hotspots);
+    XPLMEnableMenuItem(menuHotspots,itemFast,has_hotspots);
+    XPLMEnableMenuItem(menuHotspots,itemSlow,has_hotspots);
+    XPLMEnableMenuItem(menuHotspots,moveNext,has_hotspots);
+    XPLMEnableMenuItem(menuHotspots,movePrev,has_hotspots);
+}
+
+void OpCenter::SetEnableTextOptions(){
+    if (g_textWindow){
+        XPLMEnableMenuItem(menuText,opt[0],XPLMGetWindowIsVisible(g_textWindow));
+        for (int I(1);I<5;I++)
+        XPLMEnableMenuItem(menuTextOpt,opt[I],XPLMGetWindowIsVisible(g_textWindow));
+    }
+    else {
+        XPLMEnableMenuItem(menuText,opt[0],false);
+        for (int I(1);I<5;I++)
+            XPLMEnableMenuItem(menuTextOpt,opt[I],false);
+    }
+
+}
+
+void OpCenter::CheckMenu(){
+    myself->SetCheckDataShow();
+}
 int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef,
                                              XPLMCommandPhase   inPhase,
                                              void               *inRefcon)
 {
-    int cmdIssued=*((int*)inRefcon);
+    int cmdIssued=*(static_cast<int*>(inRefcon));
     switch(cmdIssued){
     case 1:{
         //toggle Text Window Command
@@ -295,21 +426,30 @@ int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef,
             {
                 case xplm_CommandBegin :
                     {
-                    if (g_textWindow==nullptr){
-                        pointerToMe->MakeTextWindow();
+                    if (myself->g_textWindow==nullptr){
+                        myself->MakeTextWindow();
                         }
-                    else
-                        {if (XPLMGetWindowIsVisible(g_textWindow)==0)
-                            {XPLMSetWindowIsVisible(g_textWindow,1);
-                            (*ptrLayout).CheckButtonsVisibility();}
+                    else{
+                        const int vr_is_enabled = XPLMGetDatai(myself->g_vr_dref);
+                        if (myself->g_in_vr&&!vr_is_enabled){
+                            XPLMDestroyWindow(myself->g_textWindow);
+                            myself->g_textWindow=nullptr;
+                            myself->MakeTextWindow();
+                        }
+                        myself->g_in_vr = vr_is_enabled;
+                        if (XPLMGetWindowIsVisible(myself->g_textWindow)==0){
+                            XPLMSetWindowPositioningMode(myself->g_textWindow, myself->g_in_vr?xplm_WindowVR:xplm_WindowPositionFree, -1);
+                            XPLMSetWindowIsVisible(myself->g_textWindow,1);
+                            myself->ptrLayout->CheckButtonsVisibility();}
                          else{
-                            XPLMSetWindowIsVisible(g_textWindow,0);
+                            XPLMSetWindowIsVisible(myself->g_textWindow,0);
                    /*an .ini option will tell if toggling means destroying window or hiding it
                      XPLMDestroyWindow(g_textWindow);
                      (*ptrLayout).ClosegWindow();
                      g_textWindow=nullptr;*/
                         }
                        }
+                    myself->SetEnableTextOptions();
                     }
                     break;
                 case xplm_CommandContinue :
@@ -320,23 +460,33 @@ int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef,
             break;
            }
     case 2:{ // Select First Line in the display
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_FirstLine);
+        if (inPhase==xplm_CommandBegin &&myself-> ptrLayout!=nullptr)
+            if (myself->ptrLayout->HasActiveWindow())
+                myself->ptrLayout->LaunchCommand(B_FirstLine);
         break;}
 
     case 3:{ //Next Line
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_NextLine);
+        if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
+            if (myself->ptrLayout->HasActiveWindow())
+                myself->ptrLayout->LaunchCommand(B_NextLine);
     }
         break;
     case 4:{ //Previous Line
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_PrevLine);
+        if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
+            if (myself->ptrLayout->HasActiveWindow())
+                myself->ptrLayout->LaunchCommand(B_PrevLine);
     }
         break;
     case 5:{ //Delete Line
-        if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_Toggle);
+        if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
+            if (myself->ptrLayout->HasActiveWindow())
+                myself->ptrLayout->LaunchCommand(B_Toggle);
     }
         break;
     case 6:{ //Reload File ie restore display
-       if (inPhase==xplm_CommandBegin) (*ptrLayout).LaunchCommand(B_Refresh);
+       if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
+           if (myself->ptrLayout->HasActiveWindow())
+               myself->ptrLayout->LaunchCommand(B_Refresh);
     }
         break;
     }
@@ -345,71 +495,71 @@ int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef,
 }
 
 void  OpCenter::drawText(XPLMWindowID , void *){
-    (*ptrLayout).DrawTextW(g_textWindow);
+    myself->ptrLayout->DrawTextW(myself->g_textWindow);
 }
 
 void  OpCenter::drawFileWindow(XPLMWindowID in_window_id, void *){
-    dispDir->DrawDirWindow(in_window_id);
+    myself->dispDir->DrawDirWindow(in_window_id);
 }
 
 int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *)
 {
-    if (HasModalWindow()) return 1;
+    if (myself->HasModalWindow()) return 1;
     switch (mouse_status){
 
         case xplm_MouseDown: {
-            if(!XPLMIsWindowInFront(g_textWindow))
+            if(!XPLMIsWindowInFront(myself->g_textWindow))
             {
-                XPLMBringWindowToFront(g_textWindow);
+                XPLMBringWindowToFront(myself->g_textWindow);
             }else{
-            (*ptrLayout).findClick(x,y);}
+            myself->ptrLayout->findClick(x,y);}
 
         break;}
 
         case xplm_MouseDrag: {
-               (*ptrLayout).HandleMouseKeepDown(x,y);
+               myself->ptrLayout->HandleMouseKeepDown(x,y);
         break;}
 
         case xplm_MouseUp: {
-            int cmd=(*ptrLayout).HandleMouseUp(x,y);
+            int cmd=myself->ptrLayout->HandleMouseUp(x,y);
             switch (cmd){
               case 1 : // Hide Command
-                if (XPLMGetWindowIsVisible(g_textWindow)){
-                    XPLMSetWindowIsVisible(g_textWindow,0);
+                if (XPLMGetWindowIsVisible(myself->g_textWindow)){
+                    XPLMSetWindowIsVisible(myself->g_textWindow,0);
+                    myself->SetEnableTextOptions();
                 }
                 break;
               case 2 : // Open Command
-                pointerToMe->MakeFileWindow();
+                myself->MakeFileWindow();
                 break;
               case 3 : // Edit Command
-                ptrLayout->ClosegWindow();//Very important to stop DrawLogic's flightloop !
-               is_In_Edit_Mode=!is_In_Edit_Mode;
-               if (is_In_Edit_Mode){
-                  ptrLayout=wELayout;
-                  ptrLayout->SetWindowHandle(g_textWindow);
-                  wELayout->initiate();
-                  wELayout->CheckButtonsVisibility();
-                  wELayout->BeginEdit();
+                myself->ptrLayout->ClosegWindow();//Very important to stop DrawLogic's flightloop !
+               myself->is_In_Edit_Mode=!myself->is_In_Edit_Mode;
+               if (myself->is_In_Edit_Mode){
+                  myself->ptrLayout=myself->wELayout.get();
+                  myself->wELayout->SetWindowHandle(myself->g_textWindow);
+                  myself->wELayout->initiate();
+                  myself->wELayout->CheckButtonsVisibility();
+                  myself->wELayout->BeginEdit();
                }else{
-                 ptrLayout=wLayout;
-                 ptrLayout->SetWindowHandle(g_textWindow);
-                 ptrLayout->initiate();
-                 ptrLayout->CheckButtonsVisibility();
+                 myself->ptrLayout=myself->wLayout.get();
+                 myself->ptrLayout->SetWindowHandle(myself->g_textWindow);
+                 myself->ptrLayout->initiate();
+                 myself->ptrLayout->CheckButtonsVisibility();
                }
                 break;
               case 4 : // Next File Command
-                if (pointerToMe->files.HasStack()){
-                    FilePointer::SetCompleteFileName(pointerToMe->files.NextActive());
-                    ptrLayout->initiate();
-                    ptrLayout->CheckButtonsVisibility();
-                }
+
+                    FilePointer::GetNext();
+                    myself->ptrLayout->initiate();
+                    myself->ptrLayout->CheckButtonsVisibility();
+
                 break;
               case 5 : // Previous File Command
-                if (pointerToMe->files.HasStack()){
-                    FilePointer::SetCompleteFileName(pointerToMe->files.NextActive());
-                    ptrLayout->initiate();
-                    ptrLayout->CheckButtonsVisibility();
-                }
+                    FilePointer::GetPrevious();
+                    myself->ptrLayout->initiate();
+                    myself->ptrLayout->CheckButtonsVisibility();
+
                 break;
             }
         break;}
@@ -418,7 +568,7 @@ return 1;//mouse events handled here
 }
 
 void OpCenter::EndEditMode(){
-    ptrLayout=wLayout;
+    ptrLayout=wLayout.get();
     ptrLayout->SetWindowHandle(g_textWindow);
     ptrLayout->initiate();
     ptrLayout->CheckButtonsVisibility();
@@ -426,41 +576,40 @@ void OpCenter::EndEditMode(){
 }
 
 int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *){
-    if (HasModalWindow()) return 1;
+    if (myself->HasModalWindow()) return 1;
     switch (mouse_status){
 
         case xplm_MouseDown: {
-            if(!XPLMIsWindowInFront(g_FileWindow))
+            if(!XPLMIsWindowInFront(myself->g_FileWindow))
             {
-                XPLMBringWindowToFront(g_FileWindow);
+                XPLMBringWindowToFront(myself->g_FileWindow);
 
             }else{
-            dispDir->processMouseDn(x,y);}
+            myself->dispDir->processMouseDn(x,y);}
 
         break;}
 
         case xplm_MouseDrag: {
-               dispDir->processMouseDrag(x,y);
+               myself->dispDir->processMouseDrag(x,y);
         break;}
 
         case xplm_MouseUp: {
 
-         int cmd=dispDir->processMouseUp(x,y);
+         int cmd=myself->dispDir->processMouseUp(x,y);
             if (cmd==0){//OK command has been pressed            
-                XPLMDestroyWindow(g_FileWindow);
-                g_FileWindow=nullptr;
-                dispDir->CloseDirWindow();
+                XPLMDestroyWindow(myself->g_FileWindow);
+                myself->g_FileWindow=nullptr;
+                myself->dispDir->CloseDirWindow();
                 if (IniSettings::GetOptLastFile()) {
-                    pointerToMe->wLayout->KeepFile();
-                    pointerToMe->files.AddToStack(FilePointer::GetCurrentDirName()+"/"+FilePointer::GetCurrentFileName(),false);
+                    myself->wLayout->KeepFile();
                 }
-                pointerToMe->ReadNewFile();
+                myself->ReadNewFile();
             }
             if (cmd==1 ){//Cancel has been pressed
-                pointerToMe->MakeTextWindow();
-                XPLMDestroyWindow(g_FileWindow);
-                g_FileWindow=nullptr;
-                dispDir->CloseDirWindow();
+                myself->MakeTextWindow();
+                XPLMDestroyWindow(myself->g_FileWindow);
+                myself->g_FileWindow=nullptr;
+                myself->dispDir->CloseDirWindow();
             }
         break;
        }
@@ -473,10 +622,9 @@ void  OpCenter::handle_physical_keyboard(XPLMWindowID,char,XPLMKeyFlags,char,voi
 void  OpCenter::MakeTextWindow(){
 
     if (g_textWindow==nullptr){
-        if (pointerToMe->files.HasStack()) FilePointer::SetCompleteFileName(pointerToMe->files.GetCurrentActive());
          const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
          g_in_vr = vr_is_enabled;
-         int left,bottom,top,right;
+         int left(0),bottom(0),top(0),right(0);
          XPLMGetScreenBoundsGlobal(&left, &top, &right,&bottom);
          if ((*ptrLayout).initiate()){
              XPLMCreateWindow_t params;
@@ -517,7 +665,7 @@ void  OpCenter::MakeFileWindow(){
 
        const int vr_enabled = XPLMGetDatai(g_vr_dref);
        g_in_vr = vr_enabled;
-       int l,t,b,r;
+       int l(0),t(0),b(0),r(0);
        XPLMGetScreenBoundsGlobal(&l, &t, &r, &b);
        dispDir->SetupDirWindow(l,t);
         XPLMCreateWindow_t params;
@@ -568,6 +716,6 @@ bool OpCenter::HasModalWindow(){
 /********** Dummys ******************/
 
 int	  OpCenter::dummy_mouse_handler(XPLMWindowID, int, int, int, void *) { return 0; }
-XPLMCursorStatus OpCenter::dummy_cursor_status_handler(XPLMWindowID, int, int, void *) { return xplm_CursorDefault; }
+XPLMCursorStatus OpCenter::dummy_cursor_status_handler(XPLMWindowID, int, int, void *) { return xplm_CursorDefault;}
 int	  OpCenter::dummy_wheel_handler(XPLMWindowID, int, int, int, int, void *) { return 0; }
 void  OpCenter::dummy_key_handler(XPLMWindowID,char,XPLMKeyFlags,char,void*,int){}

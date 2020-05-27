@@ -86,7 +86,7 @@ private:
     rectangles rectSit,rectBox,rectParam,rectButtons;
     point sittingP,offsetP,rightShiftP,aftShiftP,heightP,widthP,rotP,tiltP,pitchP,hsNameP,hsBoxP,hsAdditionalP;
     string actionSelected;
-    cursor cursor;
+    cursor tcursor;
     vector<string> forcursor;
     Keyboard *numpad;
     bool mouseDrag;

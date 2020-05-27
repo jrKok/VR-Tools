@@ -15,7 +15,7 @@ void Background::MakeBackGround(DrawLogic * layoutsDrawPad,XPLMWindowID twd,char
     drawp=layoutsDrawPad;
     std::fstream tFile;
     instructs.clear();
-    tFile.open("Resources/plugins/VR_Tools/kneeboard.txt");
+    tFile.open("Resources/plugins/VR_Tools/resources/kneeboard.txt");
     if (tFile.is_open()){
         string in_line;
         while (std::getline(tFile,in_line)) instructs.push_back(in_line);
@@ -38,7 +38,6 @@ void Background::MakeBackGround(DrawLogic * layoutsDrawPad,XPLMWindowID twd,char
             tl.pos.SetCoords(11,11);
             tl.fontSize=0;
             tl.text=instructs[I];
-            int sz=fontMan::MeasureString(tl.text);
             lines.push_back(tl);
         }
 

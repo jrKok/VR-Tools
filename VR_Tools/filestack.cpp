@@ -11,7 +11,7 @@ FileStack::FileStack() :
 
 void   FileStack::Initiate(){
 
-    stackFileName="Resources/plugins/VR_Tools/filestack.ini";
+    stackFileName="Resources/plugins/VR_Tools/resources/filestack.ini";
     ReadStackFromDisk();
 }
 
@@ -31,11 +31,14 @@ void   FileStack::ReadStackFromDisk(){
                 }
                 string last=in_Line.substr(in_Line.find_last_of('"')+1);
                 if (tag<=maxFiles_InStack){
-                    FileItem it;
-                    it.FileName=newName;
-                    it.IsStream=(last=="true"?true:false);
-                    files[tag]=it;
-                    tag++;
+                    path p(newName);
+                    if (exists(p)&&!is_directory(p)&&newName!=""){
+                        FileItem it;
+                        it.FileName=newName;
+                        it.IsStream=(last=="true"?true:false);
+                        files[tag]=it;
+                        tag++;
+                    }
                 }
             }
         }
@@ -104,7 +107,7 @@ string FileStack::PreviousActive(){
     int maxN=static_cast<int>(files.size());
     FileItem last=files[maxN];
     if (maxN>1){
-        for (int index(maxN-1);index>=1;index--){
+        for (int index(maxN);index>1;index--){
             files[index]=files[index-1];
         }
     }

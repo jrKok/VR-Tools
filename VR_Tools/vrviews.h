@@ -96,15 +96,16 @@ public:
     bool IsEditDisabled();
     void MouseToUp();
     void Update();
+    bool IsRunning();
 
     //functionality : move to, rename, create, up, down, delete, save
 private:
 
     void LaunchMoveCommand();
 
-    static XPLMCommandRef CmdRight,CmdLeft,CmdUp,CmdDown,CmdForward,CmdBackward;
-    XPLMCommandRef CommandLaunched;
-    std::function<void()> callBack;
+    static VrViews *myself;
+    XPLMCommandRef CmdRight,CmdLeft,CmdUp,CmdDown,CmdForward,CmdBackward;
+    XPLMCommandRef CommandLaunched;   
     button_VR *yesButton,*noButton,*cancelButton,*advancedButton;
     button_VR *relogButton,*upButton,*downButton,*renameButton,*createButton,*deleteButton,*repositionButton;
     button_VR *vaftButton,*vforwButton,*vupButton,*vdownButton,*vleftButton,*vrightButton;
@@ -114,17 +115,17 @@ private:
     string userLine;
     Keyboard *keyb;
     TextLine editLine, logCoords;
-    cursor cursor;
+    cursor tcursor;
     bool specialKey;
     bool actionLaunched,mightSave,disableEdit,filterblock;
     int action;
-    static bool mouseLocated;
-    static int left,top,bottom,right;
-    static XPLMWindowID myXPWindow;
-    static VrViews *myself;
+    bool mouseLocated;
+    int left,top,bottom,right;
+    XPLMWindowID myXPWindow;
     vector<string> forCursor;
     bool mouseDrag,mouseUp;
     float epochClick;
+    std::function<void()> callBack;
 };
 
 #endif // VRVIEWS_H

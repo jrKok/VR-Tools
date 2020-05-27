@@ -59,10 +59,7 @@ rectangles::rectangles(int in_top, int in_left, int in_bottom, int in_right, cha
 
 
 rectangles::~rectangles(){
-    //if (DrawLogic::VerifyPointer(drawNumber,this)) DrawLogic::WriteDebug ("rectangle destructor, passed test for "+dbgName+" drawN ",drawNumber);
-    //else DrawLogic::WriteDebug ("rectangle destructor, didn't pass test for "+dbgName+" drawN ",drawNumber);
     if (isDrawable) {DrawLogic::ReleaseRectangle(drawNumber);}
-
 }
 
 void rectangles::SetOrigin(int in_x, int in_y){
@@ -183,4 +180,8 @@ void rectangles::SetNewDrawNumber(ulong in_Nb){
 
 ulong rectangles::GetDrawNumber(){
     return drawNumber;
+}
+
+void rectangles::UnAttach(){
+    isDrawable=false;
 }

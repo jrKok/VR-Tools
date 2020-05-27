@@ -15,7 +15,6 @@
    #include <experimental/filesystem>
     using namespace  std::experimental::filesystem;
 #endif
-
 const int MaxWWidth(1400);
 const int MaxWHeight(1200);
 

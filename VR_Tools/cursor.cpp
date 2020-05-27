@@ -46,7 +46,6 @@ cursor::cursor():
 }
 
 cursor::~cursor(){
-
 }
 
 void cursor::Initiate(const vString *inLines,int offsetXLine, int offsetYLine,int lnHeight,int boxlines){

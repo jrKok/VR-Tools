@@ -72,6 +72,7 @@ public:
     virtual int  HandleMouseUp(int mX,int mY);
     virtual void CheckButtonsVisibility();
     virtual void ClosegWindow();
+            bool HasActiveWindow();
     virtual void LaunchCommand(int refCommand);
     virtual string GetFileName();
             void StopStreaming();
@@ -88,45 +89,43 @@ public:
             void KeepCurrentSize();
     static  void HandleDialog();
 
-       DrawLogic *myDrawPad;
-       //int       gTop,gLeft,gRight,gBottom;
-
-       static int cycle;
-              int wTop,wBottom,wLeft,wRight;
-              int wWidth,wHeight,minWidth,maxWidth,minHeight,maxHeight;
+    rectangles generalR;
+    int wTop,wBottom,wLeft,wRight;
+    int wWidth,wHeight,minWidth,maxWidth,minHeight,maxHeight;
 
 protected:
+        DrawLogic *myDrawPad;
 
- LineDialog        myDialog;
- int               charHeight,charWidth,textPointX,textPointY;//Used for initial setup and resize instructions
- int               t,b,l,r;//input from draw instruction mostly
-               int textHeight,textWidth,colWidth,idxSelected,nButtons;
-             float reloadPeriod;
-        rectangles generalR,titleR,decoR;
-        Background * bckg;
-       TextReader *tFileReader;
+    rectangles titleR;
+    //LineDialog myDialog;
 
-std::map<int,button_VR*>    tButtons;
+           int charHeight,charWidth,textPointX,textPointY;//Used for initial setup and resize instructions
+           int t,b,l,r;//input from draw instruction mostly
+           int textHeight,textWidth,idxSelected,nButtons;
+         float reloadPeriod;
+   std::map<int,button_VR*> tButtons;
 std::map<int,Boxed_Button*> tBButtons;
+   XPLMDataRef nav1on,nav2on,com1on,com2on,adf1on,adf2on;
+   XPLMDataRef nav1freq,nav2freq,com1freq,com2freq,adf1freq,adf2freq,com1freqk,com2freqk;
+   XPLMDataRef dref_SunPitch,g_FPS;
+XPLMCommandRef screenShot;
+  XPLMWindowID myWindow;
 
-      XPLMDataRef nav1on,nav2on,com1on,com2on,adf1on,adf2on;
-      XPLMDataRef nav1freq,nav2freq,com1freq,com2freq,adf1freq,adf2freq,com1freqk,com2freqk;
-      XPLMDataRef dref_SunPitch,g_FPS;
-   XPLMCommandRef screenShot;
-     XPLMWindowID myWindow;
+      TextLine fNav,fCom,fAdf,lFPS,lTitle;
+        string charSep;
+         float epoch,fpsTag;
+         bool  editMode,openAtStart,goToLastPage;
+         bool  continueClick,buttonClick,autoReload,saveAuto,canUTF,autoReloadOnSize,useBackGround;
+         bool  flash,flashWhenChange,noResize,fitSizeToFile,keepLastFile,keepSize,enableDelete,enableFreqs,showFPS;
+         bool  must_print,text_visible;
+         int   clickresult, splitLinePolicy;
+         int   bottom,colWidth,upperMargin,lowerMargin;
+         int   dayPart;//0 : day, 1 : dusk, 2 : night
+         float currentFPS;
+         float beginFlash;
 
-         TextLine fNav,fCom,fAdf,lFPS,lTitle;
-           string charSep;
-            float epoch,fpsTag;
-            bool  editMode,openAtStart,goToLastPage;
-            bool  continueClick,buttonClick,autoReload,saveAuto,canUTF,autoReloadOnSize,useBackGround;
-            bool  flash,flashWhenChange,noResize,fitSizeToFile,keepLastFile,keepSize,enableDelete,enableFreqs,showFPS;
-            bool  must_print,text_visible;
-            int   clickresult, splitLinePolicy;
-            int   bottom,upperMargin,lowerMargin;
-            int   dayPart;//0 : day, 1 : dusk, 2 : night
-            float currentFPS;
-            float beginFlash;
+std::unique_ptr<Background> bckg;
+std::unique_ptr<TextReader> tFileReader;
 
 };
 

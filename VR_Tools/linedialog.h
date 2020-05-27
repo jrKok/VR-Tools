@@ -58,7 +58,7 @@ private:
     string userLine;
     Keyboard *keyb;
     TextLine *editLine;
-    cursor cursor;
+    cursor tcursor;
     bool specialKey;
     static bool mouseLocated;
     static XPLMWindowID myXPWindow;

@@ -4,7 +4,7 @@
 TextEdit::TextEdit(): TextReader(),
   hasToCommit(false),
   clickTime(0),
-  cursor(),
+  tcursor(),
   ops(),
   localClip(),
   tempFile(""),
@@ -14,6 +14,7 @@ TextEdit::TextEdit(): TextReader(),
 {
 
 }
+
 void TextEdit::InitialiseEdit(){
     FilePointer::MakeBackups();
     tempFile=FilePointer::GetTempName();
@@ -69,7 +70,7 @@ bool TextEdit::ReadFileToBuff(){
           }
        textFile.close();
        SetupforText();
-       cursor.Initiate(displayText,textOnly.GetLeft()+5,textOnly.GetBottom(),charHeight,pageHeightInL);
+       tcursor.Initiate(displayText,textOnly.GetLeft()+5,textOnly.GetBottom(),charHeight,pageHeightInL);
      } else return false;
      return true;
 }
@@ -94,8 +95,8 @@ bool TextEdit::ProceedClick(int x, int y){
                 clickPosX=x;
                 clickPosY=y;
                 needToContClick=true;
-                cursor.FindPos(currentIndx,x);
-                if (cursor.HasCursor()) DrawLogic::SetCursorPosition(cursor.PosToX(),box[ln].GetTextY()+2);
+                tcursor.FindPos(currentIndx,x);
+                if (tcursor.HasCursor()) DrawLogic::SetCursorPosition(tcursor.PosToX(),box[ln].GetTextY()+2);
                 return true;
             }
         }
@@ -125,19 +126,19 @@ void TextEdit::ProceedClickCont(int x, int y){
            else{
               for (auto bx:box){
                 if (bx.isHere(x,y)){
-                    cursor.DragPos(bx.GetIndex()+indxFirstOnPg,x);
+                    tcursor.DragPos(bx.GetIndex()+indxFirstOnPg,x);
                     DisplayPage();}
                 else{
                     if ((XPLMGetElapsedTime()-clickTime)>0.3f){//scroll the display at a rate of 3.3 lines/sec
                         if (y<textOnly.GetTop()) {
                             MoveDnNLines(1);
-                            cursor.MoveCursorUp();
+                            tcursor.MoveCursorUp();
                             DisplayPage();
 
                         }
                         if (y>textOnly.GetBottom()){
                             MoveUpNLines(1);
-                            cursor.MoveCursorDown();
+                            tcursor.MoveCursorDown();
                             DisplayPage();
                         }
                         clickTime=XPLMGetElapsedTime();
@@ -153,7 +154,7 @@ void TextEdit::ProceedClickCont(int x, int y){
 void TextEdit::ProceedEndClick(){//Mouse Up
 
     if (dragLines) {
-        cursor.EndOfDrag();
+        tcursor.EndOfDrag();
     }
     currentIndx=-1;
     currentIndxFP=-1;
@@ -168,7 +169,7 @@ void TextEdit::DisplayPage(bool ntd){
     //Paint background
     indxLastOnPg=indxFirstOnPg+pageHeightInL-1;
     if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
-    cursor.SetFirstLineOnPage(indxFirstOnPg);
+    tcursor.SetFirstLineOnPage(indxFirstOnPg);
     needDisplay=true;
     if (ntd){
         textOnly.UpdateMyTexture();
@@ -186,13 +187,13 @@ void TextEdit::DisplayPage(bool ntd){
             if (idx<uNumberOLs){
                 box[ln].setText((*displayText)[idx]);
                 box[ln].SetIndex(static_cast<int>(idx));
-                if (cursor.HasCursor()) {
-                    if (box[ln].GetIndex()==cursor.GetLine())
-                        DrawLogic::SetCursorPosition(cursor.PosToX(),box[ln].GetTextY()+2);
+                if (tcursor.HasCursor()) {
+                    if (box[ln].GetIndex()==tcursor.GetLine())
+                        DrawLogic::SetCursorPosition(tcursor.PosToX(),box[ln].GetTextY()+2);
                 }
-                if (cursor.HasSelection()){
+                if (tcursor.HasSelection()){
                     int l(0),r(0);
-                    if (cursor.IsIndexInSelection(box[ln].GetIndex(),l,r)){
+                    if (tcursor.IsIndexInSelection(box[ln].GetIndex(),l,r)){
 
                         DrawLogic::PrintRectOnTexture(l,box[ln].GetBottom(),r,box[ln].GetTop(),Clr_TextSelectBlue);
                         box[ln].PrintStringOnLocalT();
@@ -211,43 +212,43 @@ void TextEdit::DisplayPage(bool ntd){
 }
 
 void TextEdit::DrawCursor(){
-cursor.DrawCursor();
+tcursor.DrawCursor();
 }
 
 void TextEdit::MoveCursorUp(){
-    if (cursor.HasCursor()){
-        cursor.MoveCursorUp();
-        if (cursor.GetLine()<indxFirstOnPg) MoveUpNLines(1);
+    if (tcursor.HasCursor()){
+        tcursor.MoveCursorUp();
+        if (tcursor.GetLine()<indxFirstOnPg) MoveUpNLines(1);
     }
-    if (cursor.HasSelection()){
-        cursor.MoveSelectionUp();
-        if (cursor.GetSelectionStartLine()<indxFirstOnPg) MoveUpNLines(1);
+    if (tcursor.HasSelection()){
+        tcursor.MoveSelectionUp();
+        if (tcursor.GetSelectionStartLine()<indxFirstOnPg) MoveUpNLines(1);
     }
 }
 
 void TextEdit::MoveCursorDown(){
-    if (cursor.HasCursor()){
-        cursor.MoveCursorDown();
-        if (cursor.GetLine()>=indxLastOnPg) MoveDnNLines(1);
+    if (tcursor.HasCursor()){
+        tcursor.MoveCursorDown();
+        if (tcursor.GetLine()>=indxLastOnPg) MoveDnNLines(1);
     }
-    if (cursor.HasSelection()){
-        cursor.MoveSelectionDown();
-        if (cursor.GetSelectionEndLine()>=indxLastOnPg) MoveDnNLines(1);
+    if (tcursor.HasSelection()){
+        tcursor.MoveSelectionDown();
+        if (tcursor.GetSelectionEndLine()>=indxLastOnPg) MoveDnNLines(1);
     }
 }
 
 void TextEdit::MoveCursorRight(){
-    if (cursor.HasCursor()) cursor.MoveCursorRight();
-    if (cursor.HasSelection()) cursor.MoveSelectionRight();
+    if (tcursor.HasCursor()) tcursor.MoveCursorRight();
+    if (tcursor.HasSelection()) tcursor.MoveSelectionRight();
 }
 
 void TextEdit::MoveCursorLeft(){
-    if (cursor.HasCursor()) cursor.MoveCursorLeft();
-    if (cursor.HasSelection()) cursor.MoveSelectionLeft();
+    if (tcursor.HasCursor()) tcursor.MoveCursorLeft();
+    if (tcursor.HasSelection()) tcursor.MoveSelectionLeft();
 }
 
 void TextEdit::FlipMoveSelectionEnd(){
-    if (cursor.HasSelection()) cursor.FlipSelection();
+    if (tcursor.HasSelection()) tcursor.FlipSelection();
 }
 
 /* The following are low and middle level functions for editing the text file
@@ -267,13 +268,13 @@ void TextEdit::InsertEmptyLine(int in_line){
         displayText->insert(displayText->begin()+in_line,string(""));
     else
         displayText->push_back(string(""));
-    cursor.InsertEmptyLine(in_line);
+    tcursor.InsertEmptyLine(in_line);
     totalNbL++;indxLastPage++;
 }
 
 void TextEdit::DeleteWholeLine(int in_line){
     displayText->erase(displayText->begin()+(in_line));
-    cursor.DeleteFromLines(in_line);
+    tcursor.DeleteFromLines(in_line);
     totalNbL--;indxLastPage--;
 }
 
@@ -281,7 +282,7 @@ void TextEdit::InsertTextInLine(int in_line,int charPos,string in_text){
     //low level function, puts text from paste or a char at the given position
     ulong l=static_cast<ulong>(in_line);
     string sText=(*displayText)[l];
-    ulong bP=static_cast<ulong>(cursor.FindPositionInNativeLine(sText,charPos));
+    ulong bP=static_cast<ulong>(tcursor.FindPositionInNativeLine(sText,charPos));
     sText.insert(bP,in_text);
     (*displayText)[l]=sText;
 }
@@ -292,9 +293,9 @@ void TextEdit::DeleteFromLine(int in_line,const int beginPos,const int endPos,bo
     string sText=(*displayText)[l];   
     ulong sTextLgth=sText.size();
     char lastchar=sText.back();
-    ulong bP=static_cast<ulong>(cursor.FindPositionInNativeLine(sText,beginPos));
-    ulong eP=static_cast<ulong>(cursor.FindPositionInNativeLine(sText,endPos));
-    if (!keepLF&&endPos==cursor.GetLastPositionOfLine(in_line))
+    ulong bP=static_cast<ulong>(tcursor.FindPositionInNativeLine(sText,beginPos));
+    ulong eP=static_cast<ulong>(tcursor.FindPositionInNativeLine(sText,endPos));
+    if (!keepLF&&endPos==tcursor.GetLastPositionOfLine(in_line))
         eP=sText.length();
     sText.erase(bP,eP-bP);
     if (keepLF&&(lastchar=='\n')&&(eP==sTextLgth)) sText+="\n";
@@ -308,9 +309,9 @@ string TextEdit::GetLineToBreak(int in_line,int &last_line,int &cursorPos){
     string LF("\n"),retString("");
     ulong cursorLine(0);
     ulong l=static_cast<ulong>(in_line);
-    if (cursor.HasCursor()) {
-        cursorLine=static_cast<ulong>(cursor.GetLine());
-        cursorPos=cursor.FindPositionInNativeLine((*displayText)[cursorLine],cursorPos);
+    if (tcursor.HasCursor()) {
+        cursorLine=static_cast<ulong>(tcursor.GetLine());
+        cursorPos=tcursor.FindPositionInNativeLine((*displayText)[cursorLine],cursorPos);
     }
     bool hardEnd(false);
     do{
@@ -333,10 +334,10 @@ void TextEdit:: DeleteSelection(){
      * however this is an intermediate level function
      */
     //Retrieve Cursor Positions
-    int startPS=cursor.GetSelectionStartCharPos(),
-        endPS  =cursor.GetSelectionEndCharPos(),
-        startL =cursor.GetSelectionStartLine(),
-        endL   =cursor.GetSelectionEndLine();
+    int startPS=tcursor.GetSelectionStartCharPos(),
+        endPS  =tcursor.GetSelectionEndCharPos(),
+        startL =tcursor.GetSelectionStartLine(),
+        endL   =tcursor.GetSelectionEndLine();
     ulong uStart=static_cast<ulong>(startL);
 
     if (endL==startL) { //a part of only one line selected
@@ -346,7 +347,7 @@ void TextEdit:: DeleteSelection(){
     else{               //selection spawns several lines
         for (int ln(endL);ln>=startL;ln--){
            if (ln==startL)//first line
-               DeleteFromLine(ln,startPS,cursor.GetLastPositionOfLine(ln),false);
+               DeleteFromLine(ln,startPS,tcursor.GetLastPositionOfLine(ln),false);
            else{
                if (ln==endL) //last line
                    DeleteFromLine(ln,0,endPS,true);
@@ -360,7 +361,7 @@ void TextEdit:: DeleteSelection(){
                 if ((*displayText)[uStart]==""){
                     if (indxFirstOnPg>0&&startL==indxFirstOnPg) indxFirstOnPg--;
                     DeleteWholeLine(startL);
-                    cursor.EraseCursor();
+                    tcursor.EraseCursor();
                     return;
                 }
             }else{
@@ -375,7 +376,7 @@ void TextEdit:: DeleteSelection(){
     }
 
     while (startL>=totalNbL) startL--;
-    cursor.SetCursorAt(startL,startPS);
+    tcursor.SetCursorAt(startL,startPS);
 }
 
 void TextEdit::ReadLineAgain(int in_line){
@@ -400,7 +401,7 @@ void TextEdit::ReadLineAgain(int in_line){
     }
 
     int procSoFar(0),newline(0),newPos(0);
-    if (cursor.HasCursor()) {cursorPos=cursor.GetPos();newline=cursor.GetLine();}
+    if (tcursor.HasCursor()) {cursorPos=tcursor.GetPos();newline=tcursor.GetLine();}
     string toWorkOn=GetLineToBreak(in_line,last_line,cursorPos);
     if (last_line>=totalNbL) last_line=totalNbL-1;
     ulong uLastLine=static_cast<ulong>(last_line);
@@ -416,7 +417,7 @@ void TextEdit::ReadLineAgain(int in_line){
 
         while (sz>lineLength){
             std::string leftString=strops.bestLeftSize(inputL,lineLength);
-            int leftStringsize=cursor.GetLengthOfUTFString(leftString);
+            int leftStringsize=tcursor.GetLengthOfUTFString(leftString);
             if ((cursorPos>=procSoFar) && (cursorPos<(procSoFar+leftStringsize))) {
                 newline=static_cast<int>(l);
                 newPos=cursorPos-procSoFar;
@@ -426,17 +427,17 @@ void TextEdit::ReadLineAgain(int in_line){
             procSoFar+=leftStringsize;
             if (l<=uLastLine){
                (*displayText)[l]=leftString;
-                  cursor.MakeLinePosAgain(l,leftString);
+                  tcursor.MakeLinePosAgain(l,leftString);
             }
             else{
                InsertEmptyLine(static_cast<int>(l));
                (*displayText)[l]=leftString;
-               cursor.MakeLinePosAgain(l,leftString);
+               tcursor.MakeLinePosAgain(l,leftString);
             }
             l++;
             sz=MeasureString(inputL);
         }
-        //int inputLSize=cursor.GetLengthOfUTFString(inputL);
+        //int inputLSize=tcursor.GetLengthOfUTFString(inputL);
         int inputLSize=static_cast<int>(inputL.size());
         if ((cursorPos>=procSoFar) && (cursorPos<=(procSoFar+inputLSize))) {
             newline=static_cast<int>(l);
@@ -446,13 +447,13 @@ void TextEdit::ReadLineAgain(int in_line){
         procSoFar+=inputLSize;
         if (l<=uLastLine){
            (*displayText)[l]=inputL;
-            cursor.MakeLinePosAgain(l,inputL);
+            tcursor.MakeLinePosAgain(l,inputL);
             l++;
         }
         else{
            InsertEmptyLine(static_cast<int>(l));
            (*displayText)[l]=inputL;
-           cursor.MakeLinePosAgain(l,inputL);
+           tcursor.MakeLinePosAgain(l,inputL);
            l++;
         }
     }
@@ -468,10 +469,10 @@ void TextEdit::ReadLineAgain(int in_line){
     indxLastOnPg=indxFirstOnPg+pageHeightInL;
     if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
 
-    if (cursor.HasCursor()&(cursor.GetLine()>=(in_line-1))) {
+    if (tcursor.HasCursor()&(tcursor.GetLine()>=(in_line-1))) {
         string toConvert=(*displayText)[static_cast<ulong>(newline)].substr(0,static_cast<ulong>(newPos));
-        int newP=cursor.GetLengthOfUTFString(toConvert);
-        cursor.SetCursorAt(newline,newP);
+        int newP=tcursor.GetLengthOfUTFString(toConvert);
+        tcursor.SetCursorAt(newline,newP);
         if (newline>=indxLastOnPg&&newline<totalNbL){
             indxFirstOnPg=newline-pageHeightInL+2;
             if (indxFirstOnPg<0) indxFirstOnPg=0;
@@ -488,11 +489,11 @@ void TextEdit::ReadLineAgain(int in_line){
  */
 
 void TextEdit::Cut(){
-    if (cursor.HasSelection()){
-        int line(cursor.GetSelectionStartLine()),pos(cursor.GetSelectionStartCharPos());
+    if (tcursor.HasSelection()){
+        int line(tcursor.GetSelectionStartLine()),pos(tcursor.GetSelectionStartCharPos());
         Copy();
         DeleteSelection();
-        cursor.SetCursorAt(line,pos);
+        tcursor.SetCursorAt(line,pos);
         ReadLineAgain(line);
         DisplayPage();
     }
@@ -500,29 +501,29 @@ void TextEdit::Cut(){
 
 void TextEdit::Copy(){
 
-    if (cursor.HasSelection()){
+    if (tcursor.HasSelection()){
         string copyString("");
-        ulong bPos(static_cast<ulong>(cursor.GetSelectionStartCharPos())),
-              ePos(static_cast<ulong>(cursor.GetSelectionEndCharPos())),
-              bLine(static_cast<ulong>(cursor.GetSelectionStartLine())),
-              eLine(static_cast<ulong>(cursor.GetSelectionEndLine()));
+        ulong bPos(static_cast<ulong>(tcursor.GetSelectionStartCharPos())),
+              ePos(static_cast<ulong>(tcursor.GetSelectionEndCharPos())),
+              bLine(static_cast<ulong>(tcursor.GetSelectionStartLine())),
+              eLine(static_cast<ulong>(tcursor.GetSelectionEndLine()));
 
             if (bLine==eLine) {
                 string sText=(*displayText)[bLine];
-                int bp=cursor.FindPositionInNativeLine(sText,static_cast<int>(bPos));
-                int ep=cursor.FindPositionInNativeLine(sText,static_cast<int>(ePos));
+                int bp=tcursor.FindPositionInNativeLine(sText,static_cast<int>(bPos));
+                int ep=tcursor.FindPositionInNativeLine(sText,static_cast<int>(ePos));
                 copyString=sText.substr(bp,ep-bp);
 
             }else{
                 for (ulong selLine(bLine);selLine<=eLine;selLine++){
                     if (selLine==bLine){
-                        int bp=cursor.FindPositionInNativeLine((*displayText)[selLine],static_cast<int>(bPos));
+                        int bp=tcursor.FindPositionInNativeLine((*displayText)[selLine],static_cast<int>(bPos));
                         //copyString+=(*displayText)[selLine].substr(bp,(*displayText)[selLine].length()-bp);
                         copyString+=(*displayText)[selLine].substr(bp);
                      }
                      else{
                         if (selLine==eLine){
-                            int ep=cursor.FindPositionInNativeLine((*displayText)[selLine],static_cast<int>(ePos));
+                            int ep=tcursor.FindPositionInNativeLine((*displayText)[selLine],static_cast<int>(ePos));
                             copyString+=(*displayText)[selLine].substr(0,ep);
                             }
                         else copyString+=(*displayText)[selLine];
@@ -535,55 +536,55 @@ void TextEdit::Copy(){
 
 void TextEdit::Paste(){
 
-    string toPaste=cursor.ReadLineToUTF(localClip.PullText());
-        if (cursor.HasSelection()&&toPaste!=""){
-            int cLine=cursor.GetSelectionStartLine();
-            int cPos =cursor.GetSelectionStartCharPos();
+    string toPaste=tcursor.ReadLineToUTF(localClip.PullText());
+        if (tcursor.HasSelection()&&toPaste!=""){
+            int cLine=tcursor.GetSelectionStartLine();
+            int cPos =tcursor.GetSelectionStartCharPos();
             DeleteSelection();
             if (cLine>=totalNbL){
                 cLine--;
                 if (cLine<0) {
                     cLine=0;
                 }
-                cPos=cursor.GetLastPositionOfLine(cLine);
+                cPos=tcursor.GetLastPositionOfLine(cLine);
             }
             string fromClip=localClip.PullText();
             InsertTextInLine(cLine,cPos,toPaste);
             ReadLineAgain(cLine);
             DisplayPage();
         }
-        if (cursor.HasCursor()){
-            int cLine=cursor.GetLine();
-            int cPos =cursor.GetPos();
+        if (tcursor.HasCursor()){
+            int cLine=tcursor.GetLine();
+            int cPos =tcursor.GetPos();
             InsertTextInLine(cLine,cPos,toPaste);
-            int insL=cursor.GetLengthOfUTFString(toPaste);
+            int insL=tcursor.GetLengthOfUTFString(toPaste);
             DrawLogic::WriteDebug("Paste old pos "+std::to_string(cPos));
             cPos+=insL;
             DrawLogic::WriteDebug("PAste new pos "+std::to_string(cPos));
-            cursor.AddPositionsToLine(insL);
-            cursor.SetCursorAt(cLine,cPos);
+            tcursor.AddPositionsToLine(insL);
+            tcursor.SetCursorAt(cLine,cPos);
             ReadLineAgain(cLine);
             DisplayPage();
         }
 }
 
 void TextEdit::InsertLetter(std::string fromKey){
-    if (cursor.HasSelection()){
-        int lineS=cursor.GetSelectionStartLine();
+    if (tcursor.HasSelection()){
+        int lineS=tcursor.GetSelectionStartLine();
         DeleteSelection();
-        if (!cursor.HasCursor()){
+        if (!tcursor.HasCursor()){
             ReadLineAgain(lineS);
             DisplayPage();}
     }
 
-    if (cursor.HasCursor()){
-    int cursorLine=cursor.GetLine();
-    int position=cursor.GetPos();
+    if (tcursor.HasCursor()){
+    int cursorLine=tcursor.GetLine();
+    int position=tcursor.GetPos();
     InsertTextInLine(cursorLine,position,fromKey);
-    int insL=cursor.GetLengthOfUTFString(fromKey);
+    int insL=tcursor.GetLengthOfUTFString(fromKey);
     position+=insL;
-    cursor.AddPositionsToLine(insL);
-    cursor.SetCursorAt(cursorLine,position);
+    tcursor.AddPositionsToLine(insL);
+    tcursor.SetCursorAt(cursorLine,position);
     ReadLineAgain(cursorLine);
     DisplayPage();
     }
@@ -591,24 +592,24 @@ void TextEdit::InsertLetter(std::string fromKey){
 
 void TextEdit::Backspace(){
 
-    if (cursor.HasCursor()){
-       int cLine=cursor.GetLine(),
-           cPos=cursor.GetPos();
+    if (tcursor.HasCursor()){
+       int cLine=tcursor.GetLine(),
+           cPos=tcursor.GetPos();
        ulong uln=static_cast<ulong>(cLine);
 
        if (cLine==0&&cPos==0) return;
 
        if (cPos==0){//cursor at begin of line, results in cursor moving up, deleting last char of previous line (LF or other)
 
-               int lastPosOfPrevLine=cursor.GetLastPositionOfLine(static_cast<int>(uln-1));
-               cursor.SetCursorAt(cLine-1,lastPosOfPrevLine);
+               int lastPosOfPrevLine=tcursor.GetLastPositionOfLine(static_cast<int>(uln-1));
+               tcursor.SetCursorAt(cLine-1,lastPosOfPrevLine);
 
                string bufl=(*displayText)[uln],buf=(*displayText)[uln-1];
                if (buf.substr(buf.length()-1,1)=="\n")
                    buf=buf.substr(0,buf.length()-1);
                else{
                    buf=stringOps::RemoveLastUTFCharFromString(buf);
-                   cursor.MoveCursorLeft();
+                   tcursor.MoveCursorLeft();
                }
                (*displayText)[uln-1]=buf+bufl;
                DeleteWholeLine(cLine);
@@ -618,25 +619,25 @@ void TextEdit::Backspace(){
        else{
 
            DeleteFromLine(cLine,cPos-1,cPos,true);
-           cursor.MoveCursorLeft();
+           tcursor.MoveCursorLeft();
            ReadLineAgain(cLine);
            DisplayPage();
        }
     }
-    if (cursor.HasSelection()){
-        int ln(cursor.GetSelectionStartLine());
+    if (tcursor.HasSelection()){
+        int ln(tcursor.GetSelectionStartLine());
         DeleteSelection();
-        if (cursor.HasCursor())
+        if (tcursor.HasCursor())
             ReadLineAgain(ln);
         DisplayPage();
     }
 }
 
 void TextEdit::Suppress(){
-    if (cursor.HasCursor()){
-        int ln(cursor.GetLine()),pos(cursor.GetPos());
+    if (tcursor.HasCursor()){
+        int ln(tcursor.GetLine()),pos(tcursor.GetPos());
         ulong uln=static_cast<ulong>(ln);
-        if (pos>=cursor.GetLastPositionOfLine(ln)) {
+        if (pos>=tcursor.GetLastPositionOfLine(ln)) {
             //delete the eventual LF, else delete first character from next line
             if (ln<(totalNbL-1)){
                 char lastchar=(*displayText)[uln].back();
@@ -656,26 +657,27 @@ void TextEdit::Suppress(){
         DisplayPage();
         return;
     }
-    if (cursor.HasSelection()){
-        int ln=cursor.GetSelectionStartLine();
+    if (tcursor.HasSelection()){
+        int ln=tcursor.GetSelectionStartLine();
         DeleteSelection();
-        if (cursor.HasCursor()) ReadLineAgain(ln);
+        if (tcursor.HasCursor()) ReadLineAgain(ln);
         DisplayPage();
     }
 }
 
 void TextEdit::Enter(){
-    if (cursor.HasSelection()){
+    if (tcursor.HasSelection()){
         DeleteSelection();
     }
-    if (cursor.HasCursor()){
-        int lineTag=cursor.GetLine();
-        int pos=cursor.GetPos();
+    if (tcursor.HasCursor()){
+        int lineTag=tcursor.GetLine();
+        int pos=tcursor.GetPos();
         InsertTextInLine(lineTag,pos,string("\n"));
         ReadLineAgain(lineTag);
         DisplayPage();
         if (lineTag<(totalNbL-1)){
-            cursor.SetCursorAt(lineTag+1,0);
+            tcursor.SetCursorAt(lineTag+1,0);
+            if (lineTag+1>indxLastOnPg) MoveDnNLines(1);
         }
     }
 }

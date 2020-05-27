@@ -5,23 +5,19 @@
 #include "vrcommandfilter.h"
 
 VrViews       *VrViews::myself;
-bool           VrViews::mouseLocated(false);
-int            VrViews::top(0);
-int            VrViews::left(0);
-int            VrViews::bottom(0);
-int            VrViews::right(0);
-XPLMWindowID   VrViews::myXPWindow(nullptr);
-XPLMCommandRef VrViews::CmdRight(nullptr);
-XPLMCommandRef VrViews::CmdLeft(nullptr);
-XPLMCommandRef VrViews::CmdUp(nullptr);
-XPLMCommandRef VrViews::CmdDown(nullptr);
-XPLMCommandRef VrViews::CmdForward(nullptr);
-XPLMCommandRef VrViews::CmdBackward(nullptr);
+
+
 
 VrViews::VrViews():List_Box_With_ScrB (true),
 
+    CmdRight(nullptr),
+    CmdLeft(nullptr),
+    CmdUp(nullptr),
+    CmdDown(nullptr),
+    CmdForward(nullptr),
+    CmdBackward(nullptr),
     CommandLaunched(nullptr),
-    callBack(),
+
     yesButton(nullptr),
     noButton(nullptr),
     cancelButton(nullptr),
@@ -32,6 +28,12 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     createButton(nullptr),
     deleteButton(nullptr),
     repositionButton(nullptr),
+    vaftButton(nullptr),
+    vforwButton(nullptr),
+    vupButton(nullptr),
+    vdownButton(nullptr),
+    vleftButton(nullptr),
+    vrightButton(nullptr),
     clicked(nullptr),
     width(320),
     height(400),
@@ -48,17 +50,21 @@ VrViews::VrViews():List_Box_With_ScrB (true),
     keyb(nullptr),
     editLine(true),
     logCoords(true),
-    cursor(),
+    tcursor(),
     specialKey(false),
     actionLaunched(false),
     mightSave(false),
     disableEdit(false),
     filterblock(true),
     action(0),
+    mouseLocated(false),
+    left(0),top(0),bottom(0),right(0),
+    myXPWindow(nullptr),
     forCursor(),
     mouseDrag(false),
     mouseUp(true),
-    epochClick(0)
+    epochClick(0),
+    callBack(nullptr)
 
 {
 }
@@ -80,7 +86,7 @@ VrViews::~VrViews(){
     if (     vleftButton!=nullptr) delete vleftButton;
     if (      vaftButton!=nullptr) delete vaftButton;
     if (     vforwButton!=nullptr) delete vforwButton;
-
+    callBack=nullptr;
 }
 
 void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string &cancelStr, const string alertStr, const std::string &in_String, std::function<void()>cBck, int in_width){
@@ -139,12 +145,12 @@ void VrViews::MakeDialog(const string &yesStr, const string &noStr, const string
     //general dimensions and setup listbox
     height=posFirstLine+20;
     textOffsetX=10;textOffsetY=posFirstLine;
-    Setup(160,240,98,posListBox);
+    Setup(160,240,88,posListBox);
 
     //compute width vs keyboard
     int kwidth = keyb->MyWidth()+10;
     width=width>kwidth?width:kwidth;
-    cursor.Initiate(&forCursor,10,posEditLine+10,20,1);
+    tcursor.Initiate(&forCursor,10,posEditLine+10,20,1);
 
     //compute width vs textline
     int strwidth=fontMan::MeasureString(alertStr);
@@ -345,7 +351,7 @@ int VrViews::GetActionLaunched(){
 void VrViews::DrawMyself(XPLMWindowID, void *){
     ManageModalWindow::MakeTopWindow();
     DrawLogic::RenderContent();
-    myself->cursor.DrawCursor();
+    myself->tcursor.DrawCursor();
 }
 
 int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_down, void *){
@@ -360,27 +366,27 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_
             XPLMBringWindowToFront(in_window_id);
         }else{
             myself->mouseDrag=false;
-            mouseLocated=false;
+            myself->mouseLocated=false;
             myself->ProceedClick(x,y);
             if (!myself->needToContClick){
                 if (myself->yesButton->IsHere(x,y)){
-                    mouseLocated=true;
+                    myself->mouseLocated=true;
                     myself->answer=1;
                     myself->clicked=myself->yesButton;
                 }
                 if (myself->noButton->IsHere(x,y)){
-                    mouseLocated=true;
+                   myself-> mouseLocated=true;
                     myself->answer=2;
                     myself->clicked=myself->noButton;
                 }
                 if (myself->cancelButton->IsHere(x,y)){
-                    mouseLocated=true;
+                    myself->mouseLocated=true;
                     myself->answer=3;
                     myself->clicked=myself->cancelButton;
                 }
 
                 if (myself->advancedButton->IsHere(x,y)){
-                    mouseLocated=true;
+                    myself->mouseLocated=true;
                     myself->answer=4;
                     myself->clicked=myself->advancedButton;
                 }
@@ -445,7 +451,7 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_
                     if (myself->keyb->IsKeyPressed()) myself->ProcessKeyPress(keyName,keyVal);
                 }
                 if (myself->editLine.isHere(x,y)){
-                    myself->cursor.FindPos(0,x);
+                    myself->tcursor.FindPos(0,x);
                     myself->epochClick=XPLMGetElapsedTime();
                 }
                 if (myself->clicked!=nullptr) {
@@ -464,7 +470,7 @@ int VrViews::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int is_
            float now=XPLMGetElapsedTime();
            if ((now-myself->epochClick)>0.3f) myself->mouseDrag=true;
            if (myself->mouseDrag){
-               myself->cursor.DragPos(0,x);
+               myself->tcursor.DragPos(0,x);
             }
         }
         if (x>(myself->width-4)||x<4||y>(myself->height-4)||y<4)
@@ -487,7 +493,7 @@ void VrViews::MouseToUp(){
      ManageModalWindow::MakeTopWindow();
     myself->mouseUp=true;
     if (myself->mouseDrag) {
-        myself->cursor.EndOfDrag();
+        myself->tcursor.EndOfDrag();
         myself->epochClick=0;
     }
     myself->keyb->ReleaseCurrentKey();
@@ -517,10 +523,10 @@ void VrViews::MouseToUp(){
     myself->selectedHotsp=myself->SelectedLineNumber();
     myself->CheckButtonsVisibility();
     editLine.PrintBox();
-    if (myself->cursor.HasCursor()) DrawLogic::SetCursorPosition(myself->cursor.PosToX(),myself->editLine.GetTextY()+2);
-    if (myself->cursor.HasSelection()) {
+    if (myself->tcursor.HasCursor()) DrawLogic::SetCursorPosition(myself->tcursor.PosToX(),myself->editLine.GetTextY()+2);
+    if (myself->tcursor.HasSelection()) {
         int l(0),r(0);
-        if (cursor.IsIndexInSelection(0,l,r)){
+        if (tcursor.IsIndexInSelection(0,l,r)){
             DrawLogic::PrintRectOnTexture(l,editLine.GetBottom(),r,editLine.GetTop(),Clr_TextSelectBlue);}
     }
     editLine.PrintStringOnLocalT();
@@ -686,16 +692,16 @@ void VrViews::ProcessKeyPress(std::string keyName,std::string in_String){
 
 void VrViews::Cut(){
     Copy();
-    if (cursor.HasSelection()) EraseSelection();
+    if (tcursor.HasSelection()) EraseSelection();
 }
 
 void VrViews::Copy(){
-    if (cursor.HasSelection()){
+    if (tcursor.HasSelection()){
         string copyString("");
-         ulong bPos(static_cast<ulong>(cursor.GetSelectionStartCharPos())),
-               ePos(static_cast<ulong>(cursor.GetSelectionEndCharPos()));
-        int bp=cursor.FindPositionInNativeLine(userLine,static_cast<int>(bPos));
-        int ep=cursor.FindPositionInNativeLine(userLine,static_cast<int>(ePos));
+         ulong bPos(static_cast<ulong>(tcursor.GetSelectionStartCharPos())),
+               ePos(static_cast<ulong>(tcursor.GetSelectionEndCharPos()));
+        int bp=tcursor.FindPositionInNativeLine(userLine,static_cast<int>(bPos));
+        int ep=tcursor.FindPositionInNativeLine(userLine,static_cast<int>(ePos));
         copyString=userLine.substr(bp,ep-bp);
     }
 
@@ -707,28 +713,28 @@ InsertLetter(in_clipboard);
 }
 
 void VrViews::Backspace(){
-    if (cursor.HasCursor()){
-        int cP=cursor.GetPos();
+    if (tcursor.HasCursor()){
+        int cP=tcursor.GetPos();
         if (cP>0){
             EraseFromLine(cP-1,cP);
-            cursor.SetCursorAt(0,cP-1);
+            tcursor.SetCursorAt(0,cP-1);
         }
     }
-    if (cursor.HasSelection()){
-        int cP=cursor.GetSelectionStartCharPos();
+    if (tcursor.HasSelection()){
+        int cP=tcursor.GetSelectionStartCharPos();
         EraseSelection();
-        cursor.SetCursorAt(0,cP-1);
+        tcursor.SetCursorAt(0,cP-1);
     }
 }
 
 void VrViews::Supress(){
-    if (cursor.HasCursor()){
-        int cP=cursor.GetPos();
+    if (tcursor.HasCursor()){
+        int cP=tcursor.GetPos();
         if (static_cast<ulong>(cP)<(userLine.size()-1)){
             EraseFromLine(cP,cP+1);
         }
     }
-    if (cursor.HasSelection()) EraseSelection();
+    if (tcursor.HasSelection()) EraseSelection();
 }
 
 void VrViews::ContinueKeyPress(){
@@ -741,48 +747,48 @@ bool VrViews::IsLineNotTooWide(){
 }
 
 void VrViews::MoveCursorRight(){
-    if (cursor.HasCursor()) cursor.MoveCursorRight();
-    if (cursor.HasSelection()) cursor.MoveSelectionRight();
+    if (tcursor.HasCursor()) tcursor.MoveCursorRight();
+    if (tcursor.HasSelection()) tcursor.MoveSelectionRight();
 }
 
 void VrViews::MoveCursorLeft(){
-    if (cursor.HasCursor()) cursor.MoveCursorLeft();
-    if (cursor.HasSelection()) cursor.MoveSelectionLeft();
+    if (tcursor.HasCursor()) tcursor.MoveCursorLeft();
+    if (tcursor.HasSelection()) tcursor.MoveSelectionLeft();
 }
 
 void VrViews::EraseFromLine(int begin, int end){
-    ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,begin));
-    ulong eP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,end));
+    ulong sP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,begin));
+    ulong eP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,end));
     userLine.erase(sP,eP-sP);
     editLine.setText(userLine);
-    cursor.EraseCursor();
-    cursor.MakeLinePosAgain(0,userLine);
-    cursor.SetCursorAt(0,begin);
+    tcursor.EraseCursor();
+    tcursor.MakeLinePosAgain(0,userLine);
+    tcursor.SetCursorAt(0,begin);
 }
 
 void VrViews::EraseSelection(){
-    if (cursor.HasSelection()){
-        int startPos=cursor.GetSelectionStartCharPos();
-        int endPos=cursor.GetSelectionEndCharPos();
+    if (tcursor.HasSelection()){
+        int startPos=tcursor.GetSelectionStartCharPos();
+        int endPos=tcursor.GetSelectionEndCharPos();
         EraseFromLine(startPos,endPos);
     }
 }
 
 void VrViews::InsertLetter(string fromKeyb){
     if (fromKeyb!=""){
-        if (cursor.HasSelection()) EraseSelection();
-        if (cursor.HasCursor()){
-            int cP=cursor.GetPos();
-            ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,cP));
+        if (tcursor.HasSelection()) EraseSelection();
+        if (tcursor.HasCursor()){
+            int cP=tcursor.GetPos();
+            ulong sP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,cP));
             string oldLine=userLine;
             userLine.insert(sP,fromKeyb);
             if (IsLineNotTooWide()){
                 editLine.setText(userLine);
-                int insL=cursor.GetLengthOfUTFString(fromKeyb);
+                int insL=tcursor.GetLengthOfUTFString(fromKeyb);
                 cP+=insL;
-                cursor.AddPositionsToLine(insL);
-                cursor.MakeLinePosAgain(0,userLine);
-                cursor.SetCursorAt(0,cP);
+                tcursor.AddPositionsToLine(insL);
+                tcursor.MakeLinePosAgain(0,userLine);
+                tcursor.SetCursorAt(0,cP);
             }
             else userLine=oldLine;
         }
@@ -797,28 +803,42 @@ void VrViews::EndAlert(){
     ManageModalWindow::MakeTopWindow();//should be, but it is essential the right drawpad is pointed for all the delete ops to come
     myXPWindow=nullptr;
     //DrawLogic::WriteDebug("vrviews end alert going to delete buttons");
+    delete keyb;
     delete yesButton;
     delete noButton;
     delete cancelButton;
-    delete keyb;
     delete upButton;
     delete downButton;
     delete createButton;
     delete deleteButton;
     delete renameButton;
     delete repositionButton;
+    delete vdownButton;
+    delete vupButton;
+    delete vrightButton;
+    delete vleftButton;
+    delete vaftButton;
+    delete vforwButton;
     ManageModalWindow::DestroyModalWindow();
-    keyb=nullptr;
-    yesButton=nullptr;
-    noButton=nullptr;
-    cancelButton=nullptr;
-    upButton=nullptr;
-    downButton=nullptr;
-    createButton=nullptr;
-    deleteButton=nullptr;
-    renameButton=nullptr;
+    keyb            =nullptr;
+    yesButton       =nullptr;
+    noButton        =nullptr;
+    cancelButton    =nullptr;
+    upButton        =nullptr;
+    downButton      =nullptr;
+    createButton    =nullptr;
+    deleteButton    =nullptr;
+    renameButton    =nullptr;
     repositionButton=nullptr;
-    actionLaunched=false;
+    vdownButton     =nullptr;
+    vupButton       =nullptr;
+    vrightButton    =nullptr;
+    vleftButton     =nullptr;
+    vaftButton      =nullptr;
+    vforwButton     =nullptr;
+    clicked         =nullptr;
+
+    actionLaunched  =false;
     width=0;
     height=0;
     targetX=0;
@@ -846,4 +866,8 @@ void VrViews::Update(){
     if (NeedsToDisplay()){
         DisplayPage(true);
     }
+}
+
+bool VrViews::IsRunning(){
+    return(myXPWindow!=nullptr);
 }

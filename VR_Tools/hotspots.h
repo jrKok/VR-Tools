@@ -20,6 +20,7 @@
 #include "vrviews.h"
 #include "advanced.h"
 
+class OpCenter;
 using std::string;
 using std::vector;
 
@@ -42,6 +43,7 @@ void  Setup();
     static void  Handle_End_Of_Edit();
     static void  Handle_Advanced();
     static void  HandleErrorHotspotList();
+    static void  SetMyCenter(OpCenter *opc);
 
     static void  ReloadCurrentAircraft();
 
@@ -53,6 +55,7 @@ void  Setup();
     static XPLMCommandRef CmdEditHotspot;
 
 private:
+        static OpCenter     * myCenter;
         static XPLMDataRef    pilotX,pilotY,pilotZ,pilotPsi,outside;
         static XPLMDataRef    g_vr_dref;
         static XPLMCommandRef CmdRight,CmdLeft,CmdUp,CmdDown,CmdForward,CmdBackward;

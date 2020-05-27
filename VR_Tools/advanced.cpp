@@ -23,7 +23,7 @@ advanced::advanced():
     sittingP(),offsetP(),rightShiftP(),aftShiftP(),heightP(),widthP(),rotP(),tiltP(),pitchP(),
     hsNameP(),hsBoxP(),hsAdditionalP(),
     actionSelected(""),
-    cursor(),
+    tcursor(),
     forcursor(),
     numpad(nullptr),
     mouseDrag(false),
@@ -187,7 +187,6 @@ hsAdditionalN=DrawLogic::AddString("hotspot orientation : ",Clr_PushedBlue,Clr_L
 }
 
 void advanced::MakeModalButton(string name,string actionName,ulong myNumber,int width, int height, int offsetX, int offsetY){
-    DrawLogic::WriteDebug("advanced::MakeModalButton got to make "+name);
     button_VR *thisButton(new button_VR(actionName,false));
     thisButton->SetDimensions(width,height);
     thisButton->SetOrigin(offsetX,offsetY);
@@ -200,7 +199,6 @@ void advanced::MakeModalButton(string name,string actionName,ulong myNumber,int 
     newAction->button=thisButton;
     newAction->number=myNumber;
     actionButtons.push_back(newAction);
-    DrawLogic::WriteDebug("advanced::MakeModalButton made "+name);
 }
 
 void advanced::MakeLine(TextLine &in_Line, int in_x, int in_y, int in_width, int in_height, string in_text){
@@ -226,7 +224,7 @@ void advanced::DrawMyself(XPLMWindowID, void *){
 
     ManageModalWindow::ConstrainGeometry();
     DrawLogic::RenderContent();
-    if (myself->cursor.HasCursor()) myself->cursor.DrawCursor();//myself.activeLine->GetTextY()
+    if (myself->tcursor.HasCursor()) myself->tcursor.DrawCursor();//myself.activeLine->GetTextY()
 }
 
 int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *){
@@ -349,14 +347,14 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             float now=XPLMGetElapsedTime();
             if (now-myself->epochClick>0.3f) myself->mouseDrag=true;
             if (myself->mouseDrag){
-                myself->cursor.DragPos(0,x);
+                myself->tcursor.DragPos(0,x);
             }
         }
     }
 
  if (is_down==xplm_MouseUp){
         if (myself->mouseDrag) {
-            myself->cursor.EndOfDrag();
+            myself->tcursor.EndOfDrag();
             myself->epochClick=0;
         }
         myself->numpad->ReleaseCurrentKey();
@@ -370,10 +368,10 @@ int advanced::MouseHandler(XPLMWindowID, int in_x, int in_y, int is_down, void *
             myself->callBack();
             return 1;}
     }
- if (myself->cursor.HasCursor()&&myself->activeLine!=nullptr) DrawLogic::SetCursorPosition(myself->cursor.PosToX(),myself->activeLine->GetTextY()+2);
- if (myself->cursor.HasSelection()&&myself->activeLine!=nullptr) {
+ if (myself->tcursor.HasCursor()&&myself->activeLine!=nullptr) DrawLogic::SetCursorPosition(myself->tcursor.PosToX(),myself->activeLine->GetTextY()+2);
+ if (myself->tcursor.HasSelection()&&myself->activeLine!=nullptr) {
      int l(0),r(0);
-     if (myself->cursor.IsIndexInSelection(0,l,r)){
+     if (myself->tcursor.IsIndexInSelection(0,l,r)){
          myself->activeLine->PrintBox();
          DrawLogic::PrintRectOnTexture(l,myself->activeLine->GetBottom(),r,myself->activeLine->GetTop(),Clr_TextSelectBlue);
          myself->activeLine->PrintStringOnLocalT();
@@ -430,15 +428,15 @@ void advanced::ButtonAction(string actionName, ulong mbutton){
 void advanced::SelectLine(TextLine *in_line, int x, float *in_param){
     if(activeLine==in_line){
         epochClick=XPLMGetElapsedTime();
-        cursor.FindPos(0,x);
+        tcursor.FindPos(0,x);
     }
     else {
         CommitActiveLine();
         activeLine=in_line;
         activeParameter=in_param;
         forcursor[0]=activeLine->GetText();
-        cursor.Initiate(&forcursor,activeLine->GetTextX(),activeLine->GetTextY(),10,1);
-        cursor.SetCursorAt(0,0);
+        tcursor.Initiate(&forcursor,activeLine->GetTextX(),activeLine->GetTextY(),10,1);
+        tcursor.SetCursorAt(0,0);
     }
 }
 
@@ -455,7 +453,7 @@ void advanced::CommitActiveLine(){
             *activeParameter=val;
             activeLine->setText(stringOps::ConvertFloatToString(val,numberOfDigits));
         }
-        cursor.EraseCursor();
+        tcursor.EraseCursor();
         activeLine->PrintString();
         activeLine=nullptr;
         activeParameter=nullptr;
@@ -464,31 +462,31 @@ void advanced::CommitActiveLine(){
 
 void advanced::ProcessKeyPress(bool special,string keyName,string in_String){
     if (!special){
-        if (cursor.HasSelection()) {
-            int currentPos=cursor.GetSelectionStartCharPos();
+        if (tcursor.HasSelection()) {
+            int currentPos=tcursor.GetSelectionStartCharPos();
             EraseSelection();
-            cursor.SetCursorAt(0,currentPos);
+            tcursor.SetCursorAt(0,currentPos);
         }
-        if (cursor.HasCursor()&&(notallowed.find(in_String)==std::string::npos)){
-            int cP=cursor.GetPos();
+        if (tcursor.HasCursor()&&(notallowed.find(in_String)==std::string::npos)){
+            int cP=tcursor.GetPos();
             string oldLine=activeLine->GetText();
             if (oldLine.size()<maxlength){
-                ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(oldLine,cP));
+                ulong sP=static_cast<ulong>(tcursor.FindPositionInNativeLine(oldLine,cP));
                 if ((in_String=="+"||in_String=="-")&&sP>0) return;
                 oldLine.insert(sP,in_String);
                 activeLine->setText(oldLine);
-                int insL=cursor.GetLengthOfUTFString(in_String);
+                int insL=tcursor.GetLengthOfUTFString(in_String);
                 cP+=insL;
-                cursor.AddPositionsToLine(insL);
-                cursor.MakeLinePosAgain(0,oldLine);
-                cursor.SetCursorAt(0,cP);
+                tcursor.AddPositionsToLine(insL);
+                tcursor.MakeLinePosAgain(0,oldLine);
+                tcursor.SetCursorAt(0,cP);
             }
         }
     }
     else{
         if (keyName=="BckSpc") {Backspace();}
         if (keyName=="Enter") {
-            cursor.EraseCursor();
+            tcursor.EraseCursor();
         float toeval=stringOps::ConvertStringToFloat(activeLine->GetText());
         if (hasInterval){
             if (toeval<minval) activeLine->setText(stringOps::ConvertFloatToString(minval));
@@ -502,51 +500,51 @@ void advanced::ProcessKeyPress(bool special,string keyName,string in_String){
     activeLine->PrintString();
 }
 void advanced::Backspace(){
-    if (cursor.HasCursor()){
-        int cP=cursor.GetPos();
+    if (tcursor.HasCursor()){
+        int cP=tcursor.GetPos();
         if (cP>0){
             EraseFromLine(cP-1,cP);
         }
-        cursor.SetCursorAt(0,cP-1);
+        tcursor.SetCursorAt(0,cP-1);
     }
-    if (cursor.HasSelection()) {
-        int cP=cursor.GetSelectionStartCharPos();
+    if (tcursor.HasSelection()) {
+        int cP=tcursor.GetSelectionStartCharPos();
         EraseSelection();
-        cursor.SetCursorAt(0,cP);
+        tcursor.SetCursorAt(0,cP);
     }
 }
 
 void advanced::MoveCursorLeft(){
-    if (cursor.HasSelection()){
-        int startPos=cursor.GetSelectionStartCharPos();
-        cursor.SetCursorAt(0,startPos);
+    if (tcursor.HasSelection()){
+        int startPos=tcursor.GetSelectionStartCharPos();
+        tcursor.SetCursorAt(0,startPos);
     }
-    if (cursor.HasCursor()) cursor.MoveCursorLeft();
+    if (tcursor.HasCursor()) tcursor.MoveCursorLeft();
 }
 
 void advanced::MoveCursorRight(){
-    if (cursor.HasSelection()){
-        int endPos=cursor.GetSelectionEndCharPos();
-        cursor.SetCursorAt(0,endPos);
+    if (tcursor.HasSelection()){
+        int endPos=tcursor.GetSelectionEndCharPos();
+        tcursor.SetCursorAt(0,endPos);
     }
-    if (cursor.HasCursor()) cursor.MoveCursorRight();
+    if (tcursor.HasCursor()) tcursor.MoveCursorRight();
 }
 
 void advanced::EraseFromLine(int begin, int end){
     string userLine=activeLine->GetText();
-    ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,begin));
-    ulong eP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,end));
+    ulong sP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,begin));
+    ulong eP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,end));
     userLine.erase(sP,eP-sP);
     activeLine->setText(userLine);
-    cursor.EraseCursor();
-    cursor.MakeLinePosAgain(0,userLine);
-    cursor.SetCursorAt(0,begin);
+    tcursor.EraseCursor();
+    tcursor.MakeLinePosAgain(0,userLine);
+    tcursor.SetCursorAt(0,begin);
 }
 
 void advanced::EraseSelection(){
-    if (cursor.HasSelection()){
-        int startPos=cursor.GetSelectionStartCharPos();
-        int endPos=cursor.GetSelectionEndCharPos();
+    if (tcursor.HasSelection()){
+        int startPos=tcursor.GetSelectionStartCharPos();
+        int endPos=tcursor.GetSelectionEndCharPos();
         EraseFromLine(startPos,endPos);
 
     }
@@ -569,7 +567,6 @@ void advanced::EndEdit(){
     CommitActiveLine();
     delete numpad;
     numpad=nullptr;
-    DrawLogic::WriteDebug("advanced endedit going to destroy modal window");
    ManageModalWindow::DestroyModalWindow();
 }
 

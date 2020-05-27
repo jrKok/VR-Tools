@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <VR_Tools_global.h>
+#include "VR_Tools_global.h"
 #include <cmath>
 
 /* class for defining global variables

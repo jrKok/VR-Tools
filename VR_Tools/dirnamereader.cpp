@@ -85,7 +85,12 @@ void dirNameReader::ReadSelectedDir(){
            return;
        }
        if (name==ShortCutF){
-           SetDirectory(sysDir+"/Output/textfiles");
+           path p="Output/textfiles";
+           if (exists(p))
+           { SetDirectory(sysDir+"/Output/textfiles");}
+           else {
+               SetDirectory(sysDir+"/Output");
+           }
            return;
        }
        if (name==ShortCutPlug){

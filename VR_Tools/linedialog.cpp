@@ -20,7 +20,7 @@ LineDialog::LineDialog():
   userLine(""),
   keyb(nullptr),
   editLine(nullptr),
-  cursor(),
+  tcursor(),
   forCursor()
 
 {
@@ -60,7 +60,7 @@ void LineDialog::MakeDialog(const string &yesStr,
     keyb->MakeKeyboard(5,5);
     height= keyb->MyHeight()+125;
     width = keyb->MyWidth()+10;
-    cursor.Initiate(&forCursor,10,30,20,1);
+    tcursor.Initiate(&forCursor,10,30,20,1);
     if (yesStr!="") nbButtons++;
     if (noStr!="") nbButtons++;
     if (cancelStr!="") nbButtons++;
@@ -114,9 +114,9 @@ void LineDialog::MakeDialog(const string &yesStr,
     ManageModalWindow::ResizeModalWindow(width,height);
     keyb->SetVisibility(true);
     editLine->setTextAndUpdate(userLine);
-    cursor.Initiate(&forCursor,editLine->GetLeft(),editLine->GetBottom(),20,1);
-    cursor.SetCursorAt(0,0);
-    DrawLogic::SetCursorPosition(cursor.PosToX(),editLine->GetTextY()+2);
+    tcursor.Initiate(&forCursor,editLine->GetLeft(),editLine->GetBottom(),20,1);
+    tcursor.SetCursorAt(0,0);
+    DrawLogic::SetCursorPosition(tcursor.PosToX(),editLine->GetTextY()+2);
     DrawLogic::UpdateTexture();
     editLine->setTextAndUpdate(userLine);
 }
@@ -132,7 +132,7 @@ string LineDialog::GetUserLine(){
 void LineDialog::DrawMyself(XPLMWindowID, void*){
     ManageModalWindow::MakeTopWindow();
     DrawLogic::RenderContent();
-    myself->cursor.DrawCursor();
+    myself->tcursor.DrawCursor();
     //drawCursor
     //drawSelectionrect
 }
@@ -163,8 +163,8 @@ int LineDialog::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int 
             if (myself->keyb->IsKeyPressed()) myself->ProcessKeyPress(keyName,keyVal);
         }
         if (myself->editLine->isHere(x,y)){
-            myself->cursor.FindPos(0,x);
-            DrawLogic::SetCursorPosition(myself->cursor.PosToX(),myself->editLine->GetBottom());
+            myself->tcursor.FindPos(0,x);
+            DrawLogic::SetCursorPosition(myself->tcursor.PosToX(),myself->editLine->GetBottom());
         }
         break;
     }
@@ -174,7 +174,7 @@ int LineDialog::MouseHandler(XPLMWindowID in_window_id, int in_x, int in_y, int 
     }
     case xplm_MouseUp:{
         myself->keyb->ReleaseCurrentKey();
-        DrawLogic::SetCursorPosition(myself->cursor.PosToX(),myself->editLine->GetTextY()+2);
+        DrawLogic::SetCursorPosition(myself->tcursor.PosToX(),myself->editLine->GetTextY()+2);
         if (mouseLocated){
             mouseLocated=false;
             myself->EndAlert();
@@ -212,16 +212,16 @@ void LineDialog::ProcessKeyPress(std::string keyName,std::string in_String){
 
 void LineDialog::Cut(){
     Copy();
-    if (cursor.HasSelection()) EraseSelection();
+    if (tcursor.HasSelection()) EraseSelection();
 }
 
 void LineDialog::Copy(){
-    if (cursor.HasSelection()){
+    if (tcursor.HasSelection()){
         string copyString("");
-        ulong bPos(static_cast<ulong>(cursor.GetSelectionStartCharPos())),
-                ePos(static_cast<ulong>(cursor.GetSelectionEndCharPos()));
-        int bp=cursor.FindPositionInNativeLine(userLine,static_cast<int>(bPos));
-        int ep=cursor.FindPositionInNativeLine(userLine,static_cast<int>(ePos));
+        ulong bPos(static_cast<ulong>(tcursor.GetSelectionStartCharPos())),
+                ePos(static_cast<ulong>(tcursor.GetSelectionEndCharPos()));
+        int bp=tcursor.FindPositionInNativeLine(userLine,static_cast<int>(bPos));
+        int ep=tcursor.FindPositionInNativeLine(userLine,static_cast<int>(ePos));
         copyString=userLine.substr(bp,ep-bp);
         editLine->setTextAndUpdate(userLine);
     }
@@ -233,23 +233,23 @@ InsertLetter(in_clipboard);
 }
 
 void LineDialog::Backspace(){
-    if (cursor.HasCursor()){
-        int cP=cursor.GetPos();
+    if (tcursor.HasCursor()){
+        int cP=tcursor.GetPos();
         if (cP>0){
             EraseFromLine(cP-1,cP);
         }
     }
-    if (cursor.HasSelection()) EraseSelection();
+    if (tcursor.HasSelection()) EraseSelection();
 }
 
 void LineDialog::Supress(){
-    if (cursor.HasCursor()){
-        int cP=cursor.GetPos();
+    if (tcursor.HasCursor()){
+        int cP=tcursor.GetPos();
         if (static_cast<ulong>(cP)<(userLine.size()-1)){
             EraseFromLine(cP,cP+1);
         }
     }
-    if (cursor.HasSelection()) EraseSelection();
+    if (tcursor.HasSelection()) EraseSelection();
 }
 
 void LineDialog::ContinueKeyPress(){
@@ -262,48 +262,48 @@ bool LineDialog::IsLineNotTooWide(){
 }
 
 void LineDialog::MoveCursorRight(){
-    if (cursor.HasCursor()) cursor.MoveCursorRight();
-    if (cursor.HasSelection()) cursor.MoveSelectionRight();
+    if (tcursor.HasCursor()) tcursor.MoveCursorRight();
+    if (tcursor.HasSelection()) tcursor.MoveSelectionRight();
 }
 
 void LineDialog::MoveCursorLeft(){
-    if (cursor.HasCursor()) cursor.MoveCursorLeft();
-    if (cursor.HasSelection()) cursor.MoveSelectionLeft();
+    if (tcursor.HasCursor()) tcursor.MoveCursorLeft();
+    if (tcursor.HasSelection()) tcursor.MoveSelectionLeft();
 }
 
 void LineDialog::EraseFromLine(int begin, int end){
-    ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,begin));
-    ulong eP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,end));
+    ulong sP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,begin));
+    ulong eP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,end));
     userLine.erase(sP,eP-sP);
     editLine->setTextAndUpdate(userLine);
-    cursor.EraseCursor();
-    cursor.MakeLinePosAgain(0,userLine);
-    cursor.SetCursorAt(0,begin);
+    tcursor.EraseCursor();
+    tcursor.MakeLinePosAgain(0,userLine);
+    tcursor.SetCursorAt(0,begin);
 }
 
 void LineDialog::EraseSelection(){
-    if (cursor.HasSelection()){
-        int startPos=cursor.GetSelectionStartCharPos();
-        int endPos=cursor.GetSelectionEndCharPos();
+    if (tcursor.HasSelection()){
+        int startPos=tcursor.GetSelectionStartCharPos();
+        int endPos=tcursor.GetSelectionEndCharPos();
         EraseFromLine(startPos,endPos);
     }
 }
 
 void LineDialog::InsertLetter(string fromKeyb){
     if (fromKeyb!=""){
-        if (cursor.HasSelection()) EraseSelection();
-        if (cursor.HasCursor()){
-            int cP=cursor.GetPos();
-            ulong sP=static_cast<ulong>(cursor.FindPositionInNativeLine(userLine,cP));
+        if (tcursor.HasSelection()) EraseSelection();
+        if (tcursor.HasCursor()){
+            int cP=tcursor.GetPos();
+            ulong sP=static_cast<ulong>(tcursor.FindPositionInNativeLine(userLine,cP));
             string oldLine=userLine;
             userLine.insert(sP,fromKeyb);
             if (IsLineNotTooWide()){
                 editLine->setTextAndUpdate(userLine);
-                int insL=cursor.GetLengthOfUTFString(fromKeyb);
+                int insL=tcursor.GetLengthOfUTFString(fromKeyb);
                 cP+=insL;
-                cursor.AddPositionsToLine(insL);
-                cursor.MakeLinePosAgain(0,userLine);
-                cursor.SetCursorAt(0,cP);
+                tcursor.AddPositionsToLine(insL);
+                tcursor.MakeLinePosAgain(0,userLine);
+                tcursor.SetCursorAt(0,cP);
             }
             else {
                 userLine=oldLine;

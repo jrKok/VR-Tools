@@ -4,7 +4,12 @@
 #include "drawlogic.h"
 #include "point.h"
 #include <fstream>
+#if IBM
 #include <filesystem>
+#endif
+#if LIN
+#include <experimental/filesystem>
+#endif
 
 struct textshow{
     string text;

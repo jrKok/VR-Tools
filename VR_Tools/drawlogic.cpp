@@ -2,7 +2,7 @@
 #include "fontman.h"
 
 //Static variables initialisations
-bool         DrawLogic::verbose(false);
+bool         DrawLogic::verbose(true);
 DrawLogic   *DrawLogic::myself(nullptr);
 unsigned int DrawLogic::shaderProgram(0);
 unsigned int DrawLogic::VAO(0);
@@ -43,10 +43,13 @@ DrawLogic::DrawLogic():
 
 DrawLogic::~DrawLogic(){
     XPLMBindTexture2d(textNum, 0);
-    GLuint t = textNum;
+    GLuint t = static_cast<GLuint>(textNum);
     glDeleteTextures(1, &t);
+    for (auto &rct:(*rects)) rct.second->UnAttach();
     if (rects!=nullptr) delete rects;
+    if (strings) delete strings;
     rects=nullptr;
+    strings=nullptr;
     if (VAO){
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);

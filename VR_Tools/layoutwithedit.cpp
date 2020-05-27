@@ -5,7 +5,8 @@
 
 LayoutWithEdit *LayoutWithEdit::myself(nullptr);
 
-LayoutWithEdit::LayoutWithEdit(DrawLogic *newPad): Layout(newPad),
+LayoutWithEdit::LayoutWithEdit(DrawLogic *newPad, OpCenter *opc): Layout(newPad),
+    myCenter(opc),
     keybR("keyR",true),
     keyb(),
     showKeyb(true),
@@ -17,14 +18,17 @@ LayoutWithEdit::LayoutWithEdit(DrawLogic *newPad): Layout(newPad),
     firstChar('\0'),
     secondChar('\0'),
     fName(""),
-    tEdFileReader(new TextEdit()),
+    tEdFileReader(nullptr),
     tabchar('\t'),
     tabstring(1, tabchar),
     quitWoSave()
 {
 }
 
-//End of constructor
+LayoutWithEdit::~LayoutWithEdit(){
+    myDrawPad->ToUpperLevel();
+    tEdFileReader.reset();
+}
 
 void LayoutWithEdit::ReActivateWindow(){
     myDrawPad->ToUpperLevel();
@@ -32,6 +36,8 @@ void LayoutWithEdit::ReActivateWindow(){
 
 void LayoutWithEdit::StartEdit(){
      editMode=true;
+     myDrawPad->ToUpperLevel();
+     if (!tEdFileReader) tEdFileReader=std::make_unique<TextEdit>();
      ReActivateWindow();
      Begin();
      keyb.MakeKeyboard(colWidth,10);
@@ -109,7 +115,7 @@ bool LayoutWithEdit::resize(){//calculate offsets; areas of rectangles}
         else {
             generalR.SetVisibility(true);
             generalR.SetColor(Clr_DarkGray);
-            myDrawPad->SetBackGroundColor(Clr_Red);
+            myDrawPad->SetBackGroundColor(Clr_DarkGray);
         }
 
         if (fitSizeToFile){
@@ -233,17 +239,14 @@ void LayoutWithEdit::Update(){
                 switch (dayPart){
                 case 0:{
                     tEdFileReader->SetBckColor(Clr_PaperWhite);
-                    decoR.SetColor(Clr_PaperWhite);
                     tEdFileReader->SetInkColor(Clr_BlackInk);
                     break;}
                 case 1:{
                     tEdFileReader->SetBckColor(Clr_PaperDusk);
-                    decoR.SetColor(Clr_PaperDusk);
                     tEdFileReader->SetInkColor(Clr_BlackInk);
                     break;}
                 case 2:{
                     tEdFileReader->SetBckColor(Clr_Black);//night paper
-                    decoR.SetColor(Clr_Black);
                     tEdFileReader->SetInkColor(Clr_Amber);
                     break;}
                 }
@@ -334,10 +337,6 @@ int LayoutWithEdit::HandleMouseUp(int,int){
         buttonClick=false;
         clickresult=-1;
         tEdFileReader->ProceedEndClick();
-        /*tEdFileReader->CheckForFrequencies();
-        fNav.setText(tEdFileReader->GetNavStr());
-        fCom.setText(tEdFileReader->GetComStr());
-        fAdf.setText(tEdFileReader->GetADFStr());*/
         CheckButtonsVisibility();}
 
     if (buttonClick){
@@ -353,6 +352,7 @@ int LayoutWithEdit::HandleMouseUp(int,int){
         }
         if (!editMode){
             retVal=3;
+            UnfocusPhysicalKeyboard();
             FilePointer::ReleaseBackups();
         }
         CheckButtonsVisibility();
@@ -532,7 +532,7 @@ void LayoutWithEdit::HandleAlertResult(){
     int response=myself->quitWoSave.GetAnswer();
     if (response==1) {myself->editMode=false;myself->hasToSave=false;}
     if (response==2) {myself->tEdFileReader->Save();myself->editMode=false;myself->hasToSave=false;}
-    if (!myself->editMode) OpCenter::EndEditMode();
+
  }
 
 void LayoutWithEdit::CheckButtonsVisibility(){
@@ -578,8 +578,10 @@ void LayoutWithEdit::UsePhysicalKeyboard(){
 void LayoutWithEdit::UnfocusPhysicalKeyboard(){
     keyb.DisablePhysicalKeyboard(this);
     tButtons[B_UTF8]->setSelect(false);
-    physK=false;
-    temporaryWindow::ShowAlert("Plane's Keyboad commands are enabled",1.5);
+    if (physK==true){
+        physK=false;
+        temporaryWindow::ShowAlert("Plane's Keyboad commands are enabled",1.5);
+    }
 }
 
 void LayoutWithEdit::SetTextToShow(string in_text){
@@ -610,6 +612,11 @@ void LayoutWithEdit::ClosegWindow(){
    t=0;b=0;l=0;r=0;
    idxSelected=-1;nButtons=0;
 }
+
+void LayoutWithEdit::EndEditMode(){
+    if (!editMode) myCenter->EndEditMode();
+}
+
 void LayoutWithEdit::ToggleFPS(){
     showFPS=!showFPS;
     int offSetH=charHeight+2;

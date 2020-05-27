@@ -52,7 +52,7 @@
 #endif
 
 #if LIN
-    #include <GL/gl.h>
+    #include <GL/glew.h>
     #include <cstring>
     #include <cstdint>
 #else

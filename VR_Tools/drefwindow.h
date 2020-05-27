@@ -24,7 +24,7 @@
 #include "advanced.h"
 
 #if LIN
-    #include <GL/gl.h>
+    #include <GL/glew.h>
 #else
     #include <glew.h>
    // #include <gl/GL.h>
@@ -43,9 +43,8 @@ public:
     void Unload();
 
     static void	 drawDRef(XPLMWindowID in_window_id, void * in_refcon);
-    static void  drawWReport(XPLMWindowID in_window_id, void * in_refcon);
     static int   MyDRefCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, void * inRefcon);
-    static float UpdateValue(float, float, int, void*);
+    void UpdateValue();
 
 
     //dummies because not needed for operation but needed for declaration
@@ -59,7 +58,7 @@ public:
     static XPLMWindowID	idDrefWindow;
     static bool isInVRMode,isShowModeOnPress,alwaysWeather;
     static float cyan[3],gray[3];
-    static int counter,whatToShow;
+    static int counter,whatToShow,currentShow;
     static float currentDRefValue, currentmeasure,period;
     static vector<float> movingAverage;
     static string valueToShow;
@@ -75,6 +74,14 @@ public:
 
     bool GetShowModeOnPress();
     void DisposeWindow();
+    int  GetWhatToShow();
+    XPLMCommandRef GetFPSCommand();
+    XPLMCommandRef GetIASCommand();
+    XPLMCommandRef GetTASCommand();
+    XPLMCommandRef GetGSCommand();
+    XPLMCommandRef GetAoACommand();
+    XPLMCommandRef GetgForceCommand();
+    XPLMCommandRef GetWeatherCommand();
 
 protected:
 
@@ -91,6 +98,10 @@ protected:
     void GetWeatherReport();
     void GetSmallWeatherReport();
     void GetATISWeatherReport();
+
+private:
+    bool must_Update;
+    float timer;
 
 
 };

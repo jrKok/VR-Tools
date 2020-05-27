@@ -1,5 +1,6 @@
 #include "filepointer.h"
 #include "layout.h"
+#include "inisettings.h"
 
 string FilePointer::currentFileName("fn");
 string FilePointer::currentDirName("dn");
@@ -7,11 +8,62 @@ string FilePointer::DirSeparator("/");
 string FilePointer::currentTemp("");
 string FilePointer::currentBackup("");
 string FilePointer::currentPlaneDir("");
+FileStack FilePointer::fStack;
 
 FilePointer::FilePointer()
 {
 
 }
+
+void     FilePointer::Initiate(){
+    fStack.Initiate();
+    if (fStack.HasStack()){
+        SetCompleteFileName(fStack.GetCurrentActive());
+    }else {
+        //Go to find file
+        currentDirName=IniSettings::GetDir();
+        currentFileName=IniSettings::GetFile();
+        if (!ExistsName()){
+             currentFileName="flightnotes";
+             currentDirName="Output/textfiles";
+            if (!ExistsName()){
+                currentDirName="Resources/plugins/VR_Tools/textfiles";
+                if (!ExistsName()){
+                    currentDirName="";
+                    currentFileName="";
+                }
+            }
+        }
+}
+}
+
+bool     FilePointer::ExistsName(){
+    path p(currentDirName+"/"+currentFileName);
+    return (exists(p));
+}
+
+void     FilePointer::AddFile(string dir,string file){
+    currentDirName=dir;
+    currentFileName=file;
+    path p=dir+"/"+file;
+    if (exists(p))
+    fStack.AddToStack(p.string(),false);
+}
+
+string   FilePointer::GetCurrentFile(){
+    return currentDirName+"/"+currentFileName;
+}
+
+string   FilePointer::GetNext(){
+    if (fStack.HasStack()) SetCompleteFileName(fStack.NextActive());
+    return GetCurrentFileName();
+}
+
+string   FilePointer::GetPrevious(){
+    if (fStack.HasStack()) SetCompleteFileName(fStack.PreviousActive());
+    return GetCurrentFileName();
+}
+
 string FilePointer::GetCurrentFileName(){
 
     return currentFileName;

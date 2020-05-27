@@ -50,14 +50,12 @@ public:
 private:
     bool hasToCommit;
     float clickTime;
-    cursor cursor;
-    stringOps ops;
+    cursor tcursor;
+    stringOps ops;    
     LocalClipBoard localClip;
     string tempFile;
     const char   tabchar;
     const string tabstring;
-
-
 };
 
 #endif // TEXTEDIT_H

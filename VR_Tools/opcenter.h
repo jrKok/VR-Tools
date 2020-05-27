@@ -9,6 +9,7 @@
  * */
 
 //#include "VR_Tools_global.h"
+#include <memory>
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
 #include "XPLMDataAccess.h"
@@ -17,10 +18,8 @@
 #include "XPLMUtilities.h"
 #include "XPLMMenus.h"
 #include <string>
-#include "layout.h"
 #include "textreader.h"
 #include "showdir.h"
-#include "layoutwithedit.h"
 #include "drefwindow.h"
 #include "vrcommandfilter.h"
 #include "filepointer.h"
@@ -31,75 +30,85 @@
 #include "fontman.h"
 #include "managemodalwindow.h"
 #include "filestack.h"
+#include "vrcreader.h"
 
 using std::string;
 
 class OpCenter
 {
 public:
-    OpCenter();
-   ~OpCenter();
-    int      SetupCenter();
-    void     LaunchOperations();
-    void     HaltOperations();
-    void     SuspendOperations();
-    int      ResumeOperations();
+             OpCenter();
+            ~OpCenter();
+    //General setup
+       int   SetupCenter();
+       void  LaunchOperations();
+       void  HaltOperations();
+       void  SuspendOperations();
+       int   ResumeOperations();
+static void  CheckMenu();
 static float DisplayLoop(float, float, int, void*); //Loop to signal all open window managers to trigger update of draw params
 
-    /*Forward declarations */
- static   void  drawText(XPLMWindowID, void *);
- static   void  drawFileWindow(XPLMWindowID in_window_id, void *);
- static   int   handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *);
- static   int   handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void *);
- static   void  handle_physical_keyboard(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
+    /*Forward declarations for X-Plane interaction*/
+static void  drawText(XPLMWindowID, void *);
+static void  drawFileWindow(XPLMWindowID in_window_id, void *);
+static  int  handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *);
+static  int  handle_mouse_for_FileS(XPLMWindowID in_window_id, int x, int y, XPLMMouseStatus mouse_status, void *);
+static void  handle_physical_keyboard(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
 
- static  int	dummy_mouse_handler(XPLMWindowID, int, int, int, void *);
- static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID, int, int, void *);
- static   int	dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon);
- static   void  dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
+static  int  dummy_mouse_handler(XPLMWindowID, int, int, int, void *);
+static XPLMCursorStatus dummy_cursor_status_handler(XPLMWindowID, int, int, void *);
+static  int	 dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon);
+static void  dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
 
- static   void  menuHandler(void*, void* inItemRef);
-
- static   int   MyTextReaderCommandHandler  (XPLMCommandRef,
+   //Menu driver
+static void  menuHandler(void*, void* inItemRef);
+       void  SetEnableHSMoves(bool has_hotspots);
+       void  SetEnableTextOptions();
+       void  SetCheckDataShow();
+       void  TriggerDRefCommand(XPLMCommandRef in_command);
+    //Run-Time driver
+static  int  MyTextReaderCommandHandler  (XPLMCommandRef,
                                              XPLMCommandPhase   inPhase,
                                              void               *inRefcon);//toggle the text window
-          void  MakeTextWindow();
-          void  MakeMenus();
-          void  MakeFileWindow();
-          void  ReadNewFile();
-static    void  EndEditMode();
-static    bool  HasModalWindow();
-static    void  SetModalWindow(bool mw);
-static    bool  IsLaunched;
+       void  MakeTextWindow();
+       void  MakeMenus();
+       void  MakeFileWindow();
+       void  ReadNewFile();
+       void  EndEditMode();
+       bool  HasModalWindow();
+       void  SetModalWindow(bool mw);
+       bool  IsLaunched;
 
 private:
-static OpCenter * pointerToMe;
-static XPLMCreateFlightLoop_t DLoop;
-static XPLMFlightLoopID DLoopId;
-static XPLMWindowID	g_textWindow,g_FileWindow;
-static bool is_In_Edit_Mode;
-static Layout *wLayout;
-static LayoutWithEdit *wELayout;
-static Layout* ptrLayout;
-static ShowDir *dispDir;
-static ManageModalWindow *manageMW;
-static DRefWindow drefW;
-static Hotspots htsp;
-static VRCommandFilter commandFilter;
+ static OpCenter *myself;
+ std::unique_ptr<Layout> wLayout;
+ std::unique_ptr<LayoutWithEdit> wELayout;
+ std::unique_ptr<ShowDir> dispDir;
+ std::unique_ptr<ManageModalWindow> manageMW;
+ std::unique_ptr<DrawLogic> dpd[4];
+ Layout* ptrLayout;
+ XPLMCreateFlightLoop_t DLoop;
+ XPLMFlightLoopID DLoopId;
+ XPLMWindowID	g_textWindow,g_FileWindow;
+ bool is_In_Edit_Mode;
+ DRefWindow drefW;
+ std::unique_ptr<Hotspots> htsp;
+ VRCommandFilter commandFilter;
+ int menuIdx;//master menu
+ int opt[5];//text menu option
+ int idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload,moveNext,movePrev;//hotspot menu items
+ int iFPS,iAoA,iTAS,iIAS,iGS,iGF,iWeather;//Dref items
+ XPLMMenuID  menuId,menuText,menuTextOpt,menuHotspots,menuData,menuShowData;
+ bool g_in_vr,hasModalWindow;
 
-static int menuIdx,idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload;
-static XPLMMenuID  menuId,menuTextOpt,menuHotspots;
-static bool g_in_vr,hasModalWindow;
+       bool has_been_setup, has_been_launched;
        XPLMDataRef g_vr_dref;
        XPLMCommandRef CommandText,CmdFirstLine,CmdNextLine,CmdPrevLine,CmdDelLine,CmdReload;
        IniSettings ini;
-       //DrawLogic drw;
        temporaryWindow tw;
        globals colordefs;
        fontMan fontmanager;
-       FileStack files;
-
-
+       VRCReader vrcR;
 };
 
 #endif // OPCENTER_H

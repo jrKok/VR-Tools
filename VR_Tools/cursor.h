@@ -9,22 +9,11 @@
  * The cursor function makes UTF 8 from the input, if invalid UTF8 considers everything as ANSI.
  */
 
-#include <string>
 #include <stringops.h>
-#include <fstream>
-#include <vector>
 #include "globals.h"
 #include <XPLMDisplay.h>
 #include <XPLMUtilities.h>
 #include <XPLMProcessing.h>
-
-/*#if LIN
-    #include <GL/gl.h>
-#else
-    #include <GL/gl.h>
-#endif*/
-
-//class Layout;
 
 class cursor
 

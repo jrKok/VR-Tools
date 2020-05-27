@@ -150,7 +150,7 @@ string stringOps::DecodeInstruction(string in_instr, string &out_right,string &c
             if (firstQt<posSemi){
                if (secondQt==firstQt) right="";
                else {
-                   out_right=Trim(right.substr(firstQt+1,(secondQt-firstQt-1))," \t");
+                   out_right=Trim(right.substr(firstQt+1,(secondQt-firstQt-1))," \t/");
                    right=right.substr(secondQt+1);
                    if (contains(right,";")) {
                        posSemi=right.find(";");
@@ -172,7 +172,7 @@ string stringOps::DecodeInstruction(string in_instr, string &out_right,string &c
     }
     //then return the trimmed remainder and the left part of the instruction
 
-    out_right=Trim(right," \t");
+    out_right=Trim(right," \t/");
     return left;
 }
 

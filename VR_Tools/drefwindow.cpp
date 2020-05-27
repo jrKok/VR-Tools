@@ -1,6 +1,7 @@
 #include "drefwindow.h"
 #include "drawlogic.h"
 #include "vrcommandfilter.h"
+#include "opcenter.h"
 
 XPLMWindowID DRefWindow::idDrefWindow;
 
@@ -11,7 +12,8 @@ float DRefWindow::cyan[]={0,1.0,1.0};
 float DRefWindow::gray[]={0.375f,0.375f,0.368f};
 vector<float> DRefWindow::movingAverage(10,0);
 int   DRefWindow::counter(0);
-int   DRefWindow::whatToShow(0);
+int   DRefWindow::whatToShow(-1);
+int   DRefWindow::currentShow(0);
 float DRefWindow::currentDRefValue(0);
 float DRefWindow::currentmeasure(0);
 float DRefWindow::period(0);
@@ -67,8 +69,8 @@ XPLMCommandRef DRefWindow::CommandWeatherReport(nullptr);
 
 
 
-DRefWindow::DRefWindow()
-
+DRefWindow::DRefWindow():
+must_Update(false)
 {
 
 }
@@ -147,8 +149,6 @@ CommandWeatherReport = XPLMCreateCommand("VR_Tools/Custom/Show_Data/ShowWeather"
 
 void DRefWindow::Unload(){
     if (idDrefWindow != nullptr){
-        XPLMDebugString("Unloading VR window\r\n");
-        XPLMSetWindowPositioningMode(idDrefWindow,xplm_WindowPositionFree,0);
         XPLMDestroyWindow(idDrefWindow);
         idDrefWindow = nullptr;
         counter=0;
@@ -157,12 +157,40 @@ void DRefWindow::Unload(){
         }}
 }
 
+XPLMCommandRef DRefWindow::GetFPSCommand(){
+    return CommandFPS;
+}
+
+
+XPLMCommandRef DRefWindow::GetIASCommand(){
+    return CommandIAS;
+}
+
+XPLMCommandRef DRefWindow::GetTASCommand(){
+    return CommandTAS;
+}
+
+XPLMCommandRef DRefWindow::GetGSCommand(){
+    return CommandGS;
+}
+
+XPLMCommandRef DRefWindow::GetAoACommand(){
+    return CommandAOA;
+}
+
+XPLMCommandRef DRefWindow::GetgForceCommand(){
+    return CommandGFA;
+}
+
+XPLMCommandRef DRefWindow::GetWeatherCommand(){
+    return CommandWeatherReport;
+}
+
 void DRefWindow::ToggleShowMode(){
     isShowModeOnPress=!isShowModeOnPress;
 }
 
-void DRefWindow::drawDRef(XPLMWindowID, void *) // draw FPS Window's content
-{
+void DRefWindow::drawDRef(XPLMWindowID, void *){
     XPLMSetGraphicsState( 0,0,0,0,1,1,0);
     int l, t, r, b;
     XPLMGetWindowGeometry(idDrefWindow, &l, &t, &r, &b);
@@ -178,25 +206,7 @@ void DRefWindow::drawDRef(XPLMWindowID, void *) // draw FPS Window's content
     }
     glEnd();
 
-        XPLMDrawString(DRefWindow::cyan, l+10, t-16, (char *)valueToShow.c_str(), nullptr, xplmFont_Proportional);
-
-}
-
-void DRefWindow::drawWReport(XPLMWindowID, void *){
-    XPLMSetGraphicsState( 0,0,0,0,1,1,0);
-    int l, t, r, b;
-    XPLMGetWindowGeometry(idDrefWindow, &l, &t, &r, &b);
-
-    glColor3fv(DRefWindow::gray);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-    glBegin(GL_TRIANGLE_FAN);
-    {
-        glVertex2i(l+1, t-1);
-        glVertex2i(r-1, t-1);
-        glVertex2i(r-1, b+1);
-        glVertex2i(l+1, b+1);
-    }
-    glEnd();
+    if (whatToShow==7){
 
         XPLMDrawString(DRefWindow::cyan, l+10, t-16, (char *)s_qnh.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-28, (char *)s_winds.c_str(), nullptr, xplmFont_Proportional);
@@ -204,7 +214,11 @@ void DRefWindow::drawWReport(XPLMWindowID, void *){
         XPLMDrawString(DRefWindow::cyan, l+10, t-52, (char *)s_temps.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-64, (char *)s_clouds.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-76, (char *)s_thunderStorms.c_str(), nullptr, xplmFont_Proportional);
+    }
+    else{
+        XPLMDrawString(DRefWindow::cyan, l+10, t-18, (char *)valueToShow.c_str(), nullptr, xplmFont_Proportional);
 
+    }
 }
 
 
@@ -213,7 +227,6 @@ int DRefWindow::MyDRefCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, v
     {
     case xplm_CommandBegin :
             {
-            //int old=whatToShow;
             whatToShow=*(static_cast<int*>(inRefcon));
             if (whatToShow==7)
                 myself->SetupWindow(true);
@@ -226,7 +239,9 @@ int DRefWindow::MyDRefCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, v
         if (isShowModeOnPress){
         XPLMSetWindowIsVisible(idDrefWindow,0);
         myself->DisposeWindow();
+        whatToShow=-1;
         break;}
+        else OpCenter::CheckMenu();
     }
     return 0; //this one I've handled
 }
@@ -235,39 +250,37 @@ int DRefWindow::MyDRefCommandHandler(XPLMCommandRef, XPLMCommandPhase inPhase, v
 
 void DRefWindow::SetupWindow(bool isReport){
 
-    if (idDrefWindow==nullptr){//I prefer to recreate the window to keep a clean cockpit
+    if (idDrefWindow==nullptr){
         int addHeight(0),addWidth(0);
-        if (isReport){ addHeight=85; addWidth=120;}
+        if (isReport){ addHeight=105; addWidth=200;}
         const int vr_is_enabled = XPLMGetDatai(g_vr_dref);
         isInVRMode = vr_is_enabled;
         int global_desktop_bounds[4];
         XPLMGetScreenBoundsGlobal(&global_desktop_bounds[0], &global_desktop_bounds[3], &global_desktop_bounds[2], &global_desktop_bounds[1]);
 
         XPLMCreateWindow_t params;
-         params.structSize = sizeof(params);
-         params.visible = 1;
-         if (isReport)
-             params.drawWindowFunc= drawWReport;
-         else
-             params.drawWindowFunc       = drawDRef;
+         params.structSize           = sizeof(params);
+         params.visible              = 1;
+         params.drawWindowFunc       = drawDRef;
          params.handleMouseClickFunc = dummy_mouse_handler;
          params.handleRightClickFunc = dummy_mouse_handler;
          params.handleMouseWheelFunc = dummy_wheel_handler;
          params.handleKeyFunc        = dummy_key_handler;
          params.handleCursorFunc     = dummy_cursor_status_handler;
          params.refcon               = nullptr;
-         params.layer                    = xplm_WindowLayerFloatingWindows;
-         params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
-         params.left   = global_desktop_bounds[0] + 20;
-         params.bottom = global_desktop_bounds[1] + 70;
-         params.right  = global_desktop_bounds[0] + 160+addWidth ;
-         params.top    = global_desktop_bounds[1] + 120+addHeight;
+         params.layer                = xplm_WindowLayerFloatingWindows;
+     params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
+         params.left                 = global_desktop_bounds[0] + 20;
+         params.bottom               = global_desktop_bounds[1] + 70;
+         params.right                = global_desktop_bounds[0] + 120+addWidth ;
+         params.top                  = global_desktop_bounds[1] + 100+addHeight;
 
         idDrefWindow = XPLMCreateWindowEx(&params);
          XPLMSetWindowPositioningMode(idDrefWindow, isInVRMode?xplm_WindowVR:xplm_WindowPositionFree, -1);
-         XPLMSetWindowResizingLimits(idDrefWindow, 160, 20, 160, 20);
+         XPLMSetWindowResizingLimits(idDrefWindow, 100, 30, 380, 200);
          XPLMSetWindowTitle(idDrefWindow, "VAL");
          //Determine period of callback, then function pointer to callback
+         currentShow=whatToShow;
          switch (whatToShow){
             case 0 : period=0.10f;counter=0;break;
             case 1 : period=0.2f;break;
@@ -278,12 +291,50 @@ void DRefWindow::SetupWindow(bool isReport){
             case 6 : period=0.1f;break;
             case 7 : period=60.0f;break; // for weather report
          }
-        XPLMRegisterFlightLoopCallback(UpdateValue,-1,nullptr);
+        must_Update=true;
+        timer=0;
 
     }
     else {if (!isShowModeOnPress){
-            XPLMSetWindowIsVisible(idDrefWindow,0);
-            myself->DisposeWindow();
+            if (currentShow==whatToShow){
+                XPLMSetWindowIsVisible(idDrefWindow,0);
+                myself->DisposeWindow();
+            }
+            else {
+                if (whatToShow==7){
+                    if (XPLMWindowIsInVR(idDrefWindow)){
+                        XPLMSetWindowGeometryVR(idDrefWindow,320,155);
+                    }
+                    else{
+                        int l(0),t(0),r(0),b(0);
+                        XPLMGetWindowGeometry(idDrefWindow,&l,&t,&r,&b);
+                        XPLMSetWindowGeometry(idDrefWindow,l,b+155,l+320,b);
+                    }
+                }
+                if (currentShow==7){
+                        if (XPLMWindowIsInVR(idDrefWindow)){
+                            XPLMSetWindowGeometryVR(idDrefWindow,100,30);
+                        }
+                        else{
+                            int l(0),t(0),r(0),b(0);
+                            XPLMGetWindowGeometry(idDrefWindow,&l,&t,&r,&b);
+                            XPLMSetWindowGeometry(idDrefWindow,l,b+30,l+100,b);
+                        }
+                }
+             currentShow=whatToShow;
+             switch (whatToShow){
+                case 0 : period=0.10f;counter=0;break;
+                case 1 : period=0.2f;break;
+                case 2 : period=0.2f;break;
+                case 3 : period=0.2f;break;
+                case 4 : period=0.1f;break;
+                case 5 : period=0.1f;break;
+                case 6 : period=0.1f;break;
+                case 7 : period=60.0f;break;
+             }
+             timer=0;
+             OpCenter::CheckMenu();
+            }
         }
     }
 }
@@ -293,14 +344,19 @@ void DRefWindow::DisposeWindow(){
     {
         XPLMDestroyWindow(idDrefWindow);
         idDrefWindow=nullptr;
-        whatToShow=0;
+        whatToShow=-1;
         period=0.1f;
         for (ulong I(0);I<10;I++){
             movingAverage[I]=0;
         }
         counter=0;
-        XPLMUnregisterFlightLoopCallback(UpdateValue,nullptr);
+        must_Update=false;
+        OpCenter::CheckMenu();
     }
+}
+
+int DRefWindow::GetWhatToShow(){
+    return whatToShow+1;
 }
 
 void DRefWindow::GetAOA(){
@@ -322,7 +378,7 @@ void DRefWindow::GetGForceDown(){
     float frac=(currentDRefValue-conv)*100.0f;
     int rem=static_cast<int>(std::floor(frac));
     std::string ngs=(neg?"-":"");
-    valueToShow=("G-F Dn: ")+ngs+std::to_string(conv)+"."+std::to_string(rem);
+    valueToShow=("gFc Dn: ")+ngs+std::to_string(conv)+"."+std::to_string(rem);
 }
 
 void DRefWindow::GetGForceCalculated(){
@@ -336,7 +392,7 @@ void DRefWindow::GetGForceCalculated(){
     float frac=(currentDRefValue-conv)*100.0f;
     int rem=static_cast<int>(std::floor(frac));
     std::string ngs=(neg?"-":"");
-    valueToShow=("G-F comp: ")+ngs+std::to_string(conv)+"."+std::to_string(rem);
+    valueToShow=("gFc cmp: ")+ngs+std::to_string(conv)+"."+std::to_string(rem);
 }
 
 void DRefWindow::GetFPS(){
@@ -404,7 +460,7 @@ void DRefWindow::GetSmallWeatherReport(){
     //wind Dir float
     //Wind speed float
     float windDir=XPLMGetDataf(w_windDirection),windSpeed=XPLMGetDataf(w_windSpeed);
-        s_winds="Winds From"+stringOps::ConvertFloatToString(windDir,0) + " @"+stringOps::ConvertFloatToString(windSpeed,0)+" kts";
+        s_winds="Winds From "+stringOps::ConvertFloatToString(windDir,0) + " @"+stringOps::ConvertFloatToString(windSpeed,0)+" kts";
     //vis float
     float vis=XPLMGetDataf(w_visibility);
     if (vis<=5.0f)
@@ -478,23 +534,27 @@ void DRefWindow::GetATISWeatherReport(){
     if (thunder<1) s_thunderStorms="no significant risk of thunderstorms";
     if (thunder>=10) s_thunderStorms="estimated risk of thunderstorms at "+stringOps::ConvertFloatToString(thunder,0)="%";
     if (thunder>30) s_thunderStorms="heavy risk of thunderstroms estimated at "+stringOps::ConvertFloatToString(thunder,0)="%";
-
 }
 
 //Callbacks
 
-float DRefWindow::UpdateValue(float,float,int,void*){
-    switch (whatToShow){
-       case 0 : myself->GetFPS();break;
-       case 1 : myself->GetIAS();break;
-       case 2 : myself->GetTAS();break;
-       case 3 : myself->GetGS();break;
-       case 4 : myself->GetGForceDown();break;
-       case 5 : myself->GetAOA();break;
-       case 6 : myself->GetGForceCalculated();break;
-       case 7 : myself->GetWeatherReport();break;
+void DRefWindow::UpdateValue(){
+    if (must_Update){
+        float now=XPLMGetElapsedTime();
+        if ((now-timer)>period||(timer==0.0f)){
+            timer=now;
+            switch (whatToShow){
+            case 0 : GetFPS();break;
+            case 1 : GetIAS();break;
+            case 2 : GetTAS();break;
+            case 3 : GetGS();break;
+            case 4 : GetGForceDown();break;
+            case 5 : GetAOA();break;
+            case 6 : GetGForceCalculated();break;
+            case 7 : GetWeatherReport();break;
+            }
+        }
     }
-    return period;
 }
 
 int					DRefWindow::dummy_mouse_handler(XPLMWindowID, int, int, int, void * ) { return 0; }

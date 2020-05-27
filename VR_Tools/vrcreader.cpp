@@ -106,6 +106,7 @@ string VRCReader::GetVRConfigFileName() {
              if (!stringOps::contains(vrconfigFile[0],"A")) isVrValid=false;
              if (!stringOps::contains(vrconfigFile[1],"1100")) isVrValid=false;
              if (!stringOps::contains(vrconfigFile[2],"VRCONFIG")) isVrValid=false;
+             if (isVrValid==false) DrawLogic::WriteDebug("the "+vrConfigFileName+" is not valid");
          }
          else {
              isVrValid=false;
@@ -184,7 +185,6 @@ string VRCReader::GetVRConfigFileName() {
       numberOfGeneratedHotspots++;
       numberOfHotspotsInfile++;
       hs.hotspotNumber=hsN;
-
       left=vrconfigFile[itr];
       left=LeftWord(left,right);
       if (left=="BEGIN_TELEPORT_HOTSPOT") {

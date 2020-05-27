@@ -6,7 +6,6 @@
 #include "XPLMPlanes.h"
 #include "stringops.h"
 
-
 /*This class locates and reads the active plane's VR config file,
  *
  * or generates one if it doesn't exist
@@ -80,6 +79,6 @@ private:
     static vector<LineDescriptor> analysis;
     static vector<Hotspot> * hotspots;
 
-};
+;};
 
 #endif // VRCREADER_H

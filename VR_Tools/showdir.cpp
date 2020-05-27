@@ -22,6 +22,7 @@ ShowDir::ShowDir(DrawLogic *newPad) :
 } //End Constructor
 
 ShowDir::~ShowDir(){
+    myDrawPad->ToUpperLevel();
     for (auto bt:buttons) {
         delete bt;
         bt=nullptr;
@@ -31,9 +32,7 @@ ShowDir::~ShowDir(){
         delete ln;
         ln=nullptr;
     }
-    delete myDrawPad;
-    myDrawPad=nullptr;
-
+    displayLines.clear();
 }
 
 //Helper functions
@@ -178,6 +177,9 @@ void ShowDir::SetupDirWindow(int left, int top){
     else{      
         wWidth=background.GetWidth();
         wHeight=background.GetHeight();
+        buttons[button_ok]->setVisibility(false);
+        buttons[button_SelDir]->setVisibility(false);
+
     }
 }
 
@@ -275,8 +277,12 @@ myDrawPad->ToUpperLevel();
         switch (buttonPressed){
         case button_ok:{
             SelectFileLine();
-            FilePointer::SetCurrentFileName(displayLines[FilePicker]->GetText());
-            FilePointer::SetCurrentDirName(dirN.GetActualPathName());
+            string dr=dirN.GetActualPathName(), fn=displayLines[FilePicker]->GetText();
+            if(dr!=""&&fn!=""){
+                FilePointer::AddFile(dirN.GetActualPathName(),displayLines[FilePicker]->GetText());
+            }
+            fileSelected="";
+            filePathSelected="";
             break;
         }
         case button_Cancel:{
@@ -330,7 +336,6 @@ myDrawPad->ToUpperLevel();
 
     }
 
-    fileN.SetInkColor(Clr_BlackInk);
     dirN.SetInkColor(Clr_BlackInk);
     dirN.ColorFirstLines();
     return retVal;
@@ -370,6 +375,9 @@ int  ShowDir::GetWidth(){return general.GetWidth();}
 int  ShowDir::GetHeight(){return general.GetHeight();}
 
 void ShowDir::CloseDirWindow(){
+    myDrawPad->ToUpperLevel();
+    displayLines[DirReader]->setText("");
+    displayLines[FilePicker]->setText("");
     myWindow=nullptr;
     myDrawPad->CloseWindow();
 }

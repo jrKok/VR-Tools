@@ -13,6 +13,13 @@ fontMan::fontMan() :
 
 }
 
+fontMan::~fontMan(){
+    if (chars) delete chars;
+    if (bigger_chars) delete bigger_chars;
+    chars=nullptr;
+    bigger_chars=nullptr;
+}
+
 void fontMan::Initialise(){
     if (!FreeTypeStarted){
         FreeTypeStarted=true;
@@ -20,7 +27,7 @@ void fontMan::Initialise(){
         char sysPath[512];
         XPLMGetSystemPath(sysPath);
         string sysDir=sysPath;//conversion from char[]
-        string fontname=sysDir+"Resources\\fonts\\DejaVuSans.ttf";
+        string fontname=sysDir+"Resources/fonts/DejaVuSans.ttf";
         if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType Init Free Type gave error ",er);FreeTypeError=true;}
         er= FT_New_Face( library,
                          fontname.c_str(),
@@ -36,7 +43,7 @@ void fontMan::Initialise(){
 void fontMan::BuildFontMap(unsigned int size, map<int, charrecord> * to_map){
 
     int er= FT_Set_Pixel_Sizes(face,size,size);
-    if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType Set Pixel Sizes returned error for size : ",er,size);FreeTypeError=true;}
+    if (er) {DrawLogic::WriteDebug("In DrawLogic StartFreeType Set Pixel Sizes returned error for size : ",er,static_cast<int>(size));FreeTypeError=true;}
     unsigned char pass[3];
     //ASCII codes
     for (unsigned char c(0);c<=0x7F;c++){
@@ -128,7 +135,7 @@ charrecord fontMan::GetCharFromMap(int in_UTF, int &out_width, int &out_height, 
      out_width=0;
     if ((*charMap_toSearch).find(in_UTF)==(*charMap_toSearch).end())
     {
-        DrawLogic::WriteDebug("fontMan GetCharFromMap : didn't find "+std::to_string(in_UTF));
+        //DrawLogic::WriteDebug("fontMan GetCharFromMap : didn't find "+std::to_string(in_UTF));
         return rec;
     }
     rec=(*charMap_toSearch)[in_UTF];
@@ -216,10 +223,15 @@ int fontMan::GetNumberOfUTFCharsInString(const string &in_String){
 
 void fontMan::EndFreeType(){
     if (library!=nullptr){
-            FT_Done_Face(face);
-            FT_Done_Library(library);
-            face=nullptr;
-            library=nullptr;
+        FT_Done_Face(face);
+        FT_Done_Library(library);
+        face=nullptr;
+        library=nullptr;
+        if (chars) delete chars;
+        if (bigger_chars) delete bigger_chars;
+        chars=nullptr;
+        bigger_chars=nullptr;
+
 }
 }
 

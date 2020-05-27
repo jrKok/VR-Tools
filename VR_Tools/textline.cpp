@@ -153,6 +153,9 @@ void  TextLine::SetVisibility(bool in_vis){
 
 void  TextLine::SetFontSize(int fs){
     font_Size=fs;
+    if (font_Size==0) height=12;
+    else height=16;
+    bbt=bbb+height;
     DrawLogic::ChangeFontSize(myStringNumber,font_Size);
 }
 

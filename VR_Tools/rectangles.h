@@ -6,7 +6,9 @@
 #include <string>
 
 using std::string;
+#if IBM
 using ulong=unsigned long long;
+#endif
 
 class rectangles
 {
@@ -46,6 +48,7 @@ public:
   string GetDebugName();
     void SetNewDrawNumber(ulong in_Nb);
    ulong GetDrawNumber();
+    void UnAttach();
 
 protected:
     int top,left,bottom,right,height,width;

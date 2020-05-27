@@ -18,6 +18,7 @@
 
 #include "globals.h"
 #include <ft2build.h>
+#include <memory>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_TYPES_H
@@ -38,11 +39,12 @@ class fontMan
 {
 public:
     fontMan();
+    ~fontMan();
 
-       void       Initialise ();
-       void       BuildFontMap(unsigned int size, map<int,charrecord> * to_map);
-       void       EndFreeType();
-       void       CharCodeToMap (char cSize,unsigned char in_code[], map<int,charrecord> * to_map);
+    void          Initialise ();
+    void          BuildFontMap(unsigned int size, map<int,charrecord> * to_map);
+    void          EndFreeType();
+    void          CharCodeToMap (char cSize,unsigned char in_code[], map<int,charrecord> * to_map);
 static charrecord GetCharFromMap(int in_UTF, int &out_width, int &out_height, int &out_offset, int &out_advance,int fontSize=0);
 static int        MeasureString (const string &in_string, int fontSize=0);
 static void       GetPositions  (const string &in_string,vInt &out_pos,int fontSize=0);
@@ -50,12 +52,13 @@ static void       StringToCode  (const string &in_String, vInt &out_codes);
 static int        GetNumberOfUTFCharsInString(const string &in_string);
 static int        GetFontSize(int in_S);
 
+
 static bool       FreeTypeStarted;
 static bool       FreeTypeError;
 
 private:
-    static map<int,charrecord> *chars;
-    static map<int,charrecord> *bigger_chars;
+static map<int,charrecord> *chars;
+static map<int,charrecord> *bigger_chars;
     static FT_Library library;
     static FT_Face    face;
            int      count;

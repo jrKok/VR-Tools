@@ -22,13 +22,13 @@
    bool  IniSettings::noBckground(false);
  string  IniSettings::directory("output/textfiles");
  string  IniSettings::file("flightnotes.txt");
-   bool  IniSettings::keepLastFile(false);
+   bool  IniSettings::keepLastFile(true);
    int   IniSettings::trimLineOption(0);
    bool  IniSettings::deleteEnable(true);
    bool  IniSettings::navsSetEnable(true);
    bool  IniSettings::displayFPS(false);
    int   IniSettings::speedOfMove(1);
-   bool  IniSettings::reloadModel(false);
+   bool  IniSettings::reloadModel(true);
    bool  IniSettings::makeHSCommands(false);
    std::vector <string>  IniSettings::leftH;
    std::vector <string>  IniSettings::rightH;
@@ -52,7 +52,7 @@ void IniSettings::GetIniParams()
     if (iniFile.is_open()){
         ReadIniFile();
     }else{
-        iniDirectory="Resources/plugins/VR_Tools/";
+        iniDirectory="Resources/plugins/VR_Tools/resources/";
         completeName=iniDirectory+iniFileName;
         iniFile.open(completeName,std::ifstream::in);
         if (iniFile.is_open()) {
@@ -71,7 +71,7 @@ void IniSettings::OrientFilePointer(){
     string sysDir=sysPath;//conversion from char[]
     sysDir=sysDir.substr(0,(sysDir.size()-1));//remove trailing "/"
     string systemCharSep=XPLMGetDirectorySeparator();
-    FilePointer::DirSeparator=systemCharSep;
+    FilePointer::DirSeparator="/";
     FilePointer::SetCurrentFileName(file);
     if (directory!=""){
         if (directory.substr(1,1)==":"){
@@ -81,6 +81,11 @@ void IniSettings::OrientFilePointer(){
             FilePointer::SetCurrentDirName(sysDir+systemCharSep+directory);}
     }
     else FilePointer::SetCurrentDirName(sysDir+systemCharSep);
+    path p=FilePointer::GetCurrentDirName()+"/"+FilePointer::GetCurrentFileName();
+    if (!std::experimental::filesystem::exists(p)){
+        FilePointer::SetCurrentFileName("flightnotes.txt");
+        FilePointer::SetCurrentDirName("Resources/plugins/VR_Tools/textfiles");
+    }
 }
 
 void IniSettings::ReadIniFile(){
@@ -238,6 +243,10 @@ void IniSettings::LogInstruction(string lf,string rg,string ct){
 
 void IniSettings::WriteIniFile(){
     if (leftH.size()==0){
+        string filename="flightnotes.txt";
+        string dir="output/Textfiles";
+        path p=dir+"/"+filename;
+        if (!std::experimental::filesystem::exists(p)) dir="Resources/plugins/VR_Tools/textfiles";
         //build standard .ini
         leftH.push_back("");rightH.push_back("");                          comment.push_back("; lines beginning with ; are comments, comments can also be written after a command");
         leftH.push_back("");rightH.push_back("");                          comment.push_back("; yes/no in undercase, names and strings can be put in quotes and can then contain a semi colon");
@@ -254,8 +263,8 @@ void IniSettings::WriteIniFile(){
         leftH.push_back("                FIT_TO_FILE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the text display will be sized to a best compromise for holding text tightly");
         leftH.push_back("                  NO_RESIZE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the user won't be able to resize the display, in a non-titled Window, no hide button");
         leftH.push_back("                  KEEP_SIZE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the size of a window will be kept in the ini after user resizes wdw");
-        leftH.push_back("                  DIRECTORY");rightH.push_back("output/Textfiles");comment.push_back("");//;first directory where text files will be searched, if empty, XPlane's system directory");
-        leftH.push_back("                       FILE");rightH.push_back("flightnotes.txt");comment.push_back("");//;Filename, will be searched in previous directory");
+        leftH.push_back("                  DIRECTORY");rightH.push_back(dir);comment.push_back("");//;first directory where text files will be searched, if empty, XPlane's system directory");
+        leftH.push_back("                       FILE");rightH.push_back(filename);comment.push_back("");//;Filename, will be searched in previous directory");
         leftH.push_back("             KEEP_LAST_FILE");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the last opened file will be the first opened file on restart");
         leftH.push_back("           TRIM_LINE_OPTION");rightH.push_back("split_at_space");comment.push_back(";split_at_space,split_at_width,no_clip,clip_left,clip_right");
         leftH.push_back("              NO_BACKGROUND");rightH.push_back("no");    comment.push_back("");//;yes/no if yes the text will be white on the standard dark background of the custom window");

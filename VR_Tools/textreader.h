@@ -51,7 +51,7 @@ protected:
     std::fstream textFile;
     bool fileExists,needsUTF8,streamOn;
     bool hasNav,hasCom,hasADF;
-    file_time_type fT;
+    //file_time_type fT;
     path filePath;
     std::uintmax_t keepsize;
     int filePos;

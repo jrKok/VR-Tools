@@ -16,10 +16,12 @@
 #include <functional>
 #include "drawlogic.h"
 
+class OpCenter;
+
 class ManageModalWindow
 {
 public:
-    ManageModalWindow(DrawLogic * dp);
+    ManageModalWindow(DrawLogic * dp,OpCenter *opc);
     ~ManageModalWindow();
     static XPLMWindowID CreateModalWindow( void drawCB(XPLMWindowID,void*),char myColor,int width, int height);
     static XPLMWindowID CreateMousedModalWindow(int mouseH(XPLMWindowID, int, int, int, void*), void drawCB(XPLMWindowID,void*), char myColor, int width, int height);
@@ -38,6 +40,7 @@ public:
     static void         AddUpdatefunction(std::function<void()> in_update);
 
 private:
+    OpCenter                 * myCenter;
     static rectangles        * myRect;
     static XPLMDataRef       g_vr_dref;
     static XPLMWindowID      myModalWindow;

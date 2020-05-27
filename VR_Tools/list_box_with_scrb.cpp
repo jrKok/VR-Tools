@@ -42,13 +42,13 @@ List_Box_With_ScrB::List_Box_With_ScrB(bool modal):
      box(),
      delStr1(""),
      delStr2("")
-
 {
-
 }
 
 List_Box_With_ScrB::~List_Box_With_ScrB(){
-    delete displayText;
+    if (displayText) {
+        displayText->clear();
+        delete displayText;}
     displayText=nullptr;
 }
 
@@ -199,7 +199,7 @@ void List_Box_With_ScrB::SetInkColor (char in_Color){
     textOnly.UpdateMyTexture();
     for (auto &bx:box)
     {
-        if (bx.GetSelected()){
+        if (bx.GetIndex()==lineSelected&&hasSelection){
             bx.SetTextColor(Clr_InkSelect);
         }
         else{
@@ -242,7 +242,6 @@ bool List_Box_With_ScrB::ProceedClick(int x, int y){
 }
 
 void List_Box_With_ScrB::ProceedClickCont(int x, int y){
-   // filterClick=!filterClick;//toggle filter Click, first position returned is Ok, second is not, alternating, discard this when bug corrected
     if (needToContClick){//&filterClick){
 
         if (scrB.OngoingDrag()) {//process for scrB ?
@@ -302,10 +301,6 @@ void List_Box_With_ScrB::ProceedEndClick(){//Mouse Up
     scrB.EndRepeat();
 }
 
-/*void List_Box_With_ScrB::Recalculate(int in_lft, int in_bt){
-    in_bottom=in_bt;
-    in_left=in_lft;
-}*/
 void List_Box_With_ScrB::MoveUpNLines(int uL){
     DisplayAtLineN(indxFirstOnPg-uL);
     DisplayPage();
@@ -371,9 +366,6 @@ void List_Box_With_ScrB::DisplayPage(bool htd){
                 uPageHeight=static_cast<ulong>(pageHeightInL),
                 uSelectedLine=static_cast<ulong>(lineSelected),
                 uNumberOLs=static_cast<ulong>(totalNbL);
-        //compute boundaries
-
-        //copy & fill the box for displaying the text lines
 
         for (ulong ln(0);ln<uPageHeight;ln++){
             if (idx<uNumberOLs){
@@ -479,7 +471,6 @@ void List_Box_With_ScrB::DeleteSelectedLine(){
         else {
             if (lS<totalNbL-1) SelectLine(lS+1);
         }
-
     }
 }
 
@@ -517,7 +508,8 @@ void List_Box_With_ScrB::AdjustToHeight(){
 
 void List_Box_With_ScrB::ProportionateSizeToHeight(){
     widthPx=int(0.75*heightPx);
-    if (widthPx<150) widthPx=150;if (widthPx>1200) widthPx=1200;
+    if (widthPx<150) {widthPx=150;}
+    if (widthPx>1200) {widthPx=1200;}
     Setup(heightPx,widthPx,grlOffsetX,grlOffsetY);
 }//3/4 proportion
 

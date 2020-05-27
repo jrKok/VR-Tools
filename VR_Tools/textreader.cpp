@@ -15,20 +15,19 @@ TextReader::TextReader(): List_Box_With_ScrB(false),
     needsUTF8(false),
     streamOn(false),
     hasNav(false),hasCom(false),hasADF(false),
-    fT(),
+    //fT(),
     filePath(),
     keepsize(0)
 
 {
-    fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
+    fileName=FilePointer::GetCurrentFile();
 }
 
 TextReader::~TextReader(){
-
 }
 
 void TextReader::PointToFile(){
-    fileName=FilePointer::GetCurrentDirName()+FilePointer::DirSeparator+FilePointer::GetCurrentFileName();
+    fileName=FilePointer::GetCurrentFile();
 }
 
 bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
@@ -37,7 +36,7 @@ bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
     if (textFile.is_open()){
         fileExists=true;
         filePath=fileName;
-        fT=last_write_time(filePath);
+        //fT=last_write_time(filePath);
         keepsize=std::experimental::filesystem::file_size(filePath);
     }else{
         DrawLogic::WriteDebug("Couldn't open file "+fileName);
@@ -71,7 +70,7 @@ if (fileName!=""){
           std::string inputL="the file "+fileName+" couldn't be found";
           fileExists=false;
           AddLine(inputL);
-        return false;}}
+        return true;}}
   clearText();
   //stringOps ops;
   std::string inputL;

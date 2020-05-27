@@ -3,24 +3,29 @@
 #include "linedialog.h"
 #include "fontman.h"
 
-int Layout::cycle=0;
+Layout::Layout(DrawLogic *newPad)  :
+    generalR("layout's general",true),
+    wTop(0),wBottom(0),wLeft(0),wRight(0),
+    wWidth(0),wHeight(0),minWidth(0),maxWidth(0),minHeight(0),maxHeight(0),
+  myDrawPad(newPad),
 
-Layout::Layout(DrawLogic *newPad) :
-   myDrawPad(newPad),
-   //gTop(0),gLeft(0),gRight(0),gBottom(0),
-  wTop(0),wBottom(0),wLeft(0),wRight(0),
-  wWidth(0),wHeight(0),minWidth(0),maxWidth(0),minHeight(0),maxHeight(0),
+  titleR("Ribbon",true),
+  //myDialog(),
   charHeight(0),charWidth(0),textPointX(0),textPointY(0),//Used for initial setup and resize instructions
   t(0),b(0),l(0),r(0),//input from draw instruction mostly
-  textHeight(0),textWidth(0),colWidth(45),idxSelected(-1),nButtons(0),
+  textHeight(0),textWidth(0),idxSelected(-1),nButtons(0),
   reloadPeriod(1.0f),
-  generalR("layout's general",true),
-  titleR("Ribbon",true),
-  decoR("decor",true),
-  bckg(nullptr),
-  tFileReader(new TextReader()),
+
   tButtons(),
+  tBButtons(),
+  nav1on(nullptr),nav2on(nullptr),com1on(nullptr),
+  com2on(nullptr),adf1on(nullptr),adf2on(nullptr),
+  nav1freq(nullptr),nav2freq(nullptr),com1freq(nullptr),
+  com2freq(nullptr),adf1freq(nullptr),adf2freq(nullptr),
+  com1freqk(nullptr),com2freqk(nullptr),dref_SunPitch(nullptr),g_FPS(nullptr),
+  screenShot(nullptr),
   myWindow(nullptr),
+
   fNav(),fCom(),fAdf(),lFPS(),lTitle(),
   charSep(""),
   epoch(0),
@@ -31,10 +36,13 @@ Layout::Layout(DrawLogic *newPad) :
   must_print(true),
   text_visible(true),
   clickresult(-1),
-  upperMargin(45),
+  colWidth(45),
+  upperMargin(26),
   lowerMargin(60),
   dayPart(3),
-  currentFPS(0)
+  currentFPS(0),
+  bckg(nullptr),
+  tFileReader(nullptr)
 
 //Constructor
 {
@@ -44,11 +52,8 @@ Layout::Layout(DrawLogic *newPad) :
 //Destructor
 
 Layout::~Layout(){
-    if (bckg){
-        delete bckg;
-        bckg=nullptr;
-    }
-    delete tFileReader;
+    myDrawPad->ToUpperLevel();
+
     if (tButtons.size()>0)
     {
         for (auto &bt:tButtons){
@@ -64,8 +69,6 @@ Layout::~Layout(){
         }
         tBButtons.clear();
     }
-    delete myDrawPad;
-    myDrawPad=nullptr;
 }
 
 //Helpers
@@ -77,6 +80,7 @@ bool Layout::OpenWindowAtStart(){
 
 void Layout::Begin(){
     myDrawPad->ToUpperLevel();
+    if (!tFileReader) tFileReader=std::make_unique<TextReader>();
 
     nav1on       = XPLMFindDataRef("sim/cockpit2/radios/actuators/nav1_power");
     nav2on       = XPLMFindDataRef("sim/cockpit2/radios/actuators/nav2_power");
@@ -141,7 +145,7 @@ bool Layout::initiate(){
             generalR.SetColor(Clr_DarkGray);
             DrawLogic::SetBackGroundColor(Clr_DarkGray);
         }
-        tFileReader->PointToFile();;
+        tFileReader->PointToFile();
         if (resize()){
             wLeft=150;
             wRight=wLeft+wWidth;
@@ -332,17 +336,14 @@ void Layout::Update(){
                 switch (dayPart){
                 case 0:{
                     tFileReader->SetBckColor(Clr_PaperWhite);
-                    decoR.SetColor(Clr_PaperWhite);
                     tFileReader->SetInkColor(Clr_BlackInk);
                     break;}
                 case 1:{
                     tFileReader->SetBckColor(Clr_PaperDusk);
-                    decoR.SetColor(Clr_PaperDusk);
                     tFileReader->SetInkColor(Clr_BlackInk);
                     break;}
                 case 2:{
                     tFileReader->SetBckColor(Clr_Black);//night paper
-                    decoR.SetColor(Clr_Black);
                     tFileReader->SetInkColor(Clr_Amber);
                     break;}
                 }
@@ -392,9 +393,9 @@ void Layout::DoFlash(){
 }
 void Layout::ToggleFPS(){
     showFPS=!showFPS;
-    resize();
-    myDrawPad->SetNewSize(wWidth,wHeight);
-    myDrawPad->GenerateCurrentTexture();
+    lTitle.PrintBox();
+    lFPS.PrintBox();
+    CheckButtonsVisibility();
 }
 
 void Layout::UpdateFrequencies(){
@@ -497,9 +498,12 @@ void Layout::LaunchCommand(int refCommand){
     switch(refCommand){
          case B_Refresh:{
              if (!text_visible){
+                 myDrawPad->ToUpperLevel();
                  text_visible=true;
-                 delete bckg;
-                 bckg=nullptr;
+                 if (bckg!=nullptr) {
+                     bckg.reset();
+                     bckg=nullptr;
+                 }
                  resize();
                  CheckButtonsVisibility();
                  myDrawPad->GenerateCurrentTexture();
@@ -604,9 +608,8 @@ void Layout::LaunchCommand(int refCommand){
              text_visible=false;
              tFileReader->HideMyself();
              CheckButtonsVisibility();
-             decoR.SetVisibility(false);
              titleR.SetVisibility(false);
-             bckg = new Background;
+             bckg = std::make_unique<Background>();
              char ink(Clr_PaperWhite);
              if (dayPart==1) ink=Clr_PaperDusk;
              if (dayPart==2) ink=Clr_Amber;
@@ -685,6 +688,10 @@ bool Layout::isWindowInVR(){
     return (XPLMWindowIsInVR(myWindow));
 }
 
+bool Layout::HasActiveWindow(){
+    if (myWindow!=nullptr) return true;
+    return false;
+}
 
 bool Layout::GetResizeOption(){
     return (noResize);
@@ -731,6 +738,11 @@ void Layout::CheckButtonsVisibility(){
 
     lFPS.SetVisibility(showFPS);
     if (showFPS) lFPS.PrintString();
+    if (!showFPS) lFPS.PrintBox();
+
+    lTitle.SetVisibility(!showFPS);
+    if (!showFPS) lTitle.PrintString();
+    if (showFPS) lTitle.PrintBox();
 }
 
 void Layout::RelocateButtons(int middle){
@@ -763,9 +775,9 @@ void Layout::RelocateButtons(int middle){
     tButtons[B_Next_File]->SetOrigin(tButtons[B_Refresh]->GetRight()+5,tButtons[B_Refresh]->GetBottom());
     tButtons[B_Prev_File]->SetOrigin(tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
     tBButtons[B_Hide]->    SetOrigin(1,titleR.GetBottom()+1);
-    tBButtons[B_Close]->   SetOrigin(wWidth-18,titleR.GetBottom()+1);
+    tBButtons[B_Close]->   SetOrigin(wWidth-19,titleR.GetBottom()+1);
 
-    lFPS.SetOrigin(14,generalR.GetTop()-20);
+    lFPS.SetOrigin(wWidth/2-30,lowerMargin+textHeight+2);
 
     if (keepSize) KeepCurrentSize();
     CheckButtonsVisibility();
@@ -813,8 +825,8 @@ void Layout::defineButtons(){
     MakeButton(B_Prev_File,true,"Prev",67,16,tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
 
     MakeButton(B_Show_All,true,"\xE2\x86\xBA",tButtons[B_Toggle]->GetWidth(),20,5,middle-30);
-    MakeBoxedButton(B_Hide,true,"\xE2\x9A\xAB",18,18,1,titleR.GetBottom()+1,1);
-    MakeBoxedButton(B_Close,true,"X",18,18,wWidth-18,titleR.GetBottom()+1,1);
+    MakeBoxedButton(B_Hide,true,"\xE2\x9A\xAB",26,24,1,titleR.GetBottom()+1,1);
+    MakeBoxedButton(B_Close,true,"X",30,24,wWidth-19,titleR.GetBottom(),1);
     tBButtons[B_Hide]->SetBoxColor(Clr_SparkSilver);
     tBButtons[B_Hide]->setStateColor(Clr_SparkSilver);
     tBButtons[B_Hide]->setTextColor(Clr_Red);
@@ -826,10 +838,12 @@ void Layout::defineButtons(){
     tBButtons[B_Close]->SetToStateColor();
 
     fpsTag=XPLMGetElapsedTime();
-    lFPS.SetOrigin(14,generalR.GetTop()-20);
-    lFPS.SetDimensions(60,charHeight+2);
-    lFPS.SetBackGroundColor(Clr_DarkGray);
-    lFPS.SetTextColor(Clr_Amber);
+    lFPS.SetTextXY(2,3);
+    lFPS.SetOrigin(wWidth/2-30,lowerMargin+textHeight+2);
+    lFPS.SetDimensions(85,18);
+    lFPS.SetBackGroundColor(Clr_SparkSilver);
+    lFPS.SetTextColor(Clr_DarkGray);
+    lFPS.SetFontSize(1);
 
 }
 
@@ -856,21 +870,21 @@ void Layout::MakeBoxedButton(int number, bool visible, string in_Label, int widt
 }
 
 void Layout::MakeHeader(string in_String){
-    titleR.SetDimensions(wWidth,20);
+    //define the upper rectangle
+    titleR.SetDimensions(wWidth,26);
     titleR.SetOrigin(0,lowerMargin+textHeight);
     titleR.SetColor(Clr_SparkSilver);
     titleR.SetVisibility(true);
     string fileN=tFileReader->GetStemFileName();
-    decoR.SetDimensions(textWidth-15,3); //decoR is the small white rectangle as large as the text window
-    decoR.SetOrigin(colWidth,titleR.GetTop());
-    decoR.SetVisibility(true);
     fileN=in_String+fileN;
     int nameSize=fontMan::MeasureString(fileN,1);
+    //define the text zone to receive either file Name or FPS
     lTitle.setText(fileN);
+    lTitle.SetTextXY(2,3);
     lTitle.SetFontSize(1);
     lTitle.SetBackGroundColor(Clr_SparkSilver);
-    lTitle.SetDimensions(nameSize,15);
+    lTitle.SetDimensions(nameSize+3,18);
     lTitle.SetOrigin(titleR.GetWidth()/2-nameSize/2,titleR.GetBottom()+2);
-    lTitle.SetVisibility(true);
+    lTitle.SetVisibility(!showFPS);
     lTitle.PrintString();
 }
