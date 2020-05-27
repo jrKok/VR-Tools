@@ -26,3 +26,8 @@ Since it is now known (begin 2020) that X Plane in its next version will use the
 ETA : currently under private beta test, going public end of Mai 2020/begin of Juin 2020 with added functionality to use a stack of text files to speed up switching between related files, linux. For Linux, libglew2.0 and freetype libraries have to be present in /usr/lib
 
 A 1.3.6 version is already planned for with added functionality, like real "tab" character processing, extracting ATC messages of log.txt, a bit of reordering of the code and internal enhancements like a new .ini processor. 
+Disclaimers :
+Developed under the GPL Licence
+Developed in C++ on the Qt platform for Open Source Code
+Open Source Libraries used : glew, freetype
+Credits  to Qt company, glew developers, freetype developers
