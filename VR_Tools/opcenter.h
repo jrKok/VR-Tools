@@ -61,7 +61,7 @@ static  int	 dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wh
 static void  dummy_key_handler(XPLMWindowID, char, XPLMKeyFlags, char, void*, int);
 
    //Menu driver
-static void  menuHandler(void*, void* inItemRef);
+static void  menuHandler(void*menuRef, void* inItemRef);
        void  SetEnableHSMoves(bool has_hotspots);
        void  SetEnableTextOptions();
        void  SetCheckDataShow();
@@ -98,7 +98,7 @@ private:
  int opt[5];//text menu option
  int idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload,moveNext,movePrev;//hotspot menu items
  int iFPS,iAoA,iTAS,iIAS,iGS,iGF,iWeather;//Dref items
- XPLMMenuID  menuId,menuText,menuTextOpt,menuHotspots,menuData,menuShowData;
+ XPLMMenuID  menuId,menuText,menuTextOpt,menuHotspots,menuData;
  bool g_in_vr,hasModalWindow;
 
        bool has_been_setup, has_been_launched;

@@ -22,7 +22,7 @@ OpCenter::OpCenter():
     menuIdx(0),opt{0},
     idxOfModeMenuItem(0),itemAdjusted(0),itemFast(0),itemSlow(0),itemReload(0),moveNext(0),movePrev(0),
     iFPS(0),iAoA(0),iTAS(0),iIAS(0),iGS(0),iGF(0),iWeather(0),
-    menuId(nullptr),menuText(nullptr),menuTextOpt(nullptr),menuHotspots(nullptr),menuData(nullptr),menuShowData(nullptr),
+    menuId(nullptr),menuText(nullptr),menuTextOpt(nullptr),menuHotspots(nullptr),menuData(nullptr),
     g_in_vr(false),hasModalWindow(false),
     has_been_setup(false), has_been_launched(false),
     g_vr_dref(nullptr),
@@ -218,78 +218,64 @@ float OpCenter::DisplayLoop(float, float, int, void*){
 /************************************************************************************/
 
 void  OpCenter::MakeMenus(){
-    menuIdx= XPLMAppendMenuItem(XPLMFindPluginsMenu(), "VR Tools", nullptr, 0);
-    menuId= XPLMCreateMenu("VR Tools",XPLMFindPluginsMenu(),menuIdx,menuHandler,nullptr);
-    int menuTD=XPLMAppendMenuItem(menuId,"Text Files  ",nullptr,0);
-    int menuHS=XPLMAppendMenuItem(menuId,"Hotspots    ",nullptr,0);
-    int menuDT=XPLMAppendMenuItem(menuId,"Data Display",nullptr,0);
-        menuText=XPLMCreateMenu("text F  ",menuId,menuTD,menuHandler,nullptr);
-    menuHotspots=XPLMCreateMenu("hotspots",menuId,menuHS,menuHandler,nullptr);
-        menuData=XPLMCreateMenu("dataM   ",menuId,menuDT,menuHandler,nullptr);
+
+    menuIdx= XPLMAppendMenuItem(XPLMFindPluginsMenu(), "VR Tools", nullptr, 1);
+    menuId= XPLMCreateMenu("VR Tools",XPLMFindPluginsMenu(),menuIdx,menuHandler,reinterpret_cast<void*>(1));
+    int menuTD=XPLMAppendMenuItem(menuId,"Text Files  ",nullptr,1);
+    int menuHS=XPLMAppendMenuItem(menuId,"Hotspots    ",nullptr,1);
+    int menuDT=XPLMAppendMenuItem(menuId,"Data Display",nullptr,1);
+      menuText=XPLMCreateMenu("Text Files  ",menuId,menuTD,menuHandler,reinterpret_cast<void*>(2));
+  menuHotspots=XPLMCreateMenu("Hotspots    ",menuId,menuHS,menuHandler,reinterpret_cast<void*>(3));
+      menuData=XPLMCreateMenu("Data Display",menuId,menuDT,menuHandler,reinterpret_cast<void*>(4));
     //Menu text options
        XPLMAppendMenuItemWithCommand(menuText,"Toggle Text Window",CommandText);
-           opt[0]=XPLMAppendMenuItem(menuText,"Options",nullptr,0);
-       menuTextOpt=XPLMCreateMenu("tOpt",menuText,opt[0],menuHandler,nullptr);
-          void * nb4=new(int*);*(static_cast<int*>(nb4))=4;
-          opt[1]=XPLMAppendMenuItem(menuTextOpt,"Show FPS in Title Bar",nb4,0);
+           opt[0]=XPLMAppendMenuItem(menuText,"Options",nullptr,1);
+       menuTextOpt=XPLMCreateMenu("Options",menuText,opt[0],menuHandler,reinterpret_cast<void*>(5));
+          opt[1]=XPLMAppendMenuItem(menuTextOpt,"Show FPS in Title Bar",reinterpret_cast<void*>(4),1);
           XPLMAppendMenuSeparator(menuTextOpt);
-          void * nb1=new(int*);*(static_cast<int*>(nb1))=1;
-          opt[2]=XPLMAppendMenuItem(menuTextOpt,"Fit Window Size to File",nb1,0);
-          void * nb2=new(int*);*(static_cast<int*>(nb2))=2;
-          opt[3]=XPLMAppendMenuItem(menuTextOpt,"Keep File",nb2,0);
-          void * nb3=new(int*);*(static_cast<int*>(nb3))=3;
-          opt[4]=XPLMAppendMenuItem(menuTextOpt,"Keep Size",nb3,0);
+          opt[2]=XPLMAppendMenuItem(menuTextOpt,"Fit Window Size to File",reinterpret_cast<void*>(1),1);
+          opt[3]=XPLMAppendMenuItem(menuTextOpt,"Keep File",reinterpret_cast<void*>(2),1);
+          opt[4]=XPLMAppendMenuItem(menuTextOpt,"Keep Size",reinterpret_cast<void*>(3),1);
 
     //Menu for Hotspots
        XPLMAppendMenuItemWithCommand(menuHotspots,"Hotspot Editor",Hotspots::CmdEditHotspot);
        XPLMAppendMenuSeparator(menuHotspots);
-       void * nb6=new(int*);*(static_cast<int*>(nb6))=6;
-       itemReload=XPLMAppendMenuItem(menuHotspots,"Reload Model if Hotspot modified",nb6,0);
+       itemReload=XPLMAppendMenuItem(menuHotspots,"Reload Model if Hotspot modified",reinterpret_cast<void*>(6),1);
        XPLMAppendMenuSeparator(menuHotspots);
        moveNext=XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",Hotspots::CmdJumpNext);
        movePrev=XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",Hotspots::CmdJumpBack);
        XPLMAppendMenuSeparator(menuHotspots);
        int opt=IniSettings::GetSpeedMove();
-       void * nb8=new(int*);*(static_cast<int*>(nb8))=8;
-       itemAdjusted=XPLMAppendMenuItem(menuHotspots,"Adjusted Move",nb8,0);
-       void * nb9=new(int*);*(static_cast<int*>(nb9))=9;
-       itemSlow=XPLMAppendMenuItem(menuHotspots,"Slow Move",nb9,0);
-       void * nb10=new(int*);*(static_cast<int*>(nb10))=10;
-       itemFast=XPLMAppendMenuItem(menuHotspots,"Fast Move",nb10,0);
+       itemAdjusted=XPLMAppendMenuItem(menuHotspots,"Adjusted Move",reinterpret_cast<void*>(8),1);
+       itemSlow=XPLMAppendMenuItem(menuHotspots,"Slow Move",reinterpret_cast<void*>(9),1);
+       itemFast=XPLMAppendMenuItem(menuHotspots,"Fast Move",reinterpret_cast<void*>(10),1);
 
     //Options for dataref
 
-        void * nb5=new(int*);*(static_cast<int*>(nb5))=5;
-        idxOfModeMenuItem=XPLMAppendMenuItem(menuData,"show data permanently",nb5,0);
-        int menuSD=XPLMAppendMenuItem(menuData,"Show",nullptr,0);
-        menuShowData=XPLMCreateMenu("Show Data",menuData,menuSD,menuHandler,nullptr);
-           void *nnb;
-           nnb=new(int*);*(static_cast<int*>(nnb))=11;
-           iFPS=XPLMAppendMenuItem(menuShowData,"FPS",nnb,0);
-           nnb=new(int*);*(static_cast<int*>(nnb))=12;
-           iIAS=XPLMAppendMenuItem(menuShowData,"IAS",nnb,0);
-           nnb=new(int*);*(static_cast<int*>(nnb))=13;
-           iTAS=XPLMAppendMenuItem(menuShowData,"TAS",nnb,0);
-           nnb=new(int*);*(static_cast<int*>(nnb))=14;
-           iGS=XPLMAppendMenuItem(menuShowData,"Ground Speed",nnb,0);
-           nnb=new(int*);*(static_cast<int*>(nnb))=15;
-           iAoA=XPLMAppendMenuItem(menuShowData,"AoA",nnb,0);
-           nnb=new(int*);*(static_cast<int*>(nnb))=16;
-           iGF=XPLMAppendMenuItem(menuShowData,"gForces",nnb,0);
-           nnb=new(int*);*(static_cast<int*>(nnb))=17;
-           iWeather=XPLMAppendMenuItem(menuShowData,"weather",nnb,0);
+        idxOfModeMenuItem=XPLMAppendMenuItem(menuData,"show data permanently",reinterpret_cast<void*>(5),1);
+        XPLMAppendMenuSeparator(menuData);
+        iFPS=XPLMAppendMenuItem(menuData,"Monitor FPS",reinterpret_cast<void*>(11),1);
+        iIAS=XPLMAppendMenuItem(menuData,"Display IAS",reinterpret_cast<void*>(12),1);
+        iTAS=XPLMAppendMenuItem(menuData,"Display TAS",reinterpret_cast<void*>(13),1);
+        iGS=XPLMAppendMenuItem(menuData,"Show Ground Speed",reinterpret_cast<void*>(14),1);
+        iAoA=XPLMAppendMenuItem(menuData,"Disclose AoA",reinterpret_cast<void*>(15),1);
+        iGF=XPLMAppendMenuItem(menuData,"Output gForces",reinterpret_cast<void*>(16),1);
+        iWeather=XPLMAppendMenuItem(menuData,"Broadcast local weather",reinterpret_cast<void*>(17),1);
 
 
     SetEnableTextOptions();
     if (opt==1) XPLMCheckMenuItem(menuHotspots,itemAdjusted,xplm_Menu_Checked);
     if (opt==0) XPLMCheckMenuItem(menuHotspots,itemSlow,xplm_Menu_Checked);
     if (opt==2) XPLMCheckMenuItem(menuHotspots,itemFast,xplm_Menu_Checked);
-    if (IniSettings::GetOptReloadModel()) XPLMCheckMenuItem(menuHotspots,itemReload,xplm_Menu_Checked);
+    if (IniSettings::GetOptReloadModel())
+                XPLMCheckMenuItem(menuHotspots,itemReload,xplm_Menu_Checked);
 
 
 }
-void  OpCenter::menuHandler(void*, void* inItemRef){
-    int menuItem=*(static_cast<int*>(inItemRef));
+void  OpCenter::menuHandler(void* menuRef, void* inItemRef){
+    if (!menuRef) return;
+    int menuItem=reinterpret_cast<int>(inItemRef);
+
     switch (menuItem){
         case 1:
             if (myself->ptrLayout!=nullptr)
@@ -380,13 +366,13 @@ void  OpCenter::TriggerDRefCommand(XPLMCommandRef in_command){
 
 void OpCenter::SetCheckDataShow(){
     int currentData=drefW.GetWhatToShow();
-    XPLMCheckMenuItem(menuShowData,iFPS,currentData==1?xplm_Menu_Checked:xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(menuShowData,iIAS,currentData==2?xplm_Menu_Checked:xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(menuShowData,iTAS,currentData==3?xplm_Menu_Checked:xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(menuShowData,iGS,currentData==4?xplm_Menu_Checked:xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(menuShowData,iGF,currentData==7?xplm_Menu_Checked:xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(menuShowData,iAoA,currentData==6?xplm_Menu_Checked:xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(menuShowData,iWeather,currentData==8?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iFPS,currentData==1?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iIAS,currentData==2?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iTAS,currentData==3?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iGS,currentData==4?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iGF,currentData==7?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iAoA,currentData==6?xplm_Menu_Checked:xplm_Menu_Unchecked);
+    XPLMCheckMenuItem(menuData,iWeather,currentData==8?xplm_Menu_Checked:xplm_Menu_Unchecked);
 }
 
 void OpCenter::SetEnableHSMoves(bool has_hotspots){
