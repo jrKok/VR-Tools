@@ -523,16 +523,22 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
 void LayoutWithEdit::QuitCommand(){
     myself=this;
     if (hasToSave){
-        quitWoSave.MakeAlert("Don't Save","Save","Cancel","All recent modifications will be lost ?",HandleAlertResult);
+        quitWoSave.MakeAlert("Don't Save","Save","Cancel","Save recent modifications ?",HandleAlertResult);
     }
     else editMode=false;
 }
 
 void LayoutWithEdit::HandleAlertResult(){
+    myself->myDrawPad->ToUpperLevel();
     int response=myself->quitWoSave.GetAnswer();
+    DrawLogic::WriteDebug("answer from alert is ",response);
     if (response==1) {myself->editMode=false;myself->hasToSave=false;}
     if (response==2) {myself->tEdFileReader->Save();myself->editMode=false;myself->hasToSave=false;}
-
+    if (!myself->editMode){
+        myself->UnfocusPhysicalKeyboard();
+        FilePointer::ReleaseBackups();
+        myself->myCenter->ToggleEditMode();
+    }
  }
 
 void LayoutWithEdit::CheckButtonsVisibility(){
@@ -588,11 +594,8 @@ void LayoutWithEdit::SetTextToShow(string in_text){
    textToShow=in_text;
 }
 
-void LayoutWithEdit::EndEdit(){
-    editMode=false;
-}
-
 void LayoutWithEdit::ClosegWindow(){
+    myDrawPad->ToUpperLevel();
     tEdFileReader->closeReader();
     myWindow=nullptr;
     for (auto &bt:tButtons){
@@ -611,10 +614,6 @@ void LayoutWithEdit::ClosegWindow(){
    textPointX=0;textPointY=0;
    t=0;b=0;l=0;r=0;
    idxSelected=-1;nButtons=0;
-}
-
-void LayoutWithEdit::EndEditMode(){
-    if (!editMode) myCenter->EndEditMode();
 }
 
 void LayoutWithEdit::ToggleFPS(){

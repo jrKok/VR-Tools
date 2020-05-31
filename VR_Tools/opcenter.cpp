@@ -519,20 +519,7 @@ int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseSta
                 myself->MakeFileWindow();
                 break;
               case 3 : // Edit Command
-                myself->ptrLayout->ClosegWindow();//Very important to stop DrawLogic's flightloop !
-               myself->is_In_Edit_Mode=!myself->is_In_Edit_Mode;
-               if (myself->is_In_Edit_Mode){
-                  myself->ptrLayout=myself->wELayout.get();
-                  myself->wELayout->SetWindowHandle(myself->g_textWindow);
-                  myself->wELayout->initiate();
-                  myself->wELayout->CheckButtonsVisibility();
-                  myself->wELayout->BeginEdit();
-               }else{
-                 myself->ptrLayout=myself->wLayout.get();
-                 myself->ptrLayout->SetWindowHandle(myself->g_textWindow);
-                 myself->ptrLayout->initiate();
-                 myself->ptrLayout->CheckButtonsVisibility();
-               }
+                myself->ToggleEditMode();
                 break;
               case 4 : // Next File Command
 
@@ -553,12 +540,21 @@ int   OpCenter::handle_mouse_for_TextW (XPLMWindowID, int x, int y, XPLMMouseSta
 return 1;//mouse events handled here
 }
 
-void OpCenter::EndEditMode(){
-    ptrLayout=wLayout.get();
-    ptrLayout->SetWindowHandle(g_textWindow);
-    ptrLayout->initiate();
-    ptrLayout->CheckButtonsVisibility();
-    is_In_Edit_Mode=false;
+void OpCenter::ToggleEditMode(){
+    ptrLayout->ClosegWindow();
+    is_In_Edit_Mode=!is_In_Edit_Mode;
+    if (is_In_Edit_Mode){
+      ptrLayout=wELayout.get();
+      wELayout->SetWindowHandle(g_textWindow);
+      wELayout->initiate();
+      wELayout->CheckButtonsVisibility();
+      wELayout->BeginEdit();
+    }else{
+      ptrLayout=wLayout.get();
+      ptrLayout->SetWindowHandle(g_textWindow);
+      ptrLayout->initiate();
+      ptrLayout->CheckButtonsVisibility();
+   }
 }
 
 int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *){

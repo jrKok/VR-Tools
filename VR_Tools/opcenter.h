@@ -74,10 +74,10 @@ static  int  MyTextReaderCommandHandler  (XPLMCommandRef,
        void  MakeMenus();
        void  MakeFileWindow();
        void  ReadNewFile();
-       void  EndEditMode();
        bool  HasModalWindow();
        void  SetModalWindow(bool mw);
        bool  IsLaunched;
+       void  ToggleEditMode();
 
 private:
  static OpCenter *myself;

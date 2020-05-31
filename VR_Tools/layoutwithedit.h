@@ -19,7 +19,6 @@ public:
     void StartEdit();
     void BeginEdit();
     void ReLabelButtons();
-    void EndEdit();
     void ReActivateWindow();
     void Update();
     //specific member functions for editing purposes
@@ -51,8 +50,6 @@ public:
     void SetNewFile(std::string newFilePath);
     void ToggleFPS();
     void ClosegWindow();
-    void EndEditMode();
-
 
 private:
     OpCenter *myCenter;
