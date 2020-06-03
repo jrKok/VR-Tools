@@ -12,12 +12,15 @@ button_VR::button_VR(bool modal) : rectangles(true),
     isPressed(false),
     hasSymbol(false),
     warningMode(false),
+    fixedTextPos(false),
     buttonText(""),
     symbol(),
     isModalB(modal),
     offsetTextX(0),
     offsetTextY(0),
     numberPoints(0),
+    fixedTextX(0),
+    fixedTextY(0),
     symbolNumber(0),
     stringNumber(-1),
     font_Size(0)
@@ -36,12 +39,15 @@ button_VR::button_VR(string label, bool modal) : rectangles(label,true),
     isPressed(false),
     hasSymbol(false),
     warningMode(false),
+    fixedTextPos(false),
     buttonText(""),
     symbol(),
     isModalB(modal),
     offsetTextX(0),
     offsetTextY(0),
     numberPoints(0),
+    fixedTextX(0),
+    fixedTextY(0),
     symbolNumber(0),
     stringNumber(-1),
     font_Size(0)
@@ -82,11 +88,16 @@ void button_VR::setText(const std::string &in_String){
 void button_VR::LocateText(){
     int tWidth=fontMan::MeasureString(buttonText,font_Size);
     int tHeight=fontMan::GetFontSize(font_Size);
-    offsetTextY=(height/2)-(tHeight/2)+bottom;
-    if (tWidth>=(width-4)){
-        width=tWidth+4;
-        right=left+width;}
-    offsetTextX=(width/2)-(tWidth/2)+left;
+    if (fixedTextPos){
+        offsetTextX=left+fixedTextX;
+        offsetTextY=bottom+fixedTextY;
+    }else{
+        offsetTextY=(height/2)-(tHeight/2)+bottom;
+        if (tWidth>=(width-4)){
+            width=tWidth+4;
+            right=left+width;}
+        offsetTextX=(width/2)-(tWidth/2)+left;
+    }
     if (offsetTextX<left) offsetTextX=left;
     stringLocation.SetCoords(offsetTextX,offsetTextY);
     DrawLogic::RelocateString(stringNumber,stringLocation);
@@ -94,10 +105,10 @@ void button_VR::LocateText(){
 }
 
 void button_VR::SetTextOffsets(int oX,int oY){
-    offsetTextX=oX+left;
-    offsetTextY=oY+bottom;
-    stringLocation.SetCoords(offsetTextX,offsetTextY);
-    DrawLogic::RelocateString(stringNumber,stringLocation);
+    fixedTextPos=true;
+    fixedTextX=oX;
+    fixedTextY=oY;
+    LocateText();
     ReDrawButton();
 }
 

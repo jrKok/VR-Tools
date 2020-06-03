@@ -72,17 +72,6 @@ bool LayoutWithEdit::initiate(){
             wBottom=200;
             wTop=wBottom+wHeight;
             defineButtons();
-            tButtons[B_NAV1]->setVisibility(false);
-            tButtons[B_NAV2]->setVisibility(false);
-            tButtons[B_COM1]->setVisibility(false);
-            tButtons[B_COM2]->setVisibility(false);
-            tButtons[B_ADF1]->setVisibility(false);
-            tButtons[B_ADF2]->setVisibility(false);
-
-            fCom.SetVisibility(false);
-            fNav.SetVisibility(false);
-            fAdf.SetVisibility(false);
-            lFPS.SetVisibility(false);
             nButtons=static_cast<int>(tButtons.size());
             ReLabelButtons();
             tButtons[B_UTF8]->setSelect(false);
@@ -90,6 +79,7 @@ bool LayoutWithEdit::initiate(){
         }else
             retValue= false;
     }else resize();
+    CheckButtonsVisibility();
     myDrawPad->GenerateCurrentTexture();
     return retValue;
 }
@@ -174,6 +164,7 @@ bool LayoutWithEdit::newSize(int wth, int hgt){//called by recalculate
      resize();
      int middle=tEdFileReader->GetOffSetY()+(tEdFileReader->GetHeight()/2);
      RelocateButtons(middle);
+     CheckButtonsVisibility();
      myDrawPad->GenerateCurrentTexture();
      return true;
  }
@@ -306,7 +297,7 @@ void LayoutWithEdit::findClick(int cX, int cY){
            }
     }
     for (auto bt:tBButtons){       //Click on a button ?
-      if (bt.second->IsHere(cX,cY)){
+      if (bt.second->IsHere(mX,mY)){
            buttonClick=true;
            clickresult=bt.first;
            bt.second->Press();
@@ -340,23 +331,18 @@ int LayoutWithEdit::HandleMouseUp(int,int){
         CheckButtonsVisibility();}
 
     if (buttonClick){
-        tButtons[clickresult]->Release();
+        if (tButtons.find(clickresult)!=tButtons.end()) tButtons[clickresult]->Release();
+        if (tBButtons.find(clickresult)!=tBButtons.end()) tBButtons[clickresult]->Release();
         LaunchCommand(clickresult);
         continueClick=false;
         buttonClick=false;
         clickresult=-1;
-        if (clickresult==B_Hide){
-            clickresult=-1;
-            retVal=1;
-            return retVal;
-        }
         if (!editMode){
             retVal=3;
             UnfocusPhysicalKeyboard();
             FilePointer::ReleaseBackups();
         }
-        CheckButtonsVisibility();
-    }
+        CheckButtonsVisibility();}
     return retVal;
 }
 
@@ -368,8 +354,8 @@ void LayoutWithEdit::ProcessKeyPress(std::string keyName, std::string in_String)
     //Name of special keys : "BckSp""ShftLck""Return""Shft""Ctrl""Alt""Abrv"
     //should pass on chars to text edit
     //process special keys return (with text edit), bcksp,
-    // process control commands
-    // then alt chars
+    //process control commands
+    //then alt chars
     must_print=true;
     if (!specialKey&&(in_String!="")) {
         if (!keyb.IsControlKeyActive())
@@ -441,6 +427,10 @@ void LayoutWithEdit::LaunchCommand(int refCommand){
 
          case B_Stream:{//quit command (doesn't save last modifications but keep modifications since last save)
              //end edit
+             QuitCommand();
+             break;}
+         case B_Hide:{//quit command (doesn't save last modifications but keep modifications since last save)
+              //end edit
              QuitCommand();
              break;}
 
@@ -542,6 +532,7 @@ void LayoutWithEdit::HandleAlertResult(){
  }
 
 void LayoutWithEdit::CheckButtonsVisibility(){
+    myDrawPad->ToUpperLevel();
     tButtons[B_Save]->setVisibility(false);
     tButtons[B_Edit]->setVisibility(true);
     tButtons[B_Next_File]->setVisibility(false);
@@ -554,6 +545,26 @@ void LayoutWithEdit::CheckButtonsVisibility(){
     tButtons[B_UTF8]->setVisibility(true);
     tButtons[B_Toggle]->setVisibility(tEdFileReader->HasSelection()&(!hasToSave)&(enableDelete));
     tButtons[B_Show_All]->setVisibility(tEdFileReader->HasHiddenLine()&(!hasToSave)&(enableDelete));
+    tButtons[B_NAV1]->setVisibility(false);
+    tButtons[B_NAV2]->setVisibility(false);
+    tButtons[B_COM1]->setVisibility(false);
+    tButtons[B_COM2]->setVisibility(false);
+    tButtons[B_ADF1]->setVisibility(false);
+    tButtons[B_ADF2]->setVisibility(false);
+
+    tBButtons[B_Hide]->setVisibility(true);
+    tBButtons[B_Close]->setVisibility(false);
+
+    fNav.SetVisibility(false);
+    fCom.SetVisibility(false);
+    fAdf.SetVisibility(false);
+    lFPS.SetVisibility(text_visible&&showFPS);
+    if (showFPS) lFPS.PrintString();
+    if (!showFPS) lFPS.PrintBox();
+    if (text_visible){
+        if (!showFPS) lTitle.PrintString();
+        if (showFPS) lTitle.PrintBox();
+    }
 }
 
 std::string LayoutWithEdit::GetFileName(){

@@ -78,6 +78,7 @@ static  int  MyTextReaderCommandHandler  (XPLMCommandRef,
        void  SetModalWindow(bool mw);
        bool  IsLaunched;
        void  ToggleEditMode();
+       bool  IsInEditMode();
 
 private:
  static OpCenter *myself;

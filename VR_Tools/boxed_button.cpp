@@ -10,10 +10,10 @@ Boxed_Button::Boxed_Button(string text, bool modal) : button_VR (text,modal),
 }
 
 void Boxed_Button::setVisibility(bool vis){
-    if (vis!=isVisible){
-        isVisible=vis;
-        box_rect.SetVisibility(vis);
-        DrawLogic::SetVisibilityString(stringNumber,vis);
+   if(vis!=isVisible){
+     isVisible=vis;
+     box_rect.SetVisibility(vis);
+     DrawLogic::SetVisibilityString(stringNumber,vis);
         if (!isVisible)
            {DrawLogic::HideRectangle(box_rect_number);//should be enough to redraw background over the whole button
            }

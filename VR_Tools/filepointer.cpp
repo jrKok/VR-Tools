@@ -24,7 +24,7 @@ void     FilePointer::Initiate(){
         currentDirName=IniSettings::GetDir();
         currentFileName=IniSettings::GetFile();
         if (!ExistsName()){
-             currentFileName="flightnotes";
+             currentFileName="flightnotes.txt";
              currentDirName="Output/textfiles";
             if (!ExistsName()){
                 currentDirName="Resources/plugins/VR_Tools/textfiles";
@@ -34,6 +34,7 @@ void     FilePointer::Initiate(){
                 }
             }
         }
+        DrawLogic::WriteDebug("filePointer : finally got dir and nam "+currentDirName+" "+currentFileName);
 }
 }
 
@@ -51,6 +52,7 @@ void     FilePointer::AddFile(string dir,string file){
 }
 
 string   FilePointer::GetCurrentFile(){
+    if (currentDirName==""&&currentFileName=="") return ("");
     return currentDirName+"/"+currentFileName;
 }
 
@@ -65,7 +67,6 @@ string   FilePointer::GetPrevious(){
 }
 
 string FilePointer::GetCurrentFileName(){
-
     return currentFileName;
 }
 

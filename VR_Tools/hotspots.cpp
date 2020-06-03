@@ -386,7 +386,7 @@ float Hotspots::MoveMeToHotSpot(float ,float ,int ,void* ){
 
 int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, void * ){
 
-    if (!myCenter->HasModalWindow()&&phaseMove==0&&in_phase==xplm_CommandBegin){
+    if (!myCenter->HasModalWindow()&&!myCenter->IsInEditMode()&&phaseMove==0&&in_phase==xplm_CommandBegin){
             if (!VRCReader::HasHotspots()) {
                 HandleErrorHotspotList();
             }
@@ -522,7 +522,7 @@ void Hotspots::Handle_Advanced(){
 }
 
 int Hotspots::Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void*){
-    if (inPhase==xplm_CommandBegin&&!myCenter->HasModalWindow()&&phaseMove==0&&XPLMGetDatai(g_vr_dref)){
+    if (inPhase==xplm_CommandBegin&&!myCenter->HasModalWindow()&&!myCenter->IsInEditMode()&&phaseMove==0&&XPLMGetDatai(g_vr_dref)){
         if (!VRCReader::HasHotspots()) HandleErrorHotspotList();
         if (dlg==nullptr){dlg=new LineDialog();}
             myself->LogPilotHead(targetX,targetY,targetZ);

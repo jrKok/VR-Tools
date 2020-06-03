@@ -77,7 +77,6 @@ XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID,
 
 void ManageModalWindow::MakeTopWindow(){
     myself->myDrawPad->ToUpperLevel();
-    //XPLMBringWindowToFront(myModalWindow);
 }
 void ManageModalWindow::DestroyModalWindow(){
     myself->myCenter->SetModalWindow(false);

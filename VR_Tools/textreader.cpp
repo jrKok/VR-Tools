@@ -28,15 +28,17 @@ TextReader::~TextReader(){
 
 void TextReader::PointToFile(){
     fileName=FilePointer::GetCurrentFile();
+    DrawLogic::WriteDebug("TextReader pointed to file "+fileName);
 }
 
 bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
 
     textFile.open(fileName,std::ifstream::in);
-    if (textFile.is_open()){
+    if (textFile.is_open()&&fileName!=""){
         fileExists=true;
         filePath=fileName;
         //fT=last_write_time(filePath);
+        DrawLogic::WriteDebug("TextReader going to read size for "+filePath.string());
         keepsize=std::experimental::filesystem::file_size(filePath);
     }else{
         DrawLogic::WriteDebug("Couldn't open file "+fileName);

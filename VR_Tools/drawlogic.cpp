@@ -374,9 +374,11 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
                     xP+=12;continue;
                 }
                 cBitmap=fontMan::GetCharFromMap(charInt,width,height,offset,advance,fontSize);
-                if (height&&((xP+advance)<=windowWidth)&&(start_point.GetY()+offset+height)<=windowHeight){
+
+                if (height&&((xP+advance)<=windowWidth)&&(start_point.GetY()+offset)<=windowHeight){
                     ulong lecteur(0);
                     debut=static_cast<ulong>((start_point.GetY()+offset)*windowWidth);
+                             //draw text from top to bottom      |  |
                     for (ulong line=debut,ln=0;ln<height;ln++,line-=static_cast<ulong>(windowWidth)){
                         for (ulong px=line+xP,it(0);it<width;it++,px++ ) {
                             double rap(cBitmap.bitmap[lecteur]/255.0);
@@ -387,6 +389,7 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
                             lecteur++;
                         }
                     }
+
                     xP+=static_cast<ulong>((advance));
                 }
             }
@@ -874,6 +877,9 @@ void DrawLogic::StringAssesment(){
     myself->PrintStringAssessment();
 }
 
+void DrawLogic::PrintCurrentIdent(){
+    WriteDebug("current myself pointer is pointing to "+myself->ident);
+}
 void DrawLogic::PrintStringAssessment(){
     WriteDebug("Strings logged for "+ident);
     WriteDebug("number of strings logged :"+std::to_string(strings->size()));

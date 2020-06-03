@@ -62,7 +62,7 @@ public:
     static float currentDRefValue, currentmeasure,period;
     static vector<float> movingAverage;
     static string valueToShow;
-    static string s_qnh,s_temps,s_winds,s_clouds,s_vis,s_thunderStorms;
+    static string s_qnh,s_temps,s_dew,s_winds,s_clouds,s_vis,s_thunderStorms;
     static DRefWindow * myself;
 
     static XPLMDataRef    g_vr_dref,g_FPS,g_IAS,g_TAS,g_GS,g_GFcD,g_AOA,g_GFcAcf,g_accX,g_accY,g_accZ,mousejoy;

@@ -58,7 +58,7 @@ bool VRCommandFilter::SetupFiltering(){
                XPLMCommandRef cRef=XPLMFindCommand((char*)eStr.c_str());
                if (cRef!=nullptr){
                 void * nb=new(int*);
-                (*(int*)nb)=nbcmd;
+                (*(static_cast<int*>(nb)))=nbcmd;
                 XPLMRegisterCommandHandler(cRef,MyBlockFilterCommandHandler,1,nb);
                 Commands.push_back(cRef);
                 state.push_back(0);

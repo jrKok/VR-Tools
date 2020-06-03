@@ -541,20 +541,22 @@ return 1;//mouse events handled here
 }
 
 void OpCenter::ToggleEditMode(){
-    ptrLayout->ClosegWindow();
-    is_In_Edit_Mode=!is_In_Edit_Mode;
-    if (is_In_Edit_Mode){
-      ptrLayout=wELayout.get();
-      wELayout->SetWindowHandle(g_textWindow);
-      wELayout->initiate();
-      wELayout->CheckButtonsVisibility();
-      wELayout->BeginEdit();
-    }else{
-      ptrLayout=wLayout.get();
-      ptrLayout->SetWindowHandle(g_textWindow);
-      ptrLayout->initiate();
-      ptrLayout->CheckButtonsVisibility();
-   }
+    if (!HasModalWindow()||is_In_Edit_Mode){
+        ptrLayout->ClosegWindow();
+        is_In_Edit_Mode=!is_In_Edit_Mode;
+        if (is_In_Edit_Mode){
+            ptrLayout=wELayout.get();
+            wELayout->SetWindowHandle(g_textWindow);
+            wELayout->initiate();
+            wELayout->CheckButtonsVisibility();
+            wELayout->BeginEdit();
+        }else{
+            ptrLayout=wLayout.get();
+            ptrLayout->SetWindowHandle(g_textWindow);
+            ptrLayout->initiate();
+            ptrLayout->CheckButtonsVisibility();
+        }
+    }
 }
 
 int   OpCenter::handle_mouse_for_FileS(XPLMWindowID, int x, int y, XPLMMouseStatus mouse_status, void *){
@@ -693,6 +695,10 @@ void OpCenter::SetModalWindow(bool mw){
 
 bool OpCenter::HasModalWindow(){
     return hasModalWindow;
+}
+
+bool OpCenter::IsInEditMode(){
+    return is_In_Edit_Mode;
 }
 
 /********** Dummys ******************/

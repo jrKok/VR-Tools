@@ -21,6 +21,7 @@ float DRefWindow::period(0);
 string DRefWindow::valueToShow("");
 string DRefWindow::s_qnh("");
 string DRefWindow::s_temps("");
+string DRefWindow::s_dew("");
 string DRefWindow::s_winds("");
 string DRefWindow::s_clouds("");
 string DRefWindow::s_vis("");
@@ -206,16 +207,17 @@ void DRefWindow::drawDRef(XPLMWindowID, void *){
     }
     glEnd();
 
-    if (whatToShow==7){
+    if (whatToShow==7){//weather report
 
         XPLMDrawString(DRefWindow::cyan, l+10, t-16, (char *)s_qnh.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-28, (char *)s_winds.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-40, (char *)s_vis.c_str(), nullptr, xplmFont_Proportional);
         XPLMDrawString(DRefWindow::cyan, l+10, t-52, (char *)s_temps.c_str(), nullptr, xplmFont_Proportional);
-        XPLMDrawString(DRefWindow::cyan, l+10, t-64, (char *)s_clouds.c_str(), nullptr, xplmFont_Proportional);
-        XPLMDrawString(DRefWindow::cyan, l+10, t-76, (char *)s_thunderStorms.c_str(), nullptr, xplmFont_Proportional);
+        XPLMDrawString(DRefWindow::cyan, l+10, t-64, (char *)s_dew.c_str(), nullptr, xplmFont_Proportional);
+        XPLMDrawString(DRefWindow::cyan, l+10, t-76, (char *)s_clouds.c_str(), nullptr, xplmFont_Proportional);
+        XPLMDrawString(DRefWindow::cyan, l+10, t-88, (char *)s_thunderStorms.c_str(), nullptr, xplmFont_Proportional);
     }
-    else{
+    else{// other data
         XPLMDrawString(DRefWindow::cyan, l+10, t-18, (char *)valueToShow.c_str(), nullptr, xplmFont_Proportional);
 
     }
@@ -455,12 +457,13 @@ void DRefWindow::GetSmallWeatherReport(){
     float qnhINhPa=qnh*33.8639f;
     s_qnh="qnh = "+stringOps::ConvertFloatToString(qnhINhPa,0)+" hPa "+stringOps::ConvertFloatToString(qnh,2) + (" inHg");
     //T° float
-    float temp=XPLMGetDataf(w_temp);
+    float temp=XPLMGetDataf(w_temp),dwp=XPLMGetDataf(w_dewP);
     s_temps="Ground temp = "+stringOps::ConvertFloatToString(temp,0)+ " °C";
+    s_dew  ="Dewpoint = "+stringOps::ConvertFloatToString(dwp,0)+" °C at sea level";
     //wind Dir float
     //Wind speed float
     float windDir=XPLMGetDataf(w_windDirection),windSpeed=XPLMGetDataf(w_windSpeed);
-        s_winds="Winds From "+stringOps::ConvertFloatToString(windDir,0) + " @"+stringOps::ConvertFloatToString(windSpeed,0)+" kts";
+        s_winds="Winds From "+stringOps::ConvertFloatToString(windDir,0) + "° @ "+stringOps::ConvertFloatToString(windSpeed,0)+" kts";
     //vis float
     float vis=XPLMGetDataf(w_visibility);
     if (vis<=5.0f)
@@ -492,10 +495,11 @@ void DRefWindow::GetATISWeatherReport(){
     s_qnh="qnh = "+stringOps::ConvertFloatToString(qnhINhPa,0)+" hPa "+stringOps::ConvertFloatToString(qnh,2) + (" inHg");
 //winds
     float windDir=XPLMGetDataf(w_windDirection),windSpeed=XPLMGetDataf(w_windSpeed);
-        s_winds="Winds From"+stringOps::ConvertFloatToString(windDir,0) + " @"+stringOps::ConvertFloatToString(windSpeed,0)+" kts";
+        s_winds="Winds From "+stringOps::ConvertFloatToString(windDir,0) + "° @ "+stringOps::ConvertFloatToString(windSpeed,0)+" kts";
 //temps
     float temp=XPLMGetDataf(w_temp),dwp=XPLMGetDataf(w_dewP);
-    s_temps="Ground temp = "+stringOps::ConvertFloatToString(temp,0)+" °C, dewpoint = "+stringOps::ConvertFloatToString(dwp,0)+" °C at sea level";
+    s_temps="Ground temp = "+stringOps::ConvertFloatToString(temp,0)+" °C";
+    s_dew  ="Dewpoint = "+stringOps::ConvertFloatToString(dwp,0)+" °C at sea level";
 //visibility
     float vis=XPLMGetDataf(w_visibility);
     if (vis<=5.0f)

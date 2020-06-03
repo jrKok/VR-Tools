@@ -51,7 +51,6 @@ void Alert3Buttons::MakeAlert(const string &yesStr, const string &noStr, const s
 
     point p;
     p.SetCoords(textOffsetX,textOffsetY);
-
     myXPWindow=ManageModalWindow::CreateMousedModalWindow(MouseHandler,DrawMyself,Clr_LightGray,width,height);
     myStringNumber=DrawLogic::AddString(alertStr,Clr_Black,Clr_LightGray,p);
 
@@ -78,9 +77,8 @@ void Alert3Buttons::MakeAlert(const string &yesStr, const string &noStr, const s
     cancelButton->setText(cancelStr);
     cancelButton->SetToStateColor();
     cancelButton->setVisibility(cancelStr!=""?true:false);
-
     DrawLogic::UpdateTexture();
-
+    ManageModalWindow::ConstrainGeometry();
 }
 
 int  Alert3Buttons::GetAnswer(){

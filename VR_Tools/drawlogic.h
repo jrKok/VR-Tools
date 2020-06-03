@@ -150,6 +150,7 @@ static void  PrintStringOnLocalT(const int in_Element);
             int  GetWidth();
             int  GetHeight();
     static bool  VerifyPointer(ulong tag, rectangles *in_rect);
+    static void  PrintCurrentIdent();
 
 private:
     static bool         verbose;

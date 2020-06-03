@@ -153,7 +153,6 @@ bool Layout::initiate(){
             defineButtons();
             nButtons=static_cast<int>(tButtons.size());
             if (goToLastPage) tFileReader->GoToLastPage();
-
             myDrawPad->GenerateCurrentTexture();
             return true;
         }else {
@@ -723,8 +722,8 @@ void Layout::CheckButtonsVisibility(){
     tButtons[B_ADF1]->setVisibility(text_visible&&tFileReader->HasADF()&&XPLMGetDatai(adf1on)&&enableFreqs);
     tButtons[B_ADF2]->setVisibility(text_visible&&tFileReader->HasADF()&&XPLMGetDatai(adf2on)&&enableFreqs);
 
-    tBButtons[B_Hide]->SetVisibility(text_visible);
-    tBButtons[B_Close]->SetVisibility(text_visible&&!editMode);
+    tBButtons[B_Hide]->setVisibility(text_visible);
+    tBButtons[B_Close]->setVisibility(text_visible);
 
     fNav.SetVisibility(text_visible&&tFileReader->HasNav());
     if (tFileReader->HasNav()&&text_visible)fNav.PrintString();
@@ -735,13 +734,15 @@ void Layout::CheckButtonsVisibility(){
     fAdf.SetVisibility(text_visible&&tFileReader->HasADF());
     if(tFileReader->HasADF()&&text_visible) fAdf.PrintString();
 
-    lFPS.SetVisibility(showFPS);
+    lFPS.SetVisibility(text_visible&&showFPS);
     if (showFPS) lFPS.PrintString();
     if (!showFPS) lFPS.PrintBox();
 
-    lTitle.SetVisibility(!showFPS);
-    if (!showFPS) lTitle.PrintString();
-    if (showFPS) lTitle.PrintBox();
+    lTitle.SetVisibility(text_visible&&!showFPS);
+    if (text_visible){
+        if (!showFPS) lTitle.PrintString();
+        if (showFPS) lTitle.PrintBox();
+    }
 }
 
 void Layout::RelocateButtons(int middle){
@@ -774,10 +775,9 @@ void Layout::RelocateButtons(int middle){
     tButtons[B_Next_File]->SetOrigin(tButtons[B_Refresh]->GetRight()+5,tButtons[B_Refresh]->GetBottom());
     tButtons[B_Prev_File]->SetOrigin(tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
     tBButtons[B_Hide]->    SetOrigin(1,titleR.GetBottom()+1);
-    tBButtons[B_Close]->   SetOrigin(wWidth-19,titleR.GetBottom()+1);
+    tBButtons[B_Close]->   SetOrigin(wWidth-25,titleR.GetBottom()+1);
 
     lFPS.SetOrigin(wWidth/2-30,lowerMargin+textHeight+2);
-
     if (keepSize) KeepCurrentSize();
     CheckButtonsVisibility();
 }
@@ -824,8 +824,8 @@ void Layout::defineButtons(){
     MakeButton(B_Prev_File,true,"Prev",67,16,tButtons[B_Stream]->GetRight()+5,tButtons[B_Stream]->GetBottom());
 
     MakeButton(B_Show_All,true,"\xE2\x86\xBA",tButtons[B_Toggle]->GetWidth(),20,5,middle-30);
-    MakeBoxedButton(B_Hide,true,"\xE2\x9A\xAB",26,24,1,titleR.GetBottom()+1,1);
-    MakeBoxedButton(B_Close,true,"X",30,24,wWidth-19,titleR.GetBottom(),1);
+    MakeBoxedButton(B_Hide,true,"\xE2\x9A\xAB",26,23,1,titleR.GetBottom()+1,1);
+    MakeBoxedButton(B_Close,true,"X",24,24,wWidth-25,titleR.GetBottom()+1,1);
     tBButtons[B_Hide]->SetBoxColor(Clr_SparkSilver);
     tBButtons[B_Hide]->setStateColor(Clr_SparkSilver);
     tBButtons[B_Hide]->setTextColor(Clr_Red);
@@ -874,9 +874,11 @@ void Layout::MakeHeader(string in_String){
     titleR.SetOrigin(0,lowerMargin+textHeight);
     titleR.SetColor(Clr_SparkSilver);
     titleR.SetVisibility(true);
+
     string fileN=tFileReader->GetStemFileName();
     fileN=in_String+fileN;
     int nameSize=fontMan::MeasureString(fileN,1);
+
     //define the text zone to receive either file Name or FPS
     lTitle.setText(fileN);
     lTitle.SetTextXY(2,3);

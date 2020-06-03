@@ -121,7 +121,7 @@ void TextEdit::ProceedClickCont(int x, int y){
        if (currentIndx!=-1){
     //selection mode if click hold for more than 0.3 second (or less, to be determined
            if (!dragLines){
-              if ((XPLMGetElapsedTime()-clickTime)>0.3f) dragLines=true;
+              if ((XPLMGetElapsedTime()-clickTime)>0.8f) dragLines=true;
            }
            else{
               for (auto bx:box){

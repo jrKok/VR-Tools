@@ -49,11 +49,11 @@ virtual void ReDrawButton();
 protected:
 
     char state_color,pressed_color,activated_color,text_color;
-    bool isSelected,isPressed,hasSymbol,warningMode;
+    bool isSelected,isPressed,hasSymbol,warningMode,fixedTextPos;
     std::string buttonText;
     std::vector<point> symbol;
     bool isModalB;
-    int  offsetTextX, offsetTextY,numberPoints;
+    int  offsetTextX, offsetTextY,numberPoints,fixedTextX,fixedTextY;
     int symbolNumber,stringNumber,font_Size;
     point stringLocation;
 
