@@ -446,33 +446,33 @@ int   OpCenter::MyTextReaderCommandHandler  (XPLMCommandRef,
             break;
            }
     case 2:{ // Select First Line in the display
-        if (inPhase==xplm_CommandBegin &&myself-> ptrLayout!=nullptr)
-            if (myself->ptrLayout->HasActiveWindow())
-                myself->ptrLayout->LaunchCommand(B_FirstLine);
+        if (inPhase==xplm_CommandBegin &&myself-> wLayout!=nullptr)
+            if (myself->wLayout->HasActiveWindow())
+                myself->wLayout->LaunchCommand(B_FirstLine);
         break;}
 
     case 3:{ //Next Line
-        if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
-            if (myself->ptrLayout->HasActiveWindow())
-                myself->ptrLayout->LaunchCommand(B_NextLine);
+        if (inPhase==xplm_CommandBegin && myself->wLayout!=nullptr)
+            if (myself->wLayout->HasActiveWindow())
+                myself->wLayout->LaunchCommand(B_NextLine);
     }
         break;
     case 4:{ //Previous Line
-        if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
-            if (myself->ptrLayout->HasActiveWindow())
-                myself->ptrLayout->LaunchCommand(B_PrevLine);
+        if (inPhase==xplm_CommandBegin && myself->wLayout!=nullptr)
+            if (myself->wLayout->HasActiveWindow())
+                myself->wLayout->LaunchCommand(B_PrevLine);
     }
         break;
     case 5:{ //Delete Line
-        if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
-            if (myself->ptrLayout->HasActiveWindow())
-                myself->ptrLayout->LaunchCommand(B_Toggle);
+        if (inPhase==xplm_CommandBegin && myself->wLayout!=nullptr)
+            if (myself->wLayout->HasActiveWindow())
+                myself->wLayout->LaunchCommand(B_Toggle);
     }
         break;
     case 6:{ //Reload File ie restore display
-       if (inPhase==xplm_CommandBegin && myself->ptrLayout!=nullptr)
-           if (myself->ptrLayout->HasActiveWindow())
-               myself->ptrLayout->LaunchCommand(B_Refresh);
+       if (inPhase==xplm_CommandBegin && myself->wLayout!=nullptr)
+           if (myself->wLayout->HasActiveWindow())
+               myself->wLayout->LaunchCommand(B_Refresh);
     }
         break;
     }
@@ -616,6 +616,7 @@ void  OpCenter::MakeTextWindow(){
              params.visible = 1;
              params.drawWindowFunc=drawText;
              if (vr_is_enabled) params.decorateAsFloatingWindow = xplm_WindowDecorationSelfDecoratedResizable;
+             //if (vr_is_enabled) params.decorateAsFloatingWindow = xplm_WindowDecorationRoundRectangle;
              else               params.decorateAsFloatingWindow = xplm_WindowDecorationRoundRectangle;
              params.handleMouseClickFunc = handle_mouse_for_TextW;
              params.handleRightClickFunc = dummy_mouse_handler;

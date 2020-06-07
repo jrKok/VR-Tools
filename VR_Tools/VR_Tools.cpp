@@ -23,10 +23,11 @@ PLUGIN_API int XPluginStart(
 
     strcpy(outName, "VR Tools version 1.3.5");
     strcpy(outSig, "a plug-in by jrKok");
-    strcpy(outDesc, "A plug-in to display some datarefs (FPS, speeds, g-Forces), to filter commands, to edit a text file");
+    strcpy(outDesc, "A plug-in to provide low level enhancements to the use of X Plane in VR");
         launcher=std::make_unique<OpCenter>();
         launcher->SetupCenter();
         launcher->LaunchOperations();
+        XPLMDebugString("VR Tools version 1.3.5 correctly started\n");
 
     return (1);
 }
@@ -38,13 +39,13 @@ PLUGIN_API void	XPluginStop(void)
     launcher->HaltOperations();
     launcher.reset();
     launcher=nullptr;
-    XPLMDebugString("VR Tools : Plugin Halted, Deleted OpCenter\n");
+    XPLMDebugString("VR Tools : Plugin Halted, deleted internal driver\n");
 }
 
 PLUGIN_API void XPluginDisable(void)
 {
     launcher->SuspendOperations();
-    XPLMDebugString("VR Tools : Plugin Disabled, preserved OpCenter\n");
+    XPLMDebugString("VR Tools : Plugin Disabled, internal driver still in memory\n");
 }
 
 PLUGIN_API int  XPluginEnable(void)

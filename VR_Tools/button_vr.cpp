@@ -85,16 +85,16 @@ void button_VR::setText(const std::string &in_String){
     ReDrawButton();
 }
 
-void button_VR::LocateText(){
-    int tWidth=fontMan::MeasureString(buttonText,font_Size);
-    int tHeight=fontMan::GetFontSize(font_Size);
+void button_VR::LocateText(){//adapts size of button if text too large
     if (fixedTextPos){
         offsetTextX=left+fixedTextX;
         offsetTextY=bottom+fixedTextY;
     }else{
+        int tWidth=fontMan::MeasureString(buttonText,font_Size);
+        int tHeight=fontMan::GetFontSize(font_Size);
         offsetTextY=(height/2)-(tHeight/2)+bottom;
         if (tWidth>=(width-4)){
-            width=tWidth+4;
+            width=tWidth+1;
             right=left+width;}
         offsetTextX=(width/2)-(tWidth/2)+left;
     }
@@ -102,6 +102,20 @@ void button_VR::LocateText(){
     stringLocation.SetCoords(offsetTextX,offsetTextY);
     DrawLogic::RelocateString(stringNumber,stringLocation);
     //ReDrawButton();
+}
+
+void button_VR::LocateTextFixedSize(){//doesn't adapt size of button to width of text
+    if (fixedTextPos){
+        offsetTextX=left+fixedTextX;
+        offsetTextY=bottom+fixedTextY;
+    }else{
+        int tWidth=fontMan::MeasureString(buttonText,font_Size);
+        int tHeight=fontMan::GetFontSize(font_Size);
+        offsetTextY=bottom+(height/2)-(tHeight/2);
+        offsetTextX=left+(width/2)-(tWidth/2);
+    }
+    stringLocation.SetCoords(offsetTextX,offsetTextY);
+    DrawLogic::RelocateString(stringNumber,stringLocation);
 }
 
 void button_VR::SetTextOffsets(int oX,int oY){
@@ -122,16 +136,9 @@ int  button_VR::GetTextY(){return offsetTextY;}
 void button_VR::setTextFixedSize(const std::string &in_String){
     if (stringNumber==-1) AddText();
     buttonText=in_String;
-
-        DrawLogic::ChangeString(stringNumber,in_String);
-        DrawLogic::ChangeColorString(stringNumber,text_color);
-
-
-    //calculates Offsets for text
-    int tWidth=fontMan::MeasureString(in_String,font_Size);
-    int tHeight=fontMan::GetFontSize(font_Size);
-    offsetTextY=bottom+(height/2)+(tHeight/2);
-    offsetTextX=left+(width/2)-(tWidth/2);
+    DrawLogic::ChangeString(stringNumber,buttonText);
+    DrawLogic::ChangeColorString(stringNumber,text_color);
+    LocateTextFixedSize();
 }
 
 void button_VR::setTextColor(char to_Clr){
@@ -248,5 +255,5 @@ char button_VR::GetStringColorCode(){
 
 void button_VR::Shift(int dx, int dy){
     rectangles::Shift(dx,dy);
-    LocateText();
+    LocateTextFixedSize();
 }

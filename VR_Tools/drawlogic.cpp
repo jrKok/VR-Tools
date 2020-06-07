@@ -2,7 +2,7 @@
 #include "fontman.h"
 
 //Static variables initialisations
-bool         DrawLogic::verbose(true);
+bool         DrawLogic::verbose(false);
 DrawLogic   *DrawLogic::myself(nullptr);
 unsigned int DrawLogic::shaderProgram(0);
 unsigned int DrawLogic::VAO(0);

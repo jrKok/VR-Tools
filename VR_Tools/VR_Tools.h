@@ -69,6 +69,7 @@
  *   try to implement graphic representation of advanced options (low priority)
  *    change logic for simultaneous keypresses
  *    create a "new file" command (for edit)
+ *    enable to browse other hard disks as well
  *
  * for Hotspot :
  *  make visual assitance for hotspot advanced (upon difficulty or length, might be a 1.3.7 feature)

@@ -535,7 +535,7 @@ int Hotspots::Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, v
             }else {
                 delete dlg;
                 dlg=nullptr;
-                VRCReader::CreateHotspot("Pilot View",targetX,targetY,targetZ,targetPsi,0,0);
+                VRCReader::CreateHotspot("Pilot's Seat",targetX,targetY,targetZ,targetPsi,0,0);
                 VRCReader::SaveVRConfig();
                 ReloadCurrentAircraft();
             }

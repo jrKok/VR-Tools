@@ -24,6 +24,7 @@ virtual void Shift(int dx,int dy);
 virtual void ReDrawButton();
     void AddText();
     void LocateText();
+    void LocateTextFixedSize();
     void SetTextOffsets(int oX,int oY);
     int  GetTextX();
     int  GetTextY();

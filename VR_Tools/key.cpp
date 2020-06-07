@@ -31,7 +31,7 @@ void Key::DefineKey(char c1, char c2, bool utf, bool spec, string showVal, strin
     keyAbbrString=abbrVal;
     keyAbbrName=abbrName;
     font_Size=0;
-    setText(showVal);
+    setTextFixedSize(showVal);
     DrawLogic::ChangeColorString(stringNumber,Clr_White);
     SetColor(Clr_LightBlue);
     line=ln;
