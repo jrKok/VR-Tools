@@ -19,24 +19,24 @@ temporaryWindow::temporaryWindow()
 }
 
 void temporaryWindow::DrawMyself(XPLMWindowID, void *){
-    //measures time
     ManageModalWindow::MakeTopWindow();
-    float tm=XPLMGetElapsedTime();
     DrawLogic::RenderContent();
+
+    float tm=XPLMGetElapsedTime();
     if ((tm-timeStamp)>duration){
         StopAlert();}
-    //else calls StopAlert
 }
 
 void temporaryWindow::ShowAlert(string in_String,float time_to_show){
     duration=time_to_show;   
-    width=fontMan::MeasureString(in_String)+15;
+    width=fontMan::MeasureString(in_String)+20;
     height=50;
     myXPWindow = ManageModalWindow::CreateModalWindow(temporaryWindow::DrawMyself,Clr_Gray,width,height);
-    point p(5,5);
+    point p(5,20);
     myStringNumber=DrawLogic::AddString(in_String,Clr_Amber,Clr_Gray,p);
     DrawLogic::UpdateTexture();
     timeStamp=XPLMGetElapsedTime();
+    ManageModalWindow::ConstrainGeometry();
 }
 
 void temporaryWindow::StopAlert(){

@@ -16,11 +16,13 @@ OpCenter::OpCenter():
     g_textWindow(nullptr),
     g_FileWindow(nullptr),
     is_In_Edit_Mode(false),
+    callHtsp(false),
     drefW(),
     htsp(),
     commandFilter(),
     menuIdx(0),opt{0},
     idxOfModeMenuItem(0),itemAdjusted(0),itemFast(0),itemSlow(0),itemReload(0),moveNext(0),movePrev(0),
+    loadMirror(0),loadMirrorReloadPlane(0),
     iFPS(0),iAoA(0),iTAS(0),iIAS(0),iGS(0),iGF(0),iWeather(0),
     menuId(nullptr),menuText(nullptr),menuTextOpt(nullptr),menuHotspots(nullptr),menuData(nullptr),
     g_in_vr(false),hasModalWindow(false),
@@ -206,8 +208,12 @@ int  OpCenter::ResumeOperations(){
     }
     return 1;
 }
+void OpCenter::SetHotspotCall(bool htc){
+    myself->callHtsp=htc;
+}
 
 float OpCenter::DisplayLoop(float, float, int, void*){
+    if (myself->callHtsp) myself->htsp->MoveMeToHotSpot();
     myself->ptrLayout->Update();
     myself->dispDir->Update();
     myself->manageMW->ConstrainGeometry();
@@ -242,13 +248,16 @@ void  OpCenter::MakeMenus(){
        XPLMAppendMenuSeparator(menuHotspots);
        itemReload=XPLMAppendMenuItem(menuHotspots,"Reload Model if Hotspot modified",reinterpret_cast<void*>(6),1);
        XPLMAppendMenuSeparator(menuHotspots);
-       moveNext=XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Next",Hotspots::CmdJumpNext);
-       movePrev=XPLMAppendMenuItemWithCommand(menuHotspots,"Move To Previous",Hotspots::CmdJumpBack);
+       moveNext=XPLMAppendMenuItem(menuHotspots,"Move To Next",reinterpret_cast<void*>(18),1);
+       movePrev=XPLMAppendMenuItem(menuHotspots,"Move To Previous",reinterpret_cast<void*>(19),1);
        XPLMAppendMenuSeparator(menuHotspots);
        int opt=IniSettings::GetSpeedMove();
        itemAdjusted=XPLMAppendMenuItem(menuHotspots,"Adjusted Move",reinterpret_cast<void*>(8),1);
        itemSlow=XPLMAppendMenuItem(menuHotspots,"Slow Move",reinterpret_cast<void*>(9),1);
        itemFast=XPLMAppendMenuItem(menuHotspots,"Fast Move",reinterpret_cast<void*>(10),1);
+       XPLMAppendMenuSeparator(menuHotspots);
+       loadMirror=XPLMAppendMenuItem(menuHotspots,"Restore VRconfig from mirror to current plane",reinterpret_cast<void*>(20),1);
+       loadMirrorReloadPlane=XPLMAppendMenuItem(menuHotspots,"Restore VRconfig from mirror and Reload plane",reinterpret_cast<void*>(21),1);
 
     //Options for dataref
 
@@ -272,6 +281,20 @@ void  OpCenter::MakeMenus(){
 
 
 }
+
+void OpCenter::CheckVRMirror(){
+    if (FilePointer::HasMirror()){
+        //enable Item to retrieve vrconfig from mirror
+        XPLMEnableMenuItem(myself->menuHotspots,myself->loadMirror,1);
+        XPLMEnableMenuItem(myself->menuHotspots,myself->loadMirrorReloadPlane,1);
+    }
+    else {
+        //disable menu Item for vrconfig mirror
+        XPLMEnableMenuItem(myself->menuHotspots,myself->loadMirror,0);
+        XPLMEnableMenuItem(myself->menuHotspots,myself->loadMirrorReloadPlane,0);
+    }
+}
+
 void  OpCenter::menuHandler(void* menuRef, void* inItemRef){
     if (!menuRef) return;
     int menuItem=reinterpret_cast<int>(inItemRef);
@@ -338,24 +361,45 @@ void  OpCenter::menuHandler(void* menuRef, void* inItemRef){
             myself->TriggerDRefCommand(myself->drefW.GetFPSCommand());
             break;
         case 12:
-        myself->TriggerDRefCommand(myself->drefW.GetIASCommand());
+            myself->TriggerDRefCommand(myself->drefW.GetIASCommand());
             break;
         case 13:
-        myself->TriggerDRefCommand(myself->drefW.GetTASCommand());
+            myself->TriggerDRefCommand(myself->drefW.GetTASCommand());
             break;
         case 14:
-        myself->TriggerDRefCommand(myself->drefW.GetGSCommand());
+            myself->TriggerDRefCommand(myself->drefW.GetGSCommand());
             break;
         case 15:
-        myself->TriggerDRefCommand(myself->drefW.GetAoACommand());
+            myself->TriggerDRefCommand(myself->drefW.GetAoACommand());
             break;
         case 16:
-        myself->TriggerDRefCommand(myself->drefW.GetgForceCommand());
+            myself->TriggerDRefCommand(myself->drefW.GetgForceCommand());
             break;
         case 17:
-        myself->TriggerDRefCommand(myself->drefW.GetWeatherCommand());
+            myself->TriggerDRefCommand(myself->drefW.GetWeatherCommand());
             break;
-        }
+        case 18:{
+            if (VRCReader::GetHotspotCount()>=1&&!myself->HasModalWindow()&&!myself->htsp->IsMoveOngoing()){
+                VRCReader::NextHotspot();
+                myself->htsp->PrepareToMove();
+                }
+            }
+            break;
+        case 19:{
+            if (VRCReader::GetHotspotCount()>=1&&!myself->HasModalWindow()&&!myself->htsp->IsMoveOngoing()){
+                VRCReader::PreviousHotspot();
+                myself->htsp->PrepareToMove();
+                }
+            }
+            break;
+        case 20:
+            FilePointer::CopyVRFromMirror();
+            break;
+        case 21:
+            FilePointer::CopyVRFromMirror();
+            myself->htsp->ReloadCurrentAircraft();
+            break;
+   }
 }
 void  OpCenter::TriggerDRefCommand(XPLMCommandRef in_command){
     if (drefW.GetShowModeOnPress()) drefW.ToggleShowMode();

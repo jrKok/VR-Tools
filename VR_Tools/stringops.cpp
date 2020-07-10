@@ -47,6 +47,8 @@ string stringOps::bestLeft(string &inString,int MaxL){
       left=inString.substr(0,uMax);//do a brutal split at MaxL
       inString=inString.substr(uMax);
       size_t posSpc=left.find_last_of(" ");//try to split at last space found
+      size_t posTab=left.find_last_of("\t");//or if it is better at tab char
+      if (posTab>posSpc) posSpc=posTab;
       if (posSpc!=string::npos){
           inString=left.substr(posSpc+1)+inString; // if possible do the split not including the space itself.
           left=left.substr(0,posSpc);
@@ -61,7 +63,10 @@ string stringOps::bestLeftSize(string &inString, int in_sz){// used for Best Spl
       ulong MaxL=static_cast<ulong>(findLengthForSize(inString,in_sz));
       left=inString.substr(0,MaxL);//do a brutal split at MaxL
       inString=inString.substr(MaxL);
-      size_t posSpc=left.find_last_of(" ");//try to split at last space found
+      size_t posSpc=left.find_last_of(" ");
+      size_t posTab=left.find_last_of("\t");
+      if (posTab>posSpc) posSpc=posTab;
+      //try to split at last space found
       if (posSpc!=string::npos){
           inString=left.substr(posSpc+1)+inString; // if possible do the split not including the space itself.
           left=left.substr(0,posSpc+1);//but here include the space

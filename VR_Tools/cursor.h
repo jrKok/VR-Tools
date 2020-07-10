@@ -50,6 +50,7 @@ public:
     void MoveCursorLeft();
     void MoveCursorUp();
     void MoveCursorDown();
+    void MoveCursorBackTab();
     void MoveSelectionUp();
     void MoveSelectionDown();
     void MoveSelectionRight();
@@ -81,7 +82,7 @@ private:
     float timePoint;
     unsigned char testChar;
     int nbOfLines,line,charPos,cursorX,offX,offY;
-    int startCharPos,startCursorX,startLine;
+    int startCharPos,startCursorX,startLine,tabOffset;
     int selectionEndLine,selectionEndCharPos,selectionEndCursorX;
     int selectionStartLine,selectionStartCharPos,selectionStartCursorX,currentLine,currentPos,currentX;
     int firstLineDisplayed,lineHeight,nbBoxLines;//the x and y offsets for computing PosToX and LineToY()

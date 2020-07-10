@@ -28,6 +28,7 @@ public:
     void MoveCursorDown();
     void MoveCursorRight();
     void MoveCursorLeft();
+    void MoveCursorBackTab();
     void FlipMoveSelectionEnd();
     //Editing the text file :
     void InsertLetter(std::string fromKey);

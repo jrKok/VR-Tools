@@ -31,6 +31,7 @@ public:
     void   ShowAll();
     bool   Reload();
     bool   ReloadIfSizeChanged();
+    bool   DoReloadNotStream();
     void   closeReader();
     void   CheckForFrequencies();
     void   WriteDebug(std::string message);

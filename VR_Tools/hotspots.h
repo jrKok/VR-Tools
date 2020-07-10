@@ -34,7 +34,8 @@ void  Setup();
     static int   MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
     static float readValuesCallback(float elpSc,float elpTime,int countr,void* refcon);
     static void  PrepareToMove();
-    static float MoveMeToHotSpot(float, float, int, void*); //flight loop callback
+    static void  InitiateMove();
+           float MoveMeToHotSpot(); //flight loop callback
     static int   Create_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase inPhase, void *);
     static int   Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, void *);
     static void  MakeMoveComplete();
@@ -44,7 +45,7 @@ void  Setup();
     static void  Handle_Advanced();
     static void  HandleErrorHotspotList();
     static void  SetMyCenter(OpCenter *opc);
-
+    static bool  IsMoveOngoing();
     static void  ReloadCurrentAircraft();
 
     void  LogPilotHead(float &phx,float &phy,float &phz);
@@ -62,14 +63,12 @@ private:
         static XPLMCommandRef CmdRightF,CmdLeftF,CmdUpF,CmdDownF,CmdForwardF,CmdBackwardF;
 
         static XPLMCommandRef CmdX,CmdY,CmdZ,CmdTurn;
-        static XPLMCommandRef CmdCreateHotspot,ReloadAC,VRReset;
+        static XPLMCommandRef CmdCreateHotspot,ReloadAC,VRReset,CmdReceived;
         static float targetX,targetY,targetZ,targetPsi;
         static int signX,signY,signZ,signRot;
         static int phaseMove;
-        static bool fastX,fastY,fastZ,doneX,doneY,doneZ,dialog_ongoing,filterblock;
+        static bool fastX,fastY,fastZ,doneX,doneY,doneZ,dialog_ongoing,filterblock,beginMove;
         static Hotspots * myself;
-        static XPLMCreateFlightLoop_t moveLoop;
-        static XPLMFlightLoopID moveLoopId;
         static LineDialog *dlg;
         static VrViews *vrconfigEditor;
         static advanced *advancedEditor;

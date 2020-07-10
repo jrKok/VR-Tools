@@ -148,7 +148,6 @@ void   TextLine::SetSelected(bool sel){
 void  TextLine::SetVisibility(bool in_vis){
     isVisible=in_vis;
     DrawLogic::SetVisibilityString(myStringNumber,in_vis);
-    DrawLogic::PrintCurrentIdent();
     if (isVisible) PrintString();
     }
 

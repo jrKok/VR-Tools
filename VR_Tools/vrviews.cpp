@@ -802,7 +802,6 @@ void VrViews::MessageLine3(const string &in_line){
 void VrViews::EndAlert(){
     ManageModalWindow::MakeTopWindow();//should be, but it is essential the right drawpad is pointed for all the delete ops to come
     myXPWindow=nullptr;
-    //DrawLogic::WriteDebug("vrviews end alert going to delete buttons");
     delete keyb;
     delete yesButton;
     delete noButton;
@@ -845,7 +844,6 @@ void VrViews::EndAlert(){
     targetY=0;
     targetZ=0;
     epochClick=0;
-    //DrawLogic::WriteDebug("vrviews end alert going to callback");
     callBack();
 }
 

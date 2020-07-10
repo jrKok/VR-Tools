@@ -18,8 +18,7 @@ TextEdit::TextEdit(): TextReader(),
 void TextEdit::InitialiseEdit(){
     FilePointer::MakeBackups();
     tempFile=FilePointer::GetTempName();
-    textFile.open(tempFile);
-    if (!textFile.is_open()) DrawLogic::WriteDebug ("error in processing temporary file");
+    if (!FilePointer::OpenTempFileForRead(textFile)) DrawLogic::WriteDebug ("error in processing temporary file");
     else DrawLogic::WriteDebug("Editing file "+tempFile);
     textFile.close();
     hasToCommit=false;
@@ -32,8 +31,7 @@ void TextEdit::PrintATextLine(string inLine){
 void TextEdit::Commit(){
     if (hasToCommit){
         hasToCommit=false;
-        textFile.open(tempFile,std::ofstream::out);
-        if (textFile.is_open()){
+        if (FilePointer::OpenTempFileForWrite(textFile)){
             for (auto line : (*displayText)){
                 textFile << line;
             }
@@ -50,28 +48,24 @@ bool TextEdit::Save(){
 
 bool TextEdit::ReadFileToBuff(){
      Commit();
-     if (tempFile!=""){
-       if (!textFile.is_open()) {
-           textFile.open(tempFile,std::ifstream::in);
-           if (!textFile.is_open()) {
-               string inputL="the file "+tempFile+" couldn't be found";
-               fileExists=false;
-               AddLine(inputL);
-             return false;}}
-
+     if (FilePointer::OpenTempFileForRead(textFile)){
        clearText();
        stringOps ops;
-       string inputL(""),CR("\r"),LF("\n");
+       string inputL("");
 
        while (getline(textFile,inputL)){
-           inputL=ops.cleanOut(inputL,CR);//remove carriage return
-           inputL+=LF;//but add line feed for saving, so to know where the original breaks were
+           inputL=ops.cleanOut(inputL,"\r");//remove carriage return
+           inputL+="\n";//but add line feed for saving, so to know where the original breaks were
           AddLine(inputL);
           }
        textFile.close();
        SetupforText();
        tcursor.Initiate(displayText,textOnly.GetLeft()+5,textOnly.GetBottom(),charHeight,pageHeightInL);
-     } else return false;
+     } else {
+         string inputL="the file "+tempFile+" couldn't be found";
+         fileExists=false;
+         AddLine(inputL);
+         return false;}
      return true;
 }
 
@@ -245,6 +239,10 @@ void TextEdit::MoveCursorRight(){
 void TextEdit::MoveCursorLeft(){
     if (tcursor.HasCursor()) tcursor.MoveCursorLeft();
     if (tcursor.HasSelection()) tcursor.MoveSelectionLeft();
+}
+
+void TextEdit::MoveCursorBackTab(){
+    if (tcursor.HasCursor()) tcursor.MoveCursorBackTab();
 }
 
 void TextEdit::FlipMoveSelectionEnd(){

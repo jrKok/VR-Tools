@@ -32,13 +32,14 @@ XPLMWindowID  ManageModalWindow::CreateModalWindow( void drawCB(XPLMWindowID,voi
 }
 
 XPLMWindowID ManageModalWindow::CreateMousedModalWindow(int mouseH(XPLMWindowID, int, int, int, void*),void drawCB(XPLMWindowID,void*),char myColor, int width, int height){
-    myself->myDrawPad->Initiate();
-    myself->myDrawPad->SetNewSize(width,height);
+    myself->myDrawPad->ToUpperLevel();
     myself->myDrawPad->SetId("Modal Window");
     myself->myDrawPad->SetBackGroundColor(myColor);
+    myself->myDrawPad->SetNewSize(width,height);
     myself->myCenter->SetModalWindow(true);
     myWidth=width;
     myHeight=height;
+
     int offsetX(40),offsetY(100);
     int sLeft(0),sTop(height),sRight(width),sBottom(0);
     g_vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");

@@ -1,5 +1,6 @@
 #include "vrcreader.h"
 #include "drawlogic.h"
+#include "filepointer.h"
 
 int VRCReader::activeHotspotNumber(0);
 int VRCReader::numberOfHotspotsInfile(0);
@@ -37,7 +38,11 @@ string VRCReader::GetVRConfigFileName() {
 
       DrawLogic::WriteDebug("VR config file is "+vrConfigFileName);
       return planeModelName;
-  }
+}
+
+string VRCReader::GetVRConfig(){
+    return vrConfigFileName;
+}
 
  bool   VRCReader::HasVRConfig() {
       path pth=vrConfigFileName;
@@ -51,6 +56,7 @@ string VRCReader::GetVRConfigFileName() {
  void   VRCReader::BuildVRConfig() {
      analysis.clear();
      vrconfigFile.clear();
+     DrawLogic::WriteDebug("VR hotspots reader, going to build a valid VR config with a pilot's hotspot");
     int itr(0);
     AddLine(itr,"A",false);
     AddLine(itr,"1100",false);
@@ -122,9 +128,15 @@ string VRCReader::GetVRConfigFileName() {
 
   }
  void VRCReader::AnalyzeFile(){
+     /*
+      * This is the central routine for the vrconfig processing :
+      * read the vrconfig, every line to the vector vrconfigFile
+      * then put every line
+      */
      ResetVRCReader();
      if (ReadVRConfig()){
          ulong itr(0),sze=vrconfigFile.size();
+         DrawLogic::WriteDebug("VRCReader : read vrconfig, number of lines in file ",static_cast<int>(sze));
          LineDescriptor descr;
          while (itr<sze){
              AnalyzeLine(itr,descr);
@@ -136,7 +148,7 @@ string VRCReader::GetVRConfigFileName() {
              itr++;
          }
      }
-     else{
+     else{DrawLogic::WriteDebug("VRCReader : couldn't read Vrconfig file");
          //if has VRConfig
          //the file is not valid
          //then make backup
@@ -256,6 +268,7 @@ float  VRCReader::NextFloat(string &in_left, string &in_right){
 
 void   VRCReader::SaveVRConfig() {
     path pO=vrConfigFileName;
+    numberOfGeneratedHotspots=static_cast<int>(hotspots->size());
     int hspN(0);
     if (!HasVRConfig()||vrconfigFile.size()<=3)
         BuildVRConfig();
@@ -268,63 +281,72 @@ void   VRCReader::SaveVRConfig() {
     }
     std::fstream cfgFile;
     cfgFile.open(pO,std::fstream::out|std::fstream::trunc);
-    ulong nbLines=vrconfigFile.size();
-    ulong itr(0);
-
-    while (itr<nbLines){
-        if (analysis[itr].isHotspotDef){
-            int thisHS=analysis[itr].hotspotNumber;
-            if (hspN<numberOfGeneratedHotspots){
-                WriteHotspotToFile(cfgFile,static_cast<ulong>(hspN));
-                hspN++;
-            }
-            if (hspN>=numberOfHotspotsInfile)
-                while (hspN<numberOfGeneratedHotspots){
-                  cfgFile<<"\n";
-                  WriteHotspotToFile(cfgFile,static_cast<ulong>(hspN));
-                  hspN++;
+    if (cfgFile.is_open()){
+        ulong nbLines=vrconfigFile.size();
+        ulong itr(0);
+        while (itr<nbLines){
+            if (analysis[itr].isHotspotDef){
+                int thisHS=analysis[itr].hotspotNumber;
+                if (hspN<numberOfGeneratedHotspots){
+                    WriteHotspotToFile(cfgFile,static_cast<ulong>(hspN));
+                    hspN++;
                 }
-            while (analysis[itr].isHotspotDef&&analysis[itr].hotspotNumber==thisHS) itr++;
+                if (hspN>=numberOfHotspotsInfile)
+                    while (hspN<numberOfGeneratedHotspots){
+                        cfgFile<<"\n";
+                        WriteHotspotToFile(cfgFile,static_cast<ulong>(hspN));
+                        hspN++;
+                    }
+                while (itr<nbLines&&analysis[itr].isHotspotDef&&analysis[itr].hotspotNumber==thisHS)
+                { itr++;if (itr>=nbLines) break;}
+            }
+            else
+            {
+                if (itr==3&&numberOfHotspotsInfile==0){
+                    cfgFile<<"\n";
+                    WriteHotspotToFile(cfgFile,0);
+                }
+                cfgFile<<vrconfigFile[itr]<<"\n";
+                itr++;
+            }
         }
-        else
-        {
-            cfgFile<<vrconfigFile[itr]<<"\n";
-            itr++;
-        }
+        DrawLogic::WriteDebug("Replaced "+vrConfigFileName);
+        cfgFile.close();
+        FilePointer::MakeVRMirrorForCurrentPlane();
     }
-    DrawLogic::WriteDebug("Replaced "+vrConfigFileName);
-    DrawLogic::WriteDebug("The original vrconfig is copied as "+vrConfigBackup);
-    cfgFile.close();
+    else DrawLogic::WriteDebug("Couldn't open vrconfig.txt "+pO.string()+" for overwriting");
 }
 
 void   VRCReader::WriteHotspotToFile(std::fstream &cFile,ulong indx){
-    string toWrite("");
-    toWrite="BEGIN_TELEPORT_HOTSPOT "+(*hotspots)[indx].type+" "+(*hotspots)[indx].name+"\n";
-    cFile<<toWrite;
-    toWrite="   AABB "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].AABBminX)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].AABBminY)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].AABBminZ)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].AABBmaxX)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].AABBmaxY)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].AABBmaxZ)+"\n";
-    cFile<<toWrite;
-    toWrite="   PRESET_XYZ "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].PresetX)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].PresetY)+" "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].PresetZ)+"\n";
-    cFile<<toWrite;
-    toWrite="   PRESET_PSI "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].psi)+"\n";
-    cFile<<toWrite;
-    toWrite="   PRESET_THE "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].the)+"\n";
-    cFile<<toWrite;
-    toWrite="   PRESET_PHI "
-            +stringOps::ConvertFloatToString((*hotspots)[indx].phi)+"\n";
-    cFile<<toWrite;
-    toWrite="END_TELEPORT_HOTSPOT\n";
-    cFile<<toWrite;
+    if (numberOfGeneratedHotspots>0){
+        string toWrite("");
+        toWrite="BEGIN_TELEPORT_HOTSPOT "+(*hotspots)[indx].type+" "+(*hotspots)[indx].name+"\n";
+        cFile<<toWrite;
+        toWrite="   AABB "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].AABBminX)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].AABBminY)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].AABBminZ)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].AABBmaxX)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].AABBmaxY)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].AABBmaxZ)+"\n";
+        cFile<<toWrite;
+        toWrite="   PRESET_XYZ "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].PresetX)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].PresetY)+" "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].PresetZ)+"\n";
+        cFile<<toWrite;
+        toWrite="   PRESET_PSI "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].psi)+"\n";
+        cFile<<toWrite;
+        toWrite="   PRESET_THE "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].the)+"\n";
+        cFile<<toWrite;
+        toWrite="   PRESET_PHI "
+                +stringOps::ConvertFloatToString((*hotspots)[indx].phi)+"\n";
+        cFile<<toWrite;
+        toWrite="END_TELEPORT_HOTSPOT\n";
+        cFile<<toWrite;
+    }
 }
 
 void   VRCReader::SwapHotspots(int old_number, int new_number) {

@@ -199,7 +199,7 @@ void DrawLogic::checkCompileErrors(unsigned int shader, std::string type)
 
 void DrawLogic::Initiate(){
     myself=this;
-    if (windowWidth&windowHeight){
+    if (windowWidth&&windowHeight){
         XPLMBindTexture2d(textNum, 0);
         glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,windowWidth,windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,&textureZone);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -222,7 +222,6 @@ void DrawLogic::ToUpperLevel(){
 }
 
 void DrawLogic::SetNewSize(int in_Width, int in_Height){
-
     windowWidth=in_Width; if (windowWidth>MaxWWidth) windowWidth=MaxWWidth;
     windowHeight=in_Height; if (windowHeight>MaxWHeight) windowHeight=MaxWHeight;
     screenR=screenL+windowWidth;
@@ -365,13 +364,15 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
             if (in_String.length()==0) return;
             vInt to_Draw;
             fontMan::StringToCode(in_String,to_Draw);
-
+            ulong leftTabOffset=xP%12;
             for (auto charInt: to_Draw){
                 if (charInt==0x20){
-                    xP+=4;continue;
+                    xP+=4;
+                    continue;
                 }
                 if (charInt==0x09){
-                    xP+=12;continue;
+                    xP=static_cast<ulong>(fontMan::NextTab(static_cast<int>(xP)))+leftTabOffset;
+                    continue;
                 }
                 cBitmap=fontMan::GetCharFromMap(charInt,width,height,offset,advance,fontSize);
 
@@ -389,7 +390,6 @@ void DrawLogic::DrawStringOnTexture(string in_String, char in_Color,char bckCol,
                             lecteur++;
                         }
                     }
-
                     xP+=static_cast<ulong>((advance));
                 }
             }
@@ -415,15 +415,16 @@ void DrawLogic::DrawStringOnLocalTexture(string in_String, char in_Color, point 
             if (in_String.length()==0) return;
             vInt to_Draw;
             fontMan::StringToCode(in_String,to_Draw);
-
+            ulong leftTabOffset=xP%12;
             for (auto charInt: to_Draw){
-
                 //go try to print
                 if (charInt==0x20){
-                    xP+=4;continue;
+                    xP+=4;
+                    continue;
                 }
                 if (charInt==0x09){
-                    xP+=12;continue;
+                    xP=static_cast<ulong>(fontMan::NextTab(static_cast<int>(xP)))+leftTabOffset;
+                    continue;
                 }
                 cBitmap=fontMan::GetCharFromMap(charInt,width,height,offset,advance,fontSize);
                 if (height&&((xP+advance)<=windowWidth)&&(start_point.GetY()+offset+height)<=windowHeight){
@@ -711,20 +712,6 @@ void DrawLogic::RenderElementsDirectGL(){
 
 void DrawLogic::RenderElements(){
 
-    /*if (hasToUpdate){
-        XPLMBindTexture2d(textNum,0);
-        glTexSubImage2D(GL_TEXTURE_2D,
-                        0,  // mipmap level
-                        0,  // x-offset
-                        0,  // y-offset
-                        windowWidth,
-                        windowHeight,
-                        GL_RGBA,
-                        GL_UNSIGNED_BYTE,
-                        &textureZone);
-        hasToUpdate=false;
-    }*/
-
     int wW(0),wH(0);/*screenL(0),screenR(0),screenT(0),screenB(0);
      XPLMGetWindowGeometry(myself->myWindow,&screenL,&screenT,&screenR,&screenB);*/
 
@@ -859,6 +846,7 @@ void DrawLogic::FlushContent(){//Only for the modal windows, the others don't re
     myself->currentTriangleNumber=0;
     myself->cursorX=0;
     myself->cursorY=0;
+    myself->FillAll(Clr_Black);
 }
 
 void DrawLogic::SetId(string in_ID){
@@ -925,4 +913,16 @@ bool DrawLogic::VerifyPointer(ulong tag, rectangles *in_rect){
         if ((*myself->rects)[tag]==in_rect) return true;
     }
     return false;
+}
+
+void DrawLogic::PrintMemoryStats(){
+    PROCESS_MEMORY_COUNTERS pmc;
+    if(GetProcessMemoryInfo(GetCurrentProcess(),&pmc,sizeof(PROCESS_MEMORY_COUNTERS))){
+        WriteDebug("This process uses the following number of kBytes : ",static_cast<int>(pmc.WorkingSetSize/1024));
+    }
+    MEMORYSTATUSEX statex;
+      statex.dwLength = sizeof (statex);
+      GlobalMemoryStatusEx (&statex);
+    WriteDebug("% of memory in use : ",static_cast<int>(statex.dwMemoryLoad));
+    WriteDebug("free kB in RAM : ",static_cast<int>(statex.ullTotalPhys/1024));
 }

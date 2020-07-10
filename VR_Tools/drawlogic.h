@@ -49,6 +49,7 @@
 
 #if IBM
     #include <windows.h>
+    #include <Psapi.h>
 #endif
 
 #if LIN
@@ -151,6 +152,7 @@ static void  PrintStringOnLocalT(const int in_Element);
             int  GetHeight();
     static bool  VerifyPointer(ulong tag, rectangles *in_rect);
     static void  PrintCurrentIdent();
+    static void  PrintMemoryStats();
 
 private:
     static bool         verbose;

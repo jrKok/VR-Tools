@@ -12,6 +12,7 @@ cursor::cursor():
   startCharPos(0),
   startCursorX(0),
   startLine(0),
+  tabOffset(0),
   selectionEndLine(0),
   selectionEndCharPos(0),
   selectionEndCursorX(0),
@@ -54,6 +55,7 @@ void cursor::Initiate(const vString *inLines,int offsetXLine, int offsetYLine,in
     posLines.clear();
     offX=offsetXLine;//will have to be updated when recalculate occurs in reader
     offY=offsetYLine;//id
+    tabOffset=offX%12;
     lineHeight=lnHeight;
     nbOfLines=static_cast<int>(inLines->size());
     nbBoxLines=boxlines;
@@ -159,10 +161,8 @@ void cursor::FindClosestXPosition(int inLine, int inX){
     ulong lineNb=static_cast<ulong>(inLine);
     bool notFound(true);
     ulong maxPos=static_cast<ulong>(GetLastPositionOfLine(inLine));
-
     currentLine=inLine;
     do{
-
         if (inX<(posLines[lineNb][l]+offX+3) ){//a slightly offset detection for having a detection not too close to next char
             notFound=false;
             currentX=posLines[lineNb][l]+offX-1;//-1 for displaying cursor really between 2 chars
@@ -253,6 +253,16 @@ void cursor::MoveCursorLeft(){
         cursorX=posLines[ln][static_cast<ulong>(charPos)]+offX;
     }
     BeginCursorBlink();
+}
+
+void cursor::MoveCursorBackTab(){
+    int local=cursorX-offX,gap=local%12;
+    if (gap==0) local=local-12;
+    else {
+        if (gap<=4) local=local-12-gap;
+        else local=local-local%12;}
+
+    FindPos(line,local+offX);
 }
 
 void cursor::MoveCursorUp(){

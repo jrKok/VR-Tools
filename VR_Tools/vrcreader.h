@@ -40,6 +40,7 @@ public:
                   VRCReader();
                   ~VRCReader();
     static string GetVRConfigFileName();
+    static string GetVRConfig();
     static bool   HasVRConfig();
     static bool   HasHotspots();
     static void   BuildVRConfig();

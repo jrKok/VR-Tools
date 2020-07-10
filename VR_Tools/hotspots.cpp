@@ -55,10 +55,7 @@ XPLMCommandRef Hotspots::MoveToHS1(nullptr);
 XPLMCommandRef Hotspots::MoveToHS2(nullptr);
 XPLMCommandRef Hotspots::MoveToHS3(nullptr);
 XPLMCommandRef Hotspots::MoveToHS4(nullptr);
-
-
-XPLMCreateFlightLoop_t Hotspots::moveLoop;
-XPLMFlightLoopID Hotspots::moveLoopId(nullptr);
+XPLMCommandRef Hotspots::CmdReceived(nullptr);
 XPLMDataRef Hotspots::pilotX(nullptr);
 XPLMDataRef Hotspots::pilotY(nullptr);
 XPLMDataRef Hotspots::pilotZ(nullptr);
@@ -70,6 +67,7 @@ bool Hotspots::fastZ(false);
 bool Hotspots::doneX(false);
 bool Hotspots::doneY(false);
 bool Hotspots::doneZ(false);
+bool Hotspots::beginMove(false);
 OpCenter *Hotspots::myCenter(nullptr);
 
 Hotspots::Hotspots()
@@ -85,7 +83,6 @@ Hotspots::~Hotspots(){
     dlg=nullptr;
     vrconfigEditor=nullptr;
     advancedEditor=nullptr;
-    if (moveLoopId!=nullptr) XPLMDestroyFlightLoop(moveLoopId);
 }
 
 void Hotspots::SetMyCenter(OpCenter *opc){
@@ -129,10 +126,7 @@ void Hotspots::Setup(){
     XPLMRegisterCommandHandler(CmdEditHotspot,Edit_Hotspot_Handler,1,nb);
     XPLMRegisterCommandHandler(VRReset,MyJumpCommandHandler,1,nb);
     myself=this;
-    moveLoop.callbackFunc=MoveMeToHotSpot;
-    moveLoop.structSize=sizeof (moveLoop);
-    moveLoop.refcon=nullptr;
-    moveLoopId=XPLMCreateFlightLoop(&moveLoop);
+
 }
 
 void Hotspots::MakeMove4(){
@@ -194,7 +188,7 @@ int Hotspots::MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase in
             return 1;
         }else{
 
-        if (VRCReader::HasHotspots()&&XPLMGetDatai(g_vr_dref)){
+        if (VRCReader::HasHotspots()/*&&XPLMGetDatai(g_vr_dref)*/){
             int whatToDo=*(static_cast<int*>(inRefcon));
             if (whatToDo==0){
                 if (VRCReader::GetHotspotCount()>=1&&phaseMove==0&&!myCenter->HasModalWindow())
@@ -229,15 +223,13 @@ int Hotspots::MyJumpCommandHandler(XPLMCommandRef inCommand, XPLMCommandPhase in
 
 void Hotspots::PrepareToMove(){
     if (!XPLMGetDatai(outside)){
-        float tilt(0),pitch(0);
-        VRCReader::GetCurrentHotspotCoords(targetX,targetY,targetZ,targetPsi,pitch,tilt);
-        if (!VRCReader::IsCurrentHotspotSitting()) targetY=targetY+1.70f;
-        string hsName=VRCReader::GetCurrentHotspotName();
-        temporaryWindow::ShowAlert("Moving to "+hsName,60);
         XPLMCommandEnd(CmdX);
         XPLMCommandEnd(CmdY);
         XPLMCommandEnd(CmdZ);
 
+        float tilt(0),pitch(0);
+        VRCReader::GetCurrentHotspotCoords(targetX,targetY,targetZ,targetPsi,pitch,tilt);
+        if (!VRCReader::IsCurrentHotspotSitting()) targetY=targetY+1.70f;
         float posX(0),posY(0),posZ(0),dX(0),dY(0),dZ(0);
         myself->LogPilotHead(posX,posY,posZ);
         //psi =XPLMGetDataf(pilotPsi);
@@ -289,29 +281,33 @@ signRot=-1;
 if ((psi-targetPsi)<=180.0f) CmdTurn=CmdTurnLeft;
 else CmdTurn=CmdTurnRight;
 }*/
-        XPLMScheduleFlightLoop(moveLoopId,-1,1);
+
+        if (dX*signX>+0.001f) beginMove=true;
+        else doneX=true;
         filterblock=VRCommandFilter::commandBlock;
         VRCommandFilter::commandBlock=false;
-
-        if (dX*signX>+0.001f) XPLMCommandBegin(CmdX); else doneX=true;
+        OpCenter::SetHotspotCall(true);
     }
 }
 
-float Hotspots::MoveMeToHotSpot(float ,float ,int ,void* ){
+bool Hotspots::IsMoveOngoing(){
+    return (phaseMove>0);
+}
+
+float Hotspots::MoveMeToHotSpot(){
+    if (beginMove) {
+        string hsName=VRCReader::GetCurrentHotspotName();
+        temporaryWindow::ShowAlert("Moving to "+hsName,60);
+         XPLMCommandBegin(CmdX);
+         beginMove=false;
+        return 0;
+    }
     float posX(0),posY(0),posZ(0),dX(0),dY(0),dZ(0);
      myself->LogPilotHead(posX,posY,posZ);
      //psi= XPLMGetDataf(pilotPsi);
      if (phaseMove==1){
          dX=(0-posX)*signX;
-         /*if (fastX){
-             if (dX<=0.25f) {
-                 XPLMCommandEnd(CmdX);
-                 fastX=false;
-                 if (signX==1){ CmdX=CmdRight;XPLMCommandBegin(CmdX);}
-                 else {CmdX=CmdLeft;XPLMCommandBegin(CmdX);}
-             }
-         }else*/
-         {if (dX<=0||doneX) {
+         if (dX<=0||doneX) {
                  XPLMCommandEnd(CmdX);
                  doneX=false;
                  dY=(targetY-posY)*signY;
@@ -320,7 +316,6 @@ float Hotspots::MoveMeToHotSpot(float ,float ,int ,void* ){
                  if (dZ>+0.001f) XPLMCommandBegin(CmdZ); else doneZ=true;
                  phaseMove=2;
              }
-         }
      }
          if (phaseMove==2){
              dY=(targetY-posY)*signY;
@@ -380,7 +375,7 @@ float Hotspots::MoveMeToHotSpot(float ,float ,int ,void* ){
          temporaryWindow::StopAlert();
          VRCommandFilter::commandBlock=filterblock;
          phaseMove=0;
-         return 0;}
+         OpCenter::SetHotspotCall(false);}
      return -1;
 }
 
@@ -392,10 +387,11 @@ int Hotspots::Edit_Hotspot_Handler(XPLMCommandRef, XPLMCommandPhase in_phase, vo
             }
             myself->LogPilotHead(targetX,targetY,targetZ);
             if (!VRCReader::HasHotspots()){
+                DrawLogic::WriteDebug("edit hotspots : no hotspots exist yet, going to write pilot's hotspot");
                 VRCReader::CreateHotspot("Pilot View",targetX,targetY,targetZ,targetPsi,0,0);
                 VRCReader::SaveVRConfig();
                 temporaryWindow::ShowAlert("Valid vrconfig created with pilot view at current position",2);
-                ReloadCurrentAircraft();
+                if (IniSettings::GetOptReloadModel()) ReloadCurrentAircraft();
                 return 0;
             }
             if (myself->vrconfigEditor!=nullptr)
@@ -467,6 +463,9 @@ void Hotspots::Handle_End_Of_Edit(){
     if (resp==1){
         VRCReader::SaveVRConfig();
         VRCReader::AnalyzeFile();
+        OpCenter::CheckVRMirror();
+        if (IniSettings::GetOptReloadModel()) DrawLogic::WriteDebug("Hotspots frame : going to reload model");
+        else DrawLogic::WriteDebug("Hotspots frame : don't reload model");
         if (IniSettings::GetOptReloadModel()&&
                 (myself->vrconfigEditor->GetActionLaunched()==action_Create||
                  myself->vrconfigEditor->GetActionLaunched()==action_Reposition)) {
@@ -496,14 +495,11 @@ void Hotspots::Handle_End_Of_Edit(){
     }
 
     if (myself->vrconfigEditor!=nullptr){
-        DrawLogic::WriteDebug("from Hotspots going to delete vrViews editor");
         delete myself->vrconfigEditor;
-        DrawLogic::WriteDebug("from Hotspots vrViews editor deleted");
         myself->vrconfigEditor=nullptr;
     }
     myCenter->SetModalWindow(false);
     if (advancedEditor !=nullptr) myCenter->SetModalWindow(true);
-    //XPLMCommandEnd(CmdEditHotspot);
 }
 
 void Hotspots::Handle_Advanced(){
@@ -513,6 +509,7 @@ void Hotspots::Handle_Advanced(){
         VRCReader::SaveVRConfig();
         VRCReader::AnalyzeFile();
         if (IniSettings::GetOptReloadModel()) ReloadCurrentAircraft();
+        OpCenter::CheckVRMirror();
     }else {
        VRCReader::AnalyzeFile();
    }

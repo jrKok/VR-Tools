@@ -164,7 +164,8 @@ int fontMan::MeasureString(const string &in_String, int fontSize){
            length+=4;continue;
        }
        if (charInt==9){
-           length+=12;continue;
+           length=NextTab(length);
+           continue;
        }
        fontMan::GetCharFromMap(charInt,width,height,offset,advance,fontSize);
        if (height){
@@ -190,9 +191,7 @@ void fontMan::GetPositions(const string &in_String, vInt &out_pos, int fontSize)
     if (in_String.length()==0) return;
     vInt codes;
     StringToCode(in_String,codes);
-
     for (auto charInt:codes){
-
         //decode character
         if (charInt==0x20){
             length+=4;
@@ -201,7 +200,7 @@ void fontMan::GetPositions(const string &in_String, vInt &out_pos, int fontSize)
 
         }
         if (charInt==9){
-            length+=12;
+            length=NextTab(length);
             out_pos.push_back(length);
             continue;
         }
@@ -210,6 +209,10 @@ void fontMan::GetPositions(const string &in_String, vInt &out_pos, int fontSize)
             length+=advance;
             out_pos.push_back(length);
         }
+    }
+    string debug("");
+    for (auto ps:out_pos){
+        debug+=std::to_string(ps)+" ";
     }
     return;
 
@@ -270,4 +273,10 @@ void fontMan::StringToCode(const string &in_String, vInt &out_codes){
             out_codes.push_back(charInt);
         }
     }
+}
+
+int fontMan::NextTab(int const in_pos){
+    int ext=in_pos+4;//if next tab position is within a space reach, go to next
+    int leftTab=ext/12;
+    return (leftTab+1)*12;
 }

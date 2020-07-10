@@ -20,7 +20,7 @@ LayoutWithEdit::LayoutWithEdit(DrawLogic *newPad, OpCenter *opc): Layout(newPad)
     fName(""),
     tEdFileReader(nullptr),
     tabchar('\t'),
-    tabstring(1, tabchar),
+    tabstring(1,'\t'),
     quitWoSave()
 {
 }
@@ -379,8 +379,8 @@ void LayoutWithEdit::ProcessKeyPress(std::string keyName, std::string in_String)
     }
     if (specialKey){
         if (keyName=="BckSpc") {tEdFileReader->Backspace();hasToSave=true;}
-        if (keyName=="TAB") {tEdFileReader->InsertLetter("   ");hasToSave=true;}
-        if (keyName=="ShTAB") {tEdFileReader->InsertLetter(tabstring);hasToSave=true;}
+        if (keyName=="TAB") {tEdFileReader->InsertLetter("\t");hasToSave=true;}
+        if (keyName=="ShTAB") {tEdFileReader->MoveCursorBackTab();}
         if (keyName=="Enter") {tEdFileReader->Enter();hasToSave=true;}
         if (keyName=="UP") {tEdFileReader->MoveCursorUp();}
         if (keyName=="RIGHT") {tEdFileReader->MoveCursorRight();}

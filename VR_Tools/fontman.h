@@ -51,6 +51,7 @@ static void       GetPositions  (const string &in_string,vInt &out_pos,int fontS
 static void       StringToCode  (const string &in_String, vInt &out_codes);
 static int        GetNumberOfUTFCharsInString(const string &in_string);
 static int        GetFontSize(int in_S);
+static int        NextTab(const int in_pos);
 
 
 static bool       FreeTypeStarted;

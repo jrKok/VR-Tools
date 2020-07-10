@@ -6,6 +6,12 @@
 #include <XPLMGraphics.h>
 #include <rectangles.h>
 
+/*Very simple widget which holds a line of text,
+ * coordinates for a rectangle around that text.
+ * Doesn't use rectangles to avoid registration in
+ * Drawlogic, manages its own drawing when needed
+ */
+
 using std::string;
 class TextLine
 {

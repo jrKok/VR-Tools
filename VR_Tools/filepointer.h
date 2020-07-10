@@ -2,6 +2,7 @@
 #define FILEPOINTER_H
 
 #include <string>
+#include <sstream>
 #include "VR_Tools_global.h"
 #include "XPLMPlanes.h"
 #include "filestack.h"
@@ -38,9 +39,17 @@ static void     AddFile(string dir,string file);
 static string   GetCurrentFile();
 static string   GetNext();
 static string   GetPrevious();
+static bool     OpenCurrentFile(std::fstream &oFile);
+static bool     OpenTempFileForRead(std::fstream &oFile);
+static bool     OpenTempFileForWrite(std::fstream &oFile);
+static bool     MakeVRMirrorForCurrentPlane();
+static bool     HasMirror();
+static void     CopyVRFromMirror();
+static std::uintmax_t GetSizeOfCurrentFile();
 
     private:
-    static string currentFileName,currentDirName,currentBackup,currentTemp,currentPlaneDir;
+    static string currentFileName,currentDirName,currentBackup,currentTemp,currentPlaneDir,currentPlaneName;
+    static string xPlaneDir,vrToolsDir,mirrorDir;
     static FileStack fStack;
 
 };

@@ -8,6 +8,10 @@ string FilePointer::DirSeparator("/");
 string FilePointer::currentTemp("");
 string FilePointer::currentBackup("");
 string FilePointer::currentPlaneDir("");
+string FilePointer::currentPlaneName("");
+string FilePointer::xPlaneDir("");
+string FilePointer::vrToolsDir("");
+string FilePointer::mirrorDir("");
 FileStack FilePointer::fStack;
 
 FilePointer::FilePointer()
@@ -16,6 +20,21 @@ FilePointer::FilePointer()
 }
 
 void     FilePointer::Initiate(){
+    char xpld[1024];
+    XPLMGetSystemPath(xpld);
+    xPlaneDir=xpld;
+    vrToolsDir=xPlaneDir+"Resources/plugins/VR_Tools/";
+    mirrorDir=vrToolsDir+"resources/mirrors/";
+    path p(mirrorDir);
+    if (!exists(p)||!is_directory(p)) {
+        DrawLogic::WriteDebug("FilePointer : attempt to create mirror directory");
+        create_directory(p);
+        if (!exists(p)){
+            DrawLogic::WriteDebug("FilePointer : cannot create mirror directory");
+            mirrorDir="";}
+
+    }
+
     fStack.Initiate();
     if (fStack.HasStack()){
         SetCompleteFileName(fStack.GetCurrentActive());
@@ -102,12 +121,48 @@ void FilePointer::FindCurrentPlaneDir(){
         path p=planePath;
         planeDir=p.parent_path().string();
     }
-    FilePointer::currentPlaneDir=planeDir;
-
+    currentPlaneDir=planeDir;
+    currentPlaneName=plName;
+    currentPlaneName=currentPlaneName.erase(currentPlaneName.size()-4,4);//erase trailing.acf
+    DrawLogic::WriteDebug("Filepointer plane Directory and Name : "+currentPlaneDir+" "+currentPlaneName);
 }
 
 string FilePointer::GetCurrentPlaneDir(){
     return currentPlaneDir;
+}
+
+bool FilePointer::MakeVRMirrorForCurrentPlane(){
+    //point or create directory
+    string mirrorPDir=mirrorDir+currentPlaneName+"/";
+    path pMirror=mirrorPDir;
+    if (!exists(pMirror)||!is_directory(pMirror)){
+        create_directory(pMirror);
+    }
+    if (exists(pMirror)){
+        path pMP=mirrorPDir+currentPlaneName+"_vrconfig.txt";
+        path pVR=VRCReader::GetVRConfig();
+        DrawLogic::WriteDebug("FilePointer : should copy to mirror "+pMP.string());
+        if (is_regular_file(pVR))
+            copy_file(pVR,pMP,copy_options::overwrite_existing);
+        return true;
+    }
+    else return false;
+
+}
+
+bool FilePointer::HasMirror(){
+    string mirrorPDir=mirrorDir+currentPlaneName+"/";
+    path pMirror=mirrorPDir+currentPlaneName+"_vrconfig.txt";
+    return (exists(pMirror)&&is_regular_file(pMirror));
+
+}
+
+void FilePointer::CopyVRFromMirror(){
+    string mirrorPDir=mirrorDir+currentPlaneName+"/";
+    path pMirror=mirrorPDir+currentPlaneName+"_vrconfig.txt";
+    path pVR=VRCReader::GetVRConfig();
+    if (is_regular_file(pMirror))
+        copy_file(pMirror,pVR,copy_options::overwrite_existing);
 }
 
 void FilePointer::MakeBackups(){
@@ -181,4 +236,53 @@ string FilePointer::GetCurrentNameSansExt(){
     path p=currentFileName;
     string toRet=p.stem().string();
     return toRet;
+}
+
+bool FilePointer::OpenTempFileForRead(std::fstream &oFile){
+    if (!oFile.is_open()){
+        string fname=currentTemp;
+        if (fname=="/") return false;
+        if (currentTemp=="") return false;
+        path p(fname);
+        if (std::experimental::filesystem::is_directory(p)) return false;
+        oFile.open(p,std::ifstream::in);
+        return (oFile.is_open());
+    }
+    else return true;
+}
+
+bool FilePointer::OpenTempFileForWrite(std::fstream &oFile){
+    if (!oFile.is_open()){
+        string fname=currentTemp;
+        if (fname=="/") return false;
+        if (currentTemp=="") return false;
+        path p(fname);
+        if (std::experimental::filesystem::is_directory(p)) return false;
+        oFile.open(p,std::ofstream::out);
+        return (oFile.is_open());
+    }
+    else return true;
+}
+
+bool FilePointer::OpenCurrentFile(std::fstream &oFile){
+    if (!oFile.is_open()){
+        string fname=currentDirName+"/"+currentFileName;
+        if (fname=="/") return false;
+        if (currentFileName=="") return false;
+        path p(fname);
+        if (std::experimental::filesystem::is_directory(p)) return false;
+        oFile.open(p,std::ifstream::in);
+        return (oFile.is_open());
+    }
+    else return true;
+}
+
+
+std::uintmax_t FilePointer::GetSizeOfCurrentFile(){
+    string fname=currentDirName+"/"+currentFileName;
+    if (fname=="/") return 0;
+    if (currentFileName=="") return 0;
+    path p(fname);
+    if (std::experimental::filesystem::is_regular_file(p)) return std::experimental::filesystem::file_size(p);
+    else return 0;
 }

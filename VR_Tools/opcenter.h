@@ -45,8 +45,12 @@ public:
        void  HaltOperations();
        void  SuspendOperations();
        int   ResumeOperations();
+static void  CheckVRMirror();
 static void  CheckMenu();
-static float DisplayLoop(float, float, int, void*); //Loop to signal all open window managers to trigger update of draw params
+
+static float DisplayLoop(float, float, int, void*);
+static void  SetHotspotCall(bool htc);
+//Loop to signal all open window managers to trigger update of draw params
 
     /*Forward declarations for X-Plane interaction*/
 static void  drawText(XPLMWindowID, void *);
@@ -91,13 +95,13 @@ private:
  XPLMCreateFlightLoop_t DLoop;
  XPLMFlightLoopID DLoopId;
  XPLMWindowID	g_textWindow,g_FileWindow;
- bool is_In_Edit_Mode;
+ bool is_In_Edit_Mode,callHtsp;
  DRefWindow drefW;
  std::unique_ptr<Hotspots> htsp;
  VRCommandFilter commandFilter;
  int menuIdx;//master menu
  int opt[5];//text menu option
- int idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload,moveNext,movePrev;//hotspot menu items
+ int idxOfModeMenuItem,itemAdjusted,itemFast,itemSlow,itemReload,moveNext,movePrev,loadMirror,loadMirrorReloadPlane;//hotspot menu items
  int iFPS,iAoA,iTAS,iIAS,iGS,iGF,iWeather;//Dref items
  XPLMMenuID  menuId,menuText,menuTextOpt,menuHotspots,menuData;
  bool g_in_vr,hasModalWindow;

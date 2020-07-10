@@ -33,13 +33,12 @@ void TextReader::PointToFile(){
 
 bool TextReader::OpenFile(){ //sets textFile,FileName and FileExists
 
-    textFile.open(fileName,std::ifstream::in);
-    if (textFile.is_open()&&fileName!=""){
+    if (FilePointer::OpenCurrentFile(textFile)){
         fileExists=true;
         filePath=fileName;
         //fT=last_write_time(filePath);
         DrawLogic::WriteDebug("TextReader going to read size for "+filePath.string());
-        keepsize=std::experimental::filesystem::file_size(filePath);
+        keepsize=FilePointer::GetSizeOfCurrentFile();
     }else{
         DrawLogic::WriteDebug("Couldn't open file "+fileName);
         fileExists=false;
@@ -66,13 +65,11 @@ std::string TextReader::GetDirName(){
 
 bool TextReader::ReadFileToBuff(){ //defines MaxLineLength and reads all lines into buffer, breaks at spaces,"-","(",or")" or at maxLineLength
 if (fileName!=""){
-  if (!textFile.is_open()) {
-      OpenFile();
-      if (!textFile.is_open()) {
+  if (!FilePointer::OpenCurrentFile(textFile)) {
           std::string inputL="the file "+fileName+" couldn't be found";
           fileExists=false;
           AddLine(inputL);
-        return true;}}
+        return true;}
   clearText();
   //stringOps ops;
   std::string inputL;
@@ -88,34 +85,98 @@ if (fileName!=""){
 
 void TextReader::AppendToStream(){
     //Check if file is bigger than before
-    auto currentSize=std::experimental::filesystem::file_size(filePath);
+    auto currentSize=FilePointer::GetSizeOfCurrentFile();
+    DrawLogic::WriteDebug("before comparison, new size, old size ",filePos,currentSize,keepsize);
     if (currentSize!=keepsize){
-        OpenFile();
-        if (!textFile.is_open()) return;
+        bool bigger(currentSize>keepsize);
+        if (!OpenFile()) return;
         //Read from last entry point
         string inputL;
-        for (int line(0);line<filePos;line++) getline(textFile,inputL);
-        while (getline(textFile,inputL)){
-            AddLine(inputL);
-            filePos++;
+        DrawLogic::WriteDebug("number of lines in file, new size, old size ",filePos,currentSize,keepsize);
+        if (bigger){
+            DrawLogic::WriteDebug("number of lines in file is and size ",filePos,currentSize);
+            for (int line(0);line<filePos;line++) getline(textFile,inputL); //skip lines already read
+            while (getline(textFile,inputL)){
+                AddLine(inputL);
+                filePos++;
+            }
+            textFile.close();
+            indxLastPage=totalNbL-pageHeightInL;
+            if (indxLastPage<0) indxLastPage=0;
+            scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
+            if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
+            indxLastOnPg=indxFirstOnPg+pageHeightInL;
+            if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
+            delStr1="";
+            delStr2="";
+            lastLineDeleted=-1;
+            antepLineDeleted=-1;
+            keepsize=currentSize;
         }
-        textFile.close();
-        indxLastPage=totalNbL-pageHeightInL;
-        if (indxLastPage<0) indxLastPage=0;
-        scrB.Setup(heightPx,totalNbL,indxFirstOnPg,pageHeightInL,textOnly.GetWidth()+grlOffsetX,grlOffsetY);
-        if (indxFirstOnPg>indxLastPage) indxFirstOnPg=indxLastPage;//I don't redefine indxFirstOnPage except if the display has shrunken
-        indxLastOnPg=indxFirstOnPg+pageHeightInL;
-        if (indxLastOnPg>=totalNbL) indxLastOnPg=totalNbL-1;
-        delStr1="";
-        delStr2="";
-        lastLineDeleted=-1;
-        antepLineDeleted=-1;
-        keepsize=currentSize;
+        else DoReloadNotStream();
     }
     GoToLastPage();
 }
 
+void TextReader::ShowAll(){
+    ReadFileToBuff();
+    hasSelection=false;
+    hasHiddenLines=false;
+}
 
+bool TextReader::Reload(){
+/*Reloads the file but keeps firstLineOnPage if possible
+ * restores this position or if >lastLineOnPage will be reset to that value*/
+    if (streamOn){
+        AppendToStream();
+        return true;
+    }
+    return (DoReloadNotStream());
+
+}
+
+bool TextReader::DoReloadNotStream(){
+    int posOfL(indxFirstOnPg);
+    bool lastPage(false);
+    if (indxFirstOnPg==indxLastPage) lastPage=true;
+    auto oldSize=keepsize;
+    ShowAll();
+    if (lastPage){ GoToLineN(indxLastPage);}
+    else GoToLineN(posOfL);
+    auto currentSize=FilePointer::GetSizeOfCurrentFile();
+    if (currentSize!=oldSize){
+       keepsize=currentSize;
+       return true;}
+    return false;
+}
+
+bool TextReader::ReloadIfSizeChanged(){
+/*Reloads the file but keeps firstLineOnPage if possible
+ * restores this position or if >lastLineOnPage will be reset to that value*/
+    if (streamOn){
+        AppendToStream();
+        return true;
+    }
+    bool changed(false);
+    auto currentSize=FilePointer::GetSizeOfCurrentFile();
+
+    if (currentSize!=keepsize){
+        changed=true;
+        keepsize=currentSize;
+        bool lastPage=false;
+        if (indxFirstOnPg==indxLastPage) lastPage=true;
+        int posOfL=indxFirstOnPg;
+        ShowAll();
+        if (lastPage) posOfL=indxLastPage;
+        GoToLineN(posOfL); }
+    return changed;
+}
+
+void TextReader::closeReader(){
+    ResetFrequencies();
+    clearText();
+    hasSelection=false;hasHiddenLines=false;
+}
 bool TextReader::HasNav(){
     return hasNav;
 }
@@ -169,62 +230,7 @@ bool TextReader::isADigit(std::string test){
     else return (false);
 }
 
-void TextReader::ShowAll(){
-    ReadFileToBuff();
-    hasSelection=false;
-    hasHiddenLines=false;
-}
 
-bool TextReader::Reload(){
-/*Reloads the file but keeps firstLineOnPage if possible
- * restores this position or if >lastLineOnPage will be reset to that value*/
-    if (streamOn){
-        AppendToStream();
-        return true;
-    }
-    int posOfL=indxFirstOnPg;
-    bool lastPage=false;
-    if (indxFirstOnPg==indxLastPage) lastPage=true;
-    auto oldSize=keepsize;
-    ShowAll();
-    if (lastPage){ GoToLineN(indxLastPage);}
-    else GoToLineN(posOfL);
-    auto currentSize=std::experimental::filesystem::file_size(filePath);
-    if (currentSize!=oldSize){
-       keepsize=currentSize;
-       return true;}
-    return false;
-}
-
-bool TextReader::ReloadIfSizeChanged(){
-/*Reloads the file but keeps firstLineOnPage if possible
- * restores this position or if >lastLineOnPage will be reset to that value*/
-    if (streamOn){
-        AppendToStream();
-        return true;
-    }
-    bool changed(false);
-    if (fileExists){
-    auto currentSize=std::experimental::filesystem::file_size(filePath);
-
-    if (currentSize!=keepsize){
-        changed=true;
-        keepsize=currentSize;
-        bool lastPage=false;
-        if (indxFirstOnPg==indxLastPage) lastPage=true;
-        int posOfL=indxFirstOnPg;
-        ShowAll();
-        if (lastPage) posOfL=indxLastPage;
-        GoToLineN(posOfL); }
-    }
-    return changed;
-}
-
-void TextReader::closeReader(){
-    ResetFrequencies();
-    clearText();
-    hasSelection=false;hasHiddenLines=false;
-}
 
 void TextReader::ResetFrequencies(){
      hasNav=false;hasCom=false;hasADF=false;
