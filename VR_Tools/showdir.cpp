@@ -236,7 +236,7 @@ void ShowDir::Update(){
 
 void ShowDir::DrawDirWindow(XPLMWindowID){
     myDrawPad->ToUpperLevel();
-    myDrawPad->RenderElements();
+    myDrawPad->RenderContent();
 }
 
 int  ShowDir::processMouseDn(int x,int y){

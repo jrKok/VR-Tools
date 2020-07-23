@@ -40,9 +40,10 @@ public:
              OpCenter();
             ~OpCenter();
     //General setup
-       int   SetupCenter();
+       bool  SetupCenter();
        void  LaunchOperations();
        void  HaltOperations();
+       void  LoadHotspots();
        void  SuspendOperations();
        int   ResumeOperations();
 static void  CheckVRMirror();

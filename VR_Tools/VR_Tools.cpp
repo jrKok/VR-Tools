@@ -1,6 +1,7 @@
 #include "VR_Tools.h"
 #include "opcenter.h"
 #include "hotspots.h"
+#include "filepointer.h"
 
 
 /* Variables */
@@ -21,15 +22,18 @@ PLUGIN_API int XPluginStart(
                         char *		outDesc)
 {
 
-    strcpy(outName, "VR Tools version 1.3.5");
+    strcpy(outName, "VR Tools version 1.3.5.4");
     strcpy(outSig, "a plug-in by jrKok");
-    strcpy(outDesc, "A plug-in to provide low level enhancements to the use of X Plane in VR");
+    strcpy(outDesc, "A plug-in to provide low level enhancements for the use of X Plane in VR");
         launcher=std::make_unique<OpCenter>();
-        launcher->SetupCenter();
-        launcher->LaunchOperations();
-        XPLMDebugString("VR Tools version 1.3.5 correctly started\n");
+        bool valid=launcher->SetupCenter();
+        if (valid){
+            launcher->LaunchOperations();
+            XPLMDebugString("VR Tools version 1.3.5.4 correctly started\n");
+        }
+        else (XPLMDebugString("VR Tools is missing an essential file; re-install the plugin"));
 
-    return (1);
+    return (valid);
 }
 
 
@@ -60,13 +64,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, int msg, void * inParam)
     if (msg==XPLM_MSG_PLANE_LOADED){
         long idx=reinterpret_cast<long>(inParam);
         if (idx==0){
-            VRCReader::GetVRConfigFileName();
-            if (VRCReader::HasVRConfig()){
-                VRCReader::AnalyzeFile();
-                WriteDebug("VRconfig : Number of Hotspots generated = "+std::to_string(VRCReader::GetHotspotCount()));
-                Hotspots::MakeMoveComplete();
-                launcher->SetEnableHSMoves(VRCReader::HasHotspots());
-            }
+            launcher->LoadHotspots();
         }
     }
 }

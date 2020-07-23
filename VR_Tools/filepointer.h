@@ -18,7 +18,9 @@ class FilePointer
 public:
     FilePointer();
 
-static string   DirSeparator;
+static bool     Initiate();
+static bool     CheckDirExists(string dName);
+static bool     CheckFileExists(string Name);
 static void     SetCurrentFileName(string in_Name);
 static string   GetCurrentFileName();
 static string   GetCurrentNameSansExt();
@@ -26,7 +28,7 @@ static bool     ExistsName();
 static void     SetCompleteFileName(string in_Name);
 static void     SetCurrentDirName(string in_Dir);
 static string   GetCurrentDirName();
-static void     FindCurrentPlaneDir();
+static bool     FindCurrentPlaneDir();
 static string   GetCurrentPlaneDir();
 static void     MakeBackups();
 static void     ReleaseBackups();
@@ -34,7 +36,6 @@ static void     RestoreBackup();
 static void     SaveTemp();
 static string   GetTempName();
 static string   GetBackupName();
-static void     Initiate();
 static void     AddFile(string dir,string file);
 static string   GetCurrentFile();
 static string   GetNext();
@@ -47,7 +48,9 @@ static bool     HasMirror();
 static void     CopyVRFromMirror();
 static std::uintmax_t GetSizeOfCurrentFile();
 
-    private:
+static string   DirSeparator;
+
+private:
     static string currentFileName,currentDirName,currentBackup,currentTemp,currentPlaneDir,currentPlaneName;
     static string xPlaneDir,vrToolsDir,mirrorDir;
     static FileStack fStack;

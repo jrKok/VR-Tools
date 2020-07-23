@@ -27,7 +27,26 @@
     *** Glew, The OpenGL Extension Wrangler Library github : https://github.com/nigels-com/glew
     *** Freetype, for font management https://www.freetype.org/
  **********************************************************************************************
+version 1.3.5.4
+* fixed loading aircraft models vrconfig parsing on reload of plugin
+* fixed window content in popped out mode
+* fixed crash of X Plane on lacking resources folder
+* fixed further issues of linux crashing with popped out mode
+*
+version 1.3.5.3
+ fixed plugin not showing in VR due to X Plane's bugged B15, will be corrected in B16
 
+version 1.3.5.2
+
+* fixed crash with streaming (because of lack of file name check before fetching file size)
+*
+version 1.3.5.1
+
+* implemented Tab and backtab
+* changed code to enable writing hotspots into a vrconfig which doesn't contain any
+* corrected bugs to improve moving with menu commands
+* implemented file name checks before opening a file or fetching file size : required since windows update 2004
+*
 * version 1.3.5
  *  Change log :
  *   modified the startup sequence to enable the plugin to be reloaded with leeceebaker's DataRefTool
@@ -60,7 +79,7 @@
  *   make clicking text easier by making touching lines, will be better for selection also
  *   reimplement UTF button
  *   linux system clipboard
- *   implement tab with fixed positions and a backtab
+ *   implement a backtab
  *   reimplement delete lines in textreader (with a stack for deleted lined)
  *   reimplement inisettings with a map for parameters
  *   ATC reader (makes a commit to log, then reads ATC instructions), will do it on command
@@ -82,6 +101,10 @@
      see if read file can be made asynchronous
  *   bring DRef window under drawlogic
  *
+ *
+ * version 1.3.6
+ * changelog
+ * implement tab with fixed positions
  * */
 
 

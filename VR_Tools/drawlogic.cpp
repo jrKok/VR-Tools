@@ -667,8 +667,13 @@ void DrawLogic::PrintStringOnLocalT(const int in_Element){
 }
 
 void DrawLogic::RenderContent(){
-
+#if IBM
     myself->RenderElements();
+#endif
+#if LIN
+    if (XPLMWindowIsPoppedOut(myself->myWindow)) myself->RenderElementsDirectGL();
+    else myself->RenderElements();
+#endif
 }
 
 void DrawLogic::RenderElementsDirectGL(){
@@ -686,13 +691,14 @@ void DrawLogic::RenderElementsDirectGL(){
                         &textureZone);
             hasToUpdate=false;
         }
+        XPLMGetWindowGeometry(myself->myWindow,&screenL,&screenT,&screenR,&screenB);
         XPLMSetGraphicsState(
             0,   // No fog, equivalent to glDisable(GL_FOG);
             1,   // One texture, equivalent to glEnable(GL_TEXTURE_2D);
             0,   // No lighting, equivalent to glDisable(GL_LIGHT0);
             0,   // No alpha testing, e.g glDisable(GL_ALPHA_TEST);
-            1,   // Use alpha blending, e.g. glEnable(GL_BLEND);
-            1,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
+            0,   // Use alpha blending, e.g. glEnable(GL_BLEND);
+            0,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
             0);  // No depth write, e.g. glDepthMask(GL_FALSE);
 
         //Direct rendering with screen coords, works in VR
@@ -727,16 +733,21 @@ void DrawLogic::RenderElements(){
            wW=screenR-screenL;
            wH=screenT-screenB;
            glPushAttrib(GL_VIEWPORT_BIT);
-           glViewport(screenL,screenB,wW,wH);
+           if (XPLMWindowIsPoppedOut(myself->myWindow)){
+               glViewport(0,0,wW,wH);}
+           else {
+             glViewport(screenL,screenB,wW,wH);
+           }
+
         }
 
         XPLMSetGraphicsState(
             0,   // No fog, equivalent to glDisable(GL_FOG);
-            0,   // No texture
+            1,   // No texture
             0,   // No lighting, equivalent to glDisable(GL_LIGHT0);
             0,   // No alpha testing, e.g glDisable(GL_ALPHA_TEST);
-            1,   // Use alpha blending, e.g. glEnable(GL_BLEND);
-            1,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
+            0,   // Use alpha blending, e.g. glEnable(GL_BLEND);
+            0,   // No depth read, e.g. glDisable(GL_DEPTH_TEST);
             0);
         XPLMBindTexture2d(textNum,0);
 
@@ -916,6 +927,7 @@ bool DrawLogic::VerifyPointer(ulong tag, rectangles *in_rect){
 }
 
 void DrawLogic::PrintMemoryStats(){
+#if IBM
     PROCESS_MEMORY_COUNTERS pmc;
     if(GetProcessMemoryInfo(GetCurrentProcess(),&pmc,sizeof(PROCESS_MEMORY_COUNTERS))){
         WriteDebug("This process uses the following number of kBytes : ",static_cast<int>(pmc.WorkingSetSize/1024));
@@ -925,4 +937,5 @@ void DrawLogic::PrintMemoryStats(){
       GlobalMemoryStatusEx (&statex);
     WriteDebug("% of memory in use : ",static_cast<int>(statex.dwMemoryLoad));
     WriteDebug("free kB in RAM : ",static_cast<int>(statex.ullTotalPhys/1024));
+#endif
 }

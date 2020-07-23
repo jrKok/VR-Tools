@@ -19,42 +19,68 @@ FilePointer::FilePointer()
 
 }
 
-void     FilePointer::Initiate(){
+bool     FilePointer::Initiate(){
     char xpld[1024];
+    bool integrity(true);
     XPLMGetSystemPath(xpld);
     xPlaneDir=xpld;
     vrToolsDir=xPlaneDir+"Resources/plugins/VR_Tools/";
-    mirrorDir=vrToolsDir+"resources/mirrors/";
-    path p(mirrorDir);
-    if (!exists(p)||!is_directory(p)) {
-        DrawLogic::WriteDebug("FilePointer : attempt to create mirror directory");
-        create_directory(p);
-        if (!exists(p)){
-            DrawLogic::WriteDebug("FilePointer : cannot create mirror directory");
-            mirrorDir="";}
 
-    }
+    //integrity of VR Tools directory
+    DrawLogic::WriteDebug("going to check integrity");
+    integrity = CheckDirExists("resources/"); if (integrity) DrawLogic::WriteDebug("resources exists as Dir");
+    integrity = CheckDirExists("resources/keyboards/"); if (integrity) DrawLogic::WriteDebug("resource/keyboards exists as Dir");
+    integrity = CheckFileExists("resources/kneeboard.txt"); if (integrity) DrawLogic::WriteDebug("kneeboard exists as file");
+    integrity = CheckFileExists("resources/keyboards/USKB.cfg"); if (integrity) DrawLogic::WriteDebug("USKB exists as file");
+    integrity = CheckFileExists("resources/keyboards/numpad.cfg"); if (integrity) DrawLogic::WriteDebug("numpad exists as file");
+    integrity = CheckFileExists("resources/keyboards/numpad2.cfg"); if (integrity) DrawLogic::WriteDebug("numpad2 exists as file");
+    if (integrity) {
+        mirrorDir=vrToolsDir+"resources/mirrors/";
+        path p(mirrorDir);
+        if (!exists(p)||!is_directory(p)) {
+            DrawLogic::WriteDebug("FilePointer : attempt to create mirror directory");
+            create_directory(p);
+            if (!exists(p)){
+                DrawLogic::WriteDebug("FilePointer : cannot create mirror directory");
+                mirrorDir="";}
 
-    fStack.Initiate();
-    if (fStack.HasStack()){
-        SetCompleteFileName(fStack.GetCurrentActive());
-    }else {
-        //Go to find file
-        currentDirName=IniSettings::GetDir();
-        currentFileName=IniSettings::GetFile();
-        if (!ExistsName()){
-             currentFileName="flightnotes.txt";
-             currentDirName="Output/textfiles";
+        }
+
+        fStack.Initiate();
+        if (fStack.HasStack()){
+            SetCompleteFileName(fStack.GetCurrentActive());
+        }else {
+            //Go to find file
+            currentDirName=IniSettings::GetDir();
+            currentFileName=IniSettings::GetFile();
             if (!ExistsName()){
-                currentDirName="Resources/plugins/VR_Tools/textfiles";
+                currentFileName="flightnotes.txt";
+                currentDirName="Output/textfiles";
                 if (!ExistsName()){
-                    currentDirName="";
-                    currentFileName="";
+                    currentDirName="Resources/plugins/VR_Tools/textfiles";
+                    if (!ExistsName()){
+                        currentDirName="";
+                        currentFileName="";
+                    }
                 }
             }
+            DrawLogic::WriteDebug("filePointer : finally got dir and nam "+currentDirName+" "+currentFileName);
         }
-        DrawLogic::WriteDebug("filePointer : finally got dir and nam "+currentDirName+" "+currentFileName);
+    }
+    return integrity;
 }
+
+bool FilePointer::CheckDirExists(string dName){
+    string dirToCheck=vrToolsDir+dName;
+    DrawLogic::WriteDebug("test presence of "+dirToCheck);
+    path p(dirToCheck);
+    return (is_directory(p)&&exists(p));
+}
+
+bool FilePointer::CheckFileExists(string fName){
+    string fileToCheck=vrToolsDir+fName;
+    path p(fileToCheck);
+    return (is_regular_file(p)&&exists(p));
 }
 
 bool     FilePointer::ExistsName(){
@@ -112,7 +138,8 @@ string FilePointer::GetCurrentDirName(){
     return currentDirName;
 }
 
-void FilePointer::FindCurrentPlaneDir(){
+bool FilePointer::FindCurrentPlaneDir(){
+    bool hasPlane(false);
     char plName[512],plDir[1024];
     string planeDir("");
     XPLMGetNthAircraftModel(0,plName,plDir);
@@ -120,11 +147,13 @@ void FilePointer::FindCurrentPlaneDir(){
     if (planePath!=""){
         path p=planePath;
         planeDir=p.parent_path().string();
+        currentPlaneDir=planeDir;
+        currentPlaneName=plName;
+        if (currentPlaneName!="") currentPlaneName=currentPlaneName.erase(currentPlaneName.size()-4,4);//erase trailing.acf
+        DrawLogic::WriteDebug("Filepointer plane Directory and Name : "+currentPlaneDir+" "+currentPlaneName);
+        if (currentPlaneDir!=""&&currentPlaneName!="") hasPlane=true;
     }
-    currentPlaneDir=planeDir;
-    currentPlaneName=plName;
-    currentPlaneName=currentPlaneName.erase(currentPlaneName.size()-4,4);//erase trailing.acf
-    DrawLogic::WriteDebug("Filepointer plane Directory and Name : "+currentPlaneDir+" "+currentPlaneName);
+    return hasPlane;
 }
 
 string FilePointer::GetCurrentPlaneDir(){

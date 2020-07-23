@@ -256,7 +256,7 @@ void LayoutWithEdit::DrawTextW(XPLMWindowID){
     //intialize
     myDrawPad->ToUpperLevel();
 
-    myDrawPad->RenderElements();
+    myDrawPad->RenderContent();
     tEdFileReader->DrawCursor();
 }
 

@@ -40,50 +40,51 @@ OpCenter::~OpCenter(){
     fontmanager.EndFreeType();
 }
 
-int OpCenter::SetupCenter(){
+bool OpCenter::SetupCenter(){
         myself=this;
         DrawLogic::WriteDebug("Go To GetIniParams");
         colordefs.DefineColors();
         IniSettings::GetIniParams();
         g_vr_dref    = XPLMFindDataRef("sim/graphics/VR/enabled");
-        FilePointer::Initiate();
+        bool allFilesInstalled=FilePointer::Initiate();
+        if (allFilesInstalled){
+            CommandText   = XPLMCreateCommand("VR_Tools/Custom/Toggle_Text_File","Toggle text");
+            CmdFirstLine  = XPLMCreateCommand("VR_Tools/Custom/Text/Select_First_Line","Select First Line");
+            CmdNextLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Next_Line","Next Line");
+            CmdPrevLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Previous_Line","Previous Line");
+            CmdDelLine    = XPLMCreateCommand("VR_Tools/Custom/Text/Delete_Line","Hide Line");
+            CmdReload     = XPLMCreateCommand("VR_Tools/Custom/Text/Reload","Reload");
 
-        CommandText   = XPLMCreateCommand("VR_Tools/Custom/Toggle_Text_File","Toggle text");
-        CmdFirstLine  = XPLMCreateCommand("VR_Tools/Custom/Text/Select_First_Line","Select First Line");
-        CmdNextLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Next_Line","Next Line");
-        CmdPrevLine   = XPLMCreateCommand("VR_Tools/Custom/Text/Previous_Line","Previous Line");
-        CmdDelLine    = XPLMCreateCommand("VR_Tools/Custom/Text/Delete_Line","Hide Line");
-        CmdReload     = XPLMCreateCommand("VR_Tools/Custom/Text/Reload","Reload");
+            fontmanager.Initialise();
 
-        fontmanager.Initialise();
+            //Register numbered text commands
+            void * nb=new(int*);
+            //(*(int*)nb)=0;
+            nb=new(int*);*(static_cast<int*>(nb))=1;
+            XPLMRegisterCommandHandler(CommandText,MyTextReaderCommandHandler,1,nb);
+            nb=new(int*);*(static_cast<int*>(nb))=2;
+            XPLMRegisterCommandHandler(CmdFirstLine,MyTextReaderCommandHandler,1,nb);
+            nb=new(int*);*(static_cast<int*>(nb))=3;
+            XPLMRegisterCommandHandler(CmdNextLine,MyTextReaderCommandHandler,1,nb);
+            nb=new(int*);*(static_cast<int*>(nb))=4;
+            XPLMRegisterCommandHandler(CmdPrevLine,MyTextReaderCommandHandler,1,nb);
+            nb=new(int*);*(static_cast<int*>(nb))=5;
+            XPLMRegisterCommandHandler(CmdDelLine,MyTextReaderCommandHandler,1,nb);
+            nb=new(int*);*(static_cast<int*>(nb))=6;
+            XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
+            drefW.Setup();
+            htsp =std::make_unique<Hotspots>();
+            htsp->Setup();
+            htsp->SetMyCenter(this);
+            MakeMenus();
+            commandFilter.init();
 
-        //Register numbered text commands
-        void * nb=new(int*);
-        //(*(int*)nb)=0;
-        nb=new(int*);*(static_cast<int*>(nb))=1;
-        XPLMRegisterCommandHandler(CommandText,MyTextReaderCommandHandler,1,nb);
-        nb=new(int*);*(static_cast<int*>(nb))=2;
-        XPLMRegisterCommandHandler(CmdFirstLine,MyTextReaderCommandHandler,1,nb);
-        nb=new(int*);*(static_cast<int*>(nb))=3;
-        XPLMRegisterCommandHandler(CmdNextLine,MyTextReaderCommandHandler,1,nb);
-        nb=new(int*);*(static_cast<int*>(nb))=4;
-        XPLMRegisterCommandHandler(CmdPrevLine,MyTextReaderCommandHandler,1,nb);
-        nb=new(int*);*(static_cast<int*>(nb))=5;
-        XPLMRegisterCommandHandler(CmdDelLine,MyTextReaderCommandHandler,1,nb);
-        nb=new(int*);*(static_cast<int*>(nb))=6;
-        XPLMRegisterCommandHandler(CmdReload,MyTextReaderCommandHandler,1,nb);
-        drefW.Setup();
-        htsp =std::make_unique<Hotspots>();
-        htsp->Setup();
-        htsp->SetMyCenter(this);
-        MakeMenus();
-        commandFilter.init();
+            DrawLogic::WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
+            IsLaunched=true;
+            myself->has_been_setup=true;
+        }
 
-        DrawLogic::WriteDebug("VR Tools version 1.3.3 final - Show FPS, speeds, g-forces, filter commands, edit text files");
-        IsLaunched=true;
-        myself->has_been_setup=true;
-
-    return g_vr_dref != nullptr;
+    return allFilesInstalled;
 }
 
 void OpCenter::LaunchOperations(){
@@ -130,10 +131,24 @@ void OpCenter::LaunchOperations(){
         DLoop.structSize=sizeof (DLoop);
         DLoop.refcon=nullptr;
         DLoopId=XPLMCreateFlightLoop(&DLoop);
-
+        LoadHotspots();
         XPLMScheduleFlightLoop(DLoopId,-1,1);
         has_been_launched=true;
 
+}
+
+void OpCenter::LoadHotspots(){
+    if (FilePointer::FindCurrentPlaneDir()){
+        VRCReader::GetVRConfigFileName();
+        if (VRCReader::HasVRConfig()){
+            VRCReader::AnalyzeFile();
+            string info="[VR Tools] read VRconfig : Number of Hotspots generated = "+std::to_string(VRCReader::GetHotspotCount())+"\n";
+            XPLMDebugString(info.c_str());
+            Hotspots::MakeMoveComplete();
+            SetEnableHSMoves(VRCReader::HasHotspots());
+            CheckVRMirror();
+        }
+    }
 }
 
 void OpCenter::HaltOperations(){
